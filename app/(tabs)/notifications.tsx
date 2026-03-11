@@ -4,169 +4,9 @@ import { StatusBar } from "expo-status-bar";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Social = "x" | "tiktok" | "instagram" | "pinterest";
-
-type NotificationItem = {
-  id: string;
-  social: Social;
-  avatar: string;
-  networkLabel: string;
-  link: string;
-  date: string;
-  time: string;
-  unread?: boolean;
-};
-
-const notificationsByDay: { title: string; items: NotificationItem[] }[] = [
-  {
-    title: "Today",
-    items: [
-      {
-        id: "today-1",
-        social: "x",
-        avatar: "https://i.pravatar.cc/64?img=11",
-        networkLabel: "X",
-        link: "https://twitter.com/wichedguro/st...",
-        date: "25 February, 2026",
-        time: "10:30 am",
-        unread: true,
-      },
-      {
-        id: "today-2",
-        social: "instagram",
-        avatar: "https://i.pravatar.cc/64?img=16",
-        networkLabel: "Instagram",
-        link: "https://instagram.com/p/abc...",
-        date: "25 February, 2026",
-        time: "9:15 am",
-        unread: true,
-      },
-      {
-        id: "today-3",
-        social: "tiktok",
-        avatar: "https://i.pravatar.cc/64?img=17",
-        networkLabel: "Tiktok",
-        link: "https://tiktok.com/tiktok...",
-        date: "25 February, 2026",
-        time: "8:00 am",
-        unread: true,
-      },
-    ],
-  },
-  {
-    title: "February 24",
-    items: [
-      {
-        id: "feb24-1",
-        social: "tiktok",
-        avatar: "https://i.pravatar.cc/64?img=12",
-        networkLabel: "Tiktok",
-        link: "https://tiktok.com/tiktok...",
-        date: "24 February, 2026",
-        time: "10:30 am",
-        unread: false,
-      },
-      {
-        id: "feb24-2",
-        social: "instagram",
-        avatar: "https://i.pravatar.cc/64?img=13",
-        networkLabel: "Instagram",
-        link: "https://instagram.com...",
-        date: "24 February, 2026",
-        time: "10:30 am",
-        unread: false,
-      },
-      {
-        id: "feb24-3",
-        social: "x",
-        avatar: "https://i.pravatar.cc/64?img=18",
-        networkLabel: "X",
-        link: "https://twitter.com/wichedguro/po...",
-        date: "24 February, 2026",
-        time: "3:45 pm",
-        unread: false,
-      },
-    ],
-  },
-  {
-    title: "February 22",
-    items: [
-      {
-        id: "feb22-1",
-        social: "pinterest",
-        avatar: "https://i.pravatar.cc/64?img=14",
-        networkLabel: "Pinterest",
-        link: "https://pinterest.com/...",
-        date: "22 February, 2026",
-        time: "10:30 am",
-        unread: false,
-      },
-      {
-        id: "feb22-2",
-        social: "tiktok",
-        avatar: "https://i.pravatar.cc/64?img=15",
-        networkLabel: "Tiktok",
-        link: "https://tiktok.com/tiktok...",
-        date: "22 February, 2026",
-        time: "10:30 am",
-        unread: false,
-      },
-    ],
-  },
-  {
-    title: "February 20",
-    items: [
-      {
-        id: "feb20-1",
-        social: "x",
-        avatar: "https://i.pravatar.cc/64?img=19",
-        networkLabel: "X",
-        link: "https://twitter.com/wichedguro/st...",
-        date: "20 February, 2026",
-        time: "2:00 pm",
-        unread: false,
-      },
-      {
-        id: "feb20-2",
-        social: "instagram",
-        avatar: "https://i.pravatar.cc/64?img=20",
-        networkLabel: "Instagram",
-        link: "https://instagram.com/p/xyz...",
-        date: "20 February, 2026",
-        time: "11:30 am",
-        unread: false,
-      },
-      {
-        id: "feb20-3",
-        social: "pinterest",
-        avatar: "https://i.pravatar.cc/64?img=21",
-        networkLabel: "Pinterest",
-        link: "https://pinterest.com/pin/...",
-        date: "20 February, 2026",
-        time: "9:00 am",
-        unread: false,
-      },
-    ],
-  },
-];
-
-function SocialBadge({ social }: { social: Social }) {
-  const map: Record<Social, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
-    x: { bg: "#000000", icon: "logo-twitter" },
-    tiktok: { bg: "#000000", icon: "logo-tiktok" },
-    instagram: { bg: "#D62976", icon: "logo-instagram" },
-    pinterest: { bg: "#BD081C", icon: "logo-pinterest" },
-  };
-
-  return (
-    <View
-      className="absolute h-4 w-4 items-center justify-center rounded-[4px]"
-      style={{ bottom: -3, right: -3, backgroundColor: map[social].bg }}
-    >
-      <Ionicons name={map[social].icon} size={10} color="#FFFFFF" />
-    </View>
-  );
-}
+import { NetworkBadge } from "@/components/ui/network-badge";
+import { NOTIFICATIONS_BY_DAY } from "@/data/mock-notifications";
+import type { NotificationItem } from "@/types";
 
 function NotificationCard({ item }: { item: NotificationItem }) {
   return (
@@ -174,7 +14,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
       <View className="flex-1 flex-row items-start gap-4">
         <View className="relative">
           <Image source={{ uri: item.avatar }} style={{ width: 40, height: 40, borderRadius: 8 }} resizeMode="cover" />
-          <SocialBadge social={item.social} />
+          <NetworkBadge network={item.social} />
         </View>
 
         <View className="flex-1 gap-2">
@@ -226,7 +66,7 @@ export default function NotificationsScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {notificationsByDay.map((section, index) => (
+        {NOTIFICATIONS_BY_DAY.map((section, index) => (
           <View key={section.title} style={index > 0 ? { marginTop: 20 } : undefined}>
             <Text className="font-jakarta text-[14px] font-semibold text-text-primary">{section.title}</Text>
             <View style={{ marginTop: 8, gap: 8 }}>

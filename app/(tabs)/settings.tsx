@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -8,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
+import { NotificationBell } from "@/components/ui/notification-bell";
 import { showToast } from "@/components/ui/toast";
 
 const API_KEY =
@@ -101,15 +101,6 @@ function ApiKeyCard() {
           </Text>
         </Pressable>
       </View>
-    </View>
-  );
-}
-
-function NotificationBell() {
-  return (
-    <View className="h-6 w-6 items-center justify-center">
-      <Ionicons name="notifications-outline" size={22} className="text-icon-primary" />
-      <View className="absolute right-[2px] top-[2px] h-[6px] w-[6px] rounded-full bg-main-accent-pink" />
     </View>
   );
 }

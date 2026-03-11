@@ -7,138 +7,14 @@ import { LineChart as GiftedLineChart } from "react-native-gifted-charts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
+import { NotificationBell } from "@/components/ui/notification-bell";
+import { NETWORK_CONFIG } from "@/constants/networks";
+import { ANALYTICS_CHANNELS } from "@/data/mock-channels";
+import { CHART_ENGAGEMENT, CHART_FOLLOWERS, CHART_IMPRESSIONS } from "@/data/mock-charts";
+import type { Channel, ChartSpec } from "@/types";
 
 const ICON_PRIMARY = "#A3A3A3";
 const WHITE = "#FFFFFF";
-
-type ChannelNetwork =
-  | "facebook"
-  | "instagram"
-  | "linkedin"
-  | "tiktok"
-  | "youtube";
-
-type Channel = {
-  id: string;
-  name: string;
-  network: ChannelNetwork;
-  avatar: string;
-};
-
-const CHANNELS: Channel[] = [
-  {
-    id: "1",
-    name: "Hamilton Dan",
-    network: "instagram",
-    avatar: "https://i.pravatar.cc/64?img=11",
-  },
-  {
-    id: "2",
-    name: "Daniel Hamilton",
-    network: "facebook",
-    avatar: "https://i.pravatar.cc/64?img=12",
-  },
-  {
-    id: "3",
-    name: "Daniel Hamilton",
-    network: "linkedin",
-    avatar: "https://i.pravatar.cc/64?img=13",
-  },
-  {
-    id: "4",
-    name: "Hamilton Dan",
-    network: "youtube",
-    avatar: "https://i.pravatar.cc/64?img=14",
-  },
-  {
-    id: "5",
-    name: "Daniel Hamilton",
-    network: "tiktok",
-    avatar: "https://i.pravatar.cc/64?img=15",
-  },
-];
-
-const NETWORK_CONFIG: Record<
-  ChannelNetwork,
-  { bg: string; icon: keyof typeof Ionicons.glyphMap }
-> = {
-  facebook: { bg: "#1877F2", icon: "logo-facebook" },
-  instagram: { bg: "#D62976", icon: "logo-instagram" },
-  linkedin: { bg: "#0A66C2", icon: "logo-linkedin" },
-  youtube: { bg: "#FF0000", icon: "logo-youtube" },
-  tiktok: { bg: "#000000", icon: "logo-tiktok" },
-};
-
-type ChartSpec = {
-  data: { value: number }[];
-  color: string;
-};
-
-const CHART_FOLLOWERS: ChartSpec = {
-  data: [
-    { value: 14 },
-    { value: 30 },
-    { value: 20 },
-    { value: 26 },
-    { value: 43 },
-    { value: 18 },
-    { value: 24 },
-    { value: 58 },
-    { value: 64 },
-    { value: 35 },
-    { value: 48 },
-    { value: 22 },
-    { value: 44 },
-  ],
-  color: "#FC69FF",
-};
-
-const CHART_ENGAGEMENT: ChartSpec = {
-  data: [
-    { value: 46 },
-    { value: 44 },
-    { value: 55 },
-    { value: 50 },
-    { value: 33 },
-    { value: 60 },
-    { value: 57 },
-    { value: 65 },
-    { value: 43 },
-    { value: 36 },
-    { value: 41 },
-    { value: 30 },
-    { value: 18 },
-  ],
-  color: "#618DFF",
-};
-
-const CHART_IMPRESSIONS: ChartSpec = {
-  data: [
-    { value: 18 },
-    { value: 23 },
-    { value: 35 },
-    { value: 30 },
-    { value: 43 },
-    { value: 50 },
-    { value: 45 },
-    { value: 66 },
-    { value: 62 },
-    { value: 58 },
-    { value: 48 },
-    { value: 40 },
-    { value: 47 },
-  ],
-  color: "#7C3FFF",
-};
-
-function NotificationBell() {
-  return (
-    <View className="h-6 w-6 items-center justify-center">
-      <Ionicons name="notifications-outline" size={22} color={ICON_PRIMARY} />
-      <View className="absolute right-[2px] top-[2px] h-[6px] w-[6px] rounded-full bg-main-accent-pink" />
-    </View>
-  );
-}
 
 function ChannelAvatar({ channel }: { channel: Channel }) {
   const config = NETWORK_CONFIG[channel.network];
@@ -203,7 +79,7 @@ function ChannelSelector({
             shadowRadius: 8,
           }}
         >
-          {CHANNELS.map((channel) => (
+          {ANALYTICS_CHANNELS.map((channel) => (
             <Pressable
               key={channel.id}
               className={`flex-row items-center gap-3 rounded-[8px] px-3 py-3 ${
@@ -343,7 +219,7 @@ function MetricCard({
 
 export default function AnalyticsScreen() {
   const router = useRouter();
-  const [selectedChannel, setSelectedChannel] = useState(CHANNELS[0]);
+  const [selectedChannel, setSelectedChannel] = useState(ANALYTICS_CHANNELS[0]);
   const [selectedPeriod, setSelectedPeriod] = useState("Month");
 
   return (
