@@ -1,7 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import type { FC } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+const Image = ExpoImage as unknown as FC<ImageProps>;
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NetworkBadge } from "@/components/ui/network-badge";
@@ -13,7 +17,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
     <View className="w-full flex-row items-center gap-2 rounded-[10px] bg-channel-active-bg p-3">
       <View className="flex-1 flex-row items-start gap-4">
         <View className="relative">
-          <Image source={{ uri: item.avatar }} style={{ width: 40, height: 40, borderRadius: 8 }} resizeMode="cover" />
+          <Image source={{ uri: item.avatar }} style={{ width: 40, height: 40, borderRadius: 8 }} contentFit="cover" />
           <NetworkBadge network={item.social} />
         </View>
 
@@ -55,7 +59,7 @@ export default function NotificationsScreen() {
 
       <View className="h-[60px] flex-row items-center justify-between px-4">
         <Pressable className="h-6 w-6 items-center justify-center" onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={20} color="#A3A3A3" />
+          <Ionicons name="chevron-back" size={20} className="text-icon-primary" />
         </Pressable>
         <Text className="font-jakarta text-h2 font-semibold text-text-primary">Notifications</Text>
         <View className="h-6 w-6" />

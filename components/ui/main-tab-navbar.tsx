@@ -1,8 +1,12 @@
-import { Image } from "expo-image";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
+import type { FC } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// expo-image Image is a class component — cast to FC so React 19 JSX types accept it
+const Image = ExpoImage as unknown as FC<ImageProps>;
 
 type TabName = "calendar" | "channels" | "analytics" | "settings";
 
@@ -45,8 +49,11 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
   const { bottom } = useSafeAreaInsets();
 
   return (
-    <View className="w-full items-center bg-main-sections-2" style={{ paddingBottom: bottom }}>
-      <View className="relative h-[68px] w-[375px]">
+    <View
+      className="w-full items-center overflow-hidden bg-main-sections-2"
+      style={{ paddingBottom: bottom }}
+    >
+      <View className="relative h-[90px] w-[375px]">
         <MenuButton
           activeIconSource={require("@/assets/images/navbar/calendar-active.svg")}
           inactiveIconSource={require("@/assets/images/navbar/calendar.svg")}
@@ -102,6 +109,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
           }}
           style={{ position: "absolute", left: 307.76, top: 12 }}
         />
+
       </View>
     </View>
   );

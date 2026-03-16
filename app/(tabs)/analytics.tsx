@@ -1,20 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import type { FC } from "react";
 import { useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { LineChart as GiftedLineChart } from "react-native-gifted-charts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
-import { NotificationBell } from "@/components/ui/notification-bell";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import { ANALYTICS_CHANNELS } from "@/data/mock-channels";
 import { CHART_ENGAGEMENT, CHART_FOLLOWERS, CHART_IMPRESSIONS } from "@/data/mock-charts";
 import type { Channel, ChartSpec } from "@/types";
 
-const ICON_PRIMARY = "#A3A3A3";
-const WHITE = "#FFFFFF";
+const Image = ExpoImage as unknown as FC<ImageProps>;
+
 
 function ChannelAvatar({ channel }: { channel: Channel }) {
   const config = NETWORK_CONFIG[channel.network];
@@ -23,13 +24,13 @@ function ChannelAvatar({ channel }: { channel: Channel }) {
       <Image
         source={{ uri: channel.avatar }}
         style={{ width: 32, height: 32, borderRadius: 6 }}
-        resizeMode="cover"
+        contentFit="cover"
       />
       <View
         className="absolute -bottom-1 -right-1 h-4 w-4 items-center justify-center rounded-[4px]"
         style={{ backgroundColor: config.bg }}
       >
-        <Ionicons name={config.icon} size={10} color={WHITE} />
+        <Ionicons name={config.icon} size={10} className="text-white" />
       </View>
     </View>
   );
@@ -59,7 +60,7 @@ function ChannelSelector({
         <Ionicons
           name={open ? "chevron-up" : "chevron-down"}
           size={16}
-          color={ICON_PRIMARY}
+          className="text-icon-primary"
         />
       </Pressable>
 
@@ -95,7 +96,7 @@ function ChannelSelector({
                 {channel.name}
               </Text>
               {channel.id === selected.id ? (
-                <Ionicons name="checkmark" size={18} color="#612BD3" />
+                <Ionicons name="checkmark" size={18} className="text-main-accent-purple" />
               ) : null}
             </Pressable>
           ))}
@@ -231,7 +232,11 @@ export default function AnalyticsScreen() {
           Analytics
         </Text>
         <Pressable onPress={() => router.push("/(tabs)/notifications")}>
-          <NotificationBell />
+          <Image
+            source={require("@/assets/icons/notification-bell.svg")}
+            style={{ width: 24, height: 24 }}
+            contentFit="contain"
+          />
         </Pressable>
       </View>
 

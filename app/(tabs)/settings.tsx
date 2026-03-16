@@ -1,14 +1,17 @@
 import * as Clipboard from "expo-clipboard";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import type { FC } from "react";
 import { useState } from "react";
 import type { StyleProp, TextStyle } from "react-native";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
-import { NotificationBell } from "@/components/ui/notification-bell";
 import { showToast } from "@/components/ui/toast";
+
+const Image = ExpoImage as unknown as FC<ImageProps>;
 
 const API_KEY =
   "b02b31841331e2f56f683189c6f05bd6e096fe17ff616fc42e61de8f2e9c8300";
@@ -117,7 +120,11 @@ export default function SettingsScreen() {
           Settings
         </Text>
         <Pressable onPress={() => router.push("/(tabs)/notifications")}>
-          <NotificationBell />
+          <Image
+            source={require("@/assets/icons/notification-bell.svg")}
+            style={{ width: 24, height: 24 }}
+            contentFit="contain"
+          />
         </Pressable>
       </View>
 

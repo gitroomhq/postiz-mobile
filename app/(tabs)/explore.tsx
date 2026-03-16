@@ -1,26 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import type { FC } from "react";
 import { useCallback, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NetworkBadge } from "@/components/ui/network-badge";
-import { NotificationBell } from "@/components/ui/notification-bell";
 import { SwipeableChannelRow } from "@/components/ui/swipeable-channel-row";
 import { CHANNELS_LIST } from "@/data/mock-channels";
 import type { Channel } from "@/types";
 
+const Image = ExpoImage as unknown as FC<ImageProps>;
+
 function ChannelRow({ channel }: { channel: Channel }) {
   return (
-    <View className="w-full flex-row items-center gap-2 p-2">
+    <View className="w-full flex-row items-center gap-2 py-2">
       <View className="min-h-px min-w-px flex-1 flex-row items-center gap-3">
         <View className="relative">
           <Image
             source={{ uri: channel.avatar }}
             style={{ width: 40, height: 40, borderRadius: 8 }}
-            resizeMode="cover"
+            contentFit="cover"
           />
           <NetworkBadge network={channel.network} />
         </View>
@@ -74,7 +77,11 @@ export default function ChannelsAddedScreen() {
             </Text>
           </Pressable>
           <Pressable onPress={() => router.push("/(tabs)/notifications")}>
-            <NotificationBell />
+            <Image
+              source={require("@/assets/icons/notification-bell.svg")}
+              style={{ width: 24, height: 24 }}
+              contentFit="contain"
+            />
           </Pressable>
         </View>
       </View>

@@ -1,4 +1,10 @@
-import { LogBox } from 'react-native';
+import { BackHandler, LogBox } from 'react-native';
+
+// react-native-modal@13 uses BackHandler.removeEventListener which was removed in RN 0.73+.
+// Polyfill it as a no-op so the library doesn't crash on unmount.
+if (!('removeEventListener' in BackHandler)) {
+  (BackHandler as any).removeEventListener = () => {};
+}
 
 const IGNORED_WARNING_PATTERNS = [
   'SafeAreaView has been deprecated',
