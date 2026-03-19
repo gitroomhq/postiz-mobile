@@ -1,20 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import type { FC } from "react";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { LineChart as GiftedLineChart } from "react-native-gifted-charts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import { useChannelsStore } from "@/store/channels-store";
 import { CHART_ENGAGEMENT, CHART_FOLLOWERS, CHART_IMPRESSIONS } from "@/data/mock-charts";
 import type { Channel, ChartSpec } from "@/types";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
 
 
 function ChannelAvatar({ channel }: { channel: Channel }) {

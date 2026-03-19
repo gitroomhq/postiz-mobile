@@ -1,12 +1,9 @@
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
-import type { FC } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// expo-image Image is a class component — cast to FC so React 19 JSX types accept it
-const Image = ExpoImage as unknown as FC<ImageProps>;
+import { Image } from "@/components/ui/image";
 
 type TabName = "calendar" | "channels" | "analytics" | "settings";
 

@@ -14,6 +14,8 @@ type BottomSheetWrapperProps = {
   fullHeight?: boolean;
   topOffset?: number;
   useBottomInsetPadding?: boolean;
+  avoidKeyboard?: boolean;
+  swipeEnabled?: boolean;
 };
 
 export function BottomSheetWrapper({
@@ -27,6 +29,8 @@ export function BottomSheetWrapper({
   fullHeight = false,
   topOffset = 0,
   useBottomInsetPadding = true,
+  avoidKeyboard = false,
+  swipeEnabled = true,
 }: BottomSheetWrapperProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -50,6 +54,7 @@ export function BottomSheetWrapper({
       animationOutTiming={300}
       style={{ justifyContent: "flex-end", margin: 0 }}
       useNativeDriverForBackdrop
+      avoidKeyboard={avoidKeyboard}
     >
       <View
         style={[

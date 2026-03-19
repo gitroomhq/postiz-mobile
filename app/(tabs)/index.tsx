@@ -1,8 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import type { FC } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,12 +14,10 @@ import { MonthSelector } from "@/components/calendar/month-selector";
 import { PostDetailSheet } from "@/components/calendar/post-detail-sheet";
 import { TimelineView } from "@/components/calendar/timeline-view";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { showToast } from "@/components/ui/toast";
 import { TimelineDragProvider } from "@/contexts/timeline-drag-context";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
-
 import { usePostsStore } from "@/store/posts-store";
 import type { ScheduledPost } from "@/types";
 import {
@@ -114,6 +110,10 @@ export default function CalendarScreen() {
       if (editingPostId) {
         storeReschedulePost(editingPostId, newDate.toISOString());
         showToast("Date & time updated", "success");
+      } else {
+        // Opened from Add Post sheet — update date/hour so the sheet below reflects it
+        setSelectedDate(new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate()));
+        setSelectedHour(newDate.getHours());
       }
       setDateTimeVisible(false);
       setEditingPostId(null);
@@ -252,8 +252,7 @@ export default function CalendarScreen() {
         onChangeDateTime={(post) => {
           setEditingPostId(post.id);
           setDateTimeTarget(new Date(post.scheduledAt));
-          setPostDetailVisible(false);
-          setTimeout(() => setDateTimeVisible(true), 350);
+          setDateTimeVisible(true);
         }}
       />
 
@@ -271,8 +270,7 @@ export default function CalendarScreen() {
               seconds: 0,
             }),
           );
-          setAddPostVisible(false);
-          setTimeout(() => setDateTimeVisible(true), 350);
+          setDateTimeVisible(true);
         }}
       />
 

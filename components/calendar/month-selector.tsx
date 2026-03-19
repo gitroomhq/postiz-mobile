@@ -1,10 +1,7 @@
-import { Image as ExpoImage, type ImageProps } from "expo-image";
-import type { FC } from "react";
 import { Pressable, Text } from "react-native";
 
+import { Image } from "@/components/ui/image";
 import { formatMonthName } from "@/utils/calendar";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
 
 type MonthSelectorProps = {
   currentMonth: Date;

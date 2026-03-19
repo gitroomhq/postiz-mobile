@@ -1,13 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import type { FC } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Image } from "@/components/ui/image";
 import { NetworkBadge } from "@/components/ui/network-badge";
 import { useNotificationsStore } from "@/store/notifications-store";
 import type { NotificationItem } from "@/types";

@@ -1,11 +1,8 @@
-import type { FC } from "react";
-import { Pressable, Text, View } from "react-native";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
+import { Pressable, Text, View } from "react-native";
 
 import { BottomSheetWrapper } from "@/components/ui/bottom-sheet-wrapper";
+import { Image } from "@/components/ui/image";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import { formatPostDateTime } from "@/utils/calendar";
 import type { ScheduledPost } from "@/types";

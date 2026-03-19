@@ -1,10 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
-import type { FC } from "react";
+import { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 
-const Image = ExpoImage as unknown as FC<ImageProps>;
-
+import { Image } from "@/components/ui/image";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import type { ScheduledPost } from "@/types";
 
@@ -14,7 +12,7 @@ type TimelineEventCardProps = {
   onPress: () => void;
 };
 
-export function TimelineEventCard({ post, isSelected, onPress }: TimelineEventCardProps) {
+export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelected, onPress }: TimelineEventCardProps) {
   const network = NETWORK_CONFIG[post.network];
   const previewText = post.content || post.title;
 
@@ -67,4 +65,4 @@ export function TimelineEventCard({ post, isSelected, onPress }: TimelineEventCa
       )}
     </Pressable>
   );
-}
+});

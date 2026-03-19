@@ -1,8 +1,6 @@
-import { Image as ExpoImage, type ImageProps } from "expo-image";
-import type { FC } from "react";
 import { View } from "react-native";
 
-const Image = ExpoImage as unknown as FC<ImageProps>;
+import { Image } from "@/components/ui/image";
 
 type SvgIconProps = {
   source: any;

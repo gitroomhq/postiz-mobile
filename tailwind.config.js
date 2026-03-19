@@ -21,6 +21,7 @@ module.exports = {
         'background-primary': '#1A1919',
         'icon-primary': '#A3A3A3',
         'icon-secondary': '#656464',
+        'icon-muted': '#8D8B8B',
         'icon-active': '#FFFFFF',
         'text-primary': '#FFFFFF',
         'text-secondary': '#A3A3A3',

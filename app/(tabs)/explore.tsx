@@ -1,19 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import type { FC } from "react";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NetworkBadge } from "@/components/ui/network-badge";
 import { SwipeableChannelRow } from "@/components/ui/swipeable-channel-row";
 import { useChannelsStore } from "@/store/channels-store";
 import type { Channel } from "@/types";
-
-const Image = ExpoImage as unknown as FC<ImageProps>;
 
 function ChannelRow({ channel }: { channel: Channel }) {
   return (

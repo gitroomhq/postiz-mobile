@@ -1,5 +1,12 @@
-import { useCallback, useRef, useState } from "react";
-import { type NativeSyntheticEvent, type NativeScrollEvent, Pressable, ScrollView, Text, View } from "react-native";
+import { memo, useCallback, useRef, useState } from "react";
+import {
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import Svg, { Rect } from "react-native-svg";
 
@@ -101,6 +108,133 @@ function DropTargetHighlight({ hour }: { hour: number }) {
   return <Animated.View style={highlightStyle} pointerEvents="none" />;
 }
 
+type TimelineSlotRowProps = {
+  slot: TimeSlot;
+  slotPosts: ScheduledPost[];
+  selectedDate: Date;
+  referenceNow: Date;
+  selectedPostId: string | null;
+  isSlotSelected: boolean;
+  hasDraggedPost: boolean;
+  expandedSlots: Set<number>;
+  onToggleSlot: (hour: number) => void;
+  onSlotPress: (hour: number) => void;
+  onPostPress: (post: ScheduledPost) => void;
+};
+
+const TimelineSlotRow = memo(function TimelineSlotRow({
+  slot,
+  slotPosts,
+  selectedDate,
+  referenceNow,
+  selectedPostId,
+  isSlotSelected,
+  hasDraggedPost,
+  expandedSlots,
+  onToggleSlot,
+  onSlotPress,
+  onPostPress,
+}: TimelineSlotRowProps) {
+  const hasPosts = slotPosts.length > 0;
+  const slotTime = set(selectedDate, {
+    hours: slot.hour,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  });
+  const isSlotPast = slotTime < referenceNow;
+  const isPastSlot = isSlotPast && !hasPosts;
+  const [hourLabel, meridiemLabel] = slot.label.split(" ");
+
+  const isExpanded = expandedSlots.has(slot.hour);
+  const hasMore = slotPosts.length > MAX_VISIBLE_POSTS;
+  const visiblePosts = hasMore && !isExpanded
+    ? slotPosts.slice(0, MAX_VISIBLE_POSTS)
+    : slotPosts;
+  const hiddenCount = slotPosts.length - MAX_VISIBLE_POSTS;
+
+  return (
+    <View
+      style={hasPosts ? undefined : { height: HOUR_HEIGHT }}
+      className="mb-[4px] flex-row"
+    >
+      <View className="w-12 pl-1 pt-1">
+        <Text className="font-jakarta text-body-4 font-medium leading-[17px] text-[#B3B3B3]">
+          {hourLabel}
+        </Text>
+        <Text className="font-jakarta text-body-4 font-medium leading-[17px] text-[#B3B3B3]">
+          {meridiemLabel}
+        </Text>
+      </View>
+
+      <View style={{ flex: 1, gap: 4, paddingRight: 1 }}>
+        {hasPosts ? (
+          <>
+            {visiblePosts.map((p) => (
+              <DraggableEventCard
+                key={p.id}
+                post={p}
+                isSelected={selectedPostId === p.id}
+                onPress={() => onPostPress(p)}
+              />
+            ))}
+            {hasMore && (
+              <Pressable
+                onPress={() => onToggleSlot(slot.hour)}
+                className="items-center justify-center rounded-[8px] bg-slot-bg-default py-[10px]"
+              >
+                <Text className="font-jakarta text-body-4 font-semibold text-buttons-primary-bg">
+                  {isExpanded
+                    ? "Show less"
+                    : `+ Show more (${hiddenCount})`}
+                </Text>
+              </Pressable>
+            )}
+            {!isSlotPast ? (
+              <View style={{ position: "relative" }}>
+                <SlotBlock
+                  height={44}
+                  isSelected={isSlotSelected}
+                  onPress={() => onSlotPress(slot.hour)}
+                />
+                {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
+              </View>
+            ) : hasDraggedPost ? (
+              <View style={{ position: "relative", height: 44 }}>
+                <DropTargetHighlight hour={slot.hour} />
+              </View>
+            ) : null}
+          </>
+        ) : isPastSlot ? (
+          <Pressable
+            onPress={() => onSlotPress(slot.hour)}
+            style={{ flex: 1, position: "relative" }}
+          >
+            <PassedSlotPattern />
+            {isSlotSelected && (
+              <View
+                pointerEvents="none"
+                className="rounded-[8px] border border-slot-stroke-active"
+                style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+            )}
+            {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
+          </Pressable>
+        ) : (
+          <View style={{ flex: 1, position: "relative" }}>
+            <SlotBlock
+              height="flex"
+              isSelected={isSlotSelected}
+              onPress={() => onSlotPress(slot.hour)}
+            />
+            {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+});
+
 export function TimelineView({
   timeSlots,
   posts,
@@ -115,7 +249,7 @@ export function TimelineView({
   const dragCtx = useTimelineDragContext();
   const timelineContentRef = useRef<View>(null);
 
-  const toggleSlot = (hour: number) => {
+  const toggleSlot = useCallback((hour: number) => {
     setExpandedSlots((prev) => {
       const next = new Set(prev);
       if (next.has(hour)) {
@@ -125,7 +259,7 @@ export function TimelineView({
       }
       return next;
     });
-  };
+  }, []);
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -140,122 +274,59 @@ export function TimelineView({
     });
   }, [dragCtx.timelineOriginY]);
 
+  const hasDraggedPost = dragCtx.draggedPost !== null;
+
+  const keyExtractor = useCallback((item: TimeSlot) => String(item.hour), []);
+
+  const renderItem = useCallback(
+    ({ item: slot }: { item: TimeSlot }) => {
+      const slotPosts = posts.filter((p) => getPostHour(p) === slot.hour);
+
+      return (
+        <TimelineSlotRow
+          slot={slot}
+          slotPosts={slotPosts}
+          selectedDate={selectedDate}
+          referenceNow={referenceNow}
+          selectedPostId={selectedPostId}
+          isSlotSelected={selectedSlotHour === slot.hour}
+          hasDraggedPost={hasDraggedPost}
+          expandedSlots={expandedSlots}
+          onToggleSlot={toggleSlot}
+          onSlotPress={onSlotPress}
+          onPostPress={onPostPress}
+        />
+      );
+    },
+    [
+      posts,
+      selectedDate,
+      referenceNow,
+      selectedPostId,
+      selectedSlotHour,
+      hasDraggedPost,
+      expandedSlots,
+      toggleSlot,
+      onSlotPress,
+      onPostPress,
+    ],
+  );
+
   return (
     <View ref={timelineContentRef} onLayout={measureTimelineOrigin} style={{ flex: 1 }}>
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 16 }}
-      scrollEnabled={dragCtx.scrollEnabled}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-    >
-      <View>
-        {timeSlots.map((slot) => {
-          const slotPosts = posts.filter((p) => getPostHour(p) === slot.hour);
-          const hasPosts = slotPosts.length > 0;
-          const slotTime = set(selectedDate, {
-            hours: slot.hour,
-            minutes: 0,
-            seconds: 0,
-            milliseconds: 0,
-          });
-          const isSlotPast = slotTime < referenceNow;
-          const isPastSlot = isSlotPast && !hasPosts;
-          const [hourLabel, meridiemLabel] = slot.label.split(" ");
-
-          const isExpanded = expandedSlots.has(slot.hour);
-          const hasMore = slotPosts.length > MAX_VISIBLE_POSTS;
-          const visiblePosts = hasMore && !isExpanded
-            ? slotPosts.slice(0, MAX_VISIBLE_POSTS)
-            : slotPosts;
-          const hiddenCount = slotPosts.length - MAX_VISIBLE_POSTS;
-          const isSlotSelected = selectedSlotHour === slot.hour;
-
-          return (
-            <View
-              key={slot.hour}
-              style={hasPosts ? undefined : { height: HOUR_HEIGHT }}
-              className="mb-[4px] flex-row"
-            >
-              <View className="w-12 pl-1 pt-1">
-                <Text className="font-jakarta text-body-4 font-medium leading-[17px] text-[#B3B3B3]">
-                  {hourLabel}
-                </Text>
-                <Text className="font-jakarta text-body-4 font-medium leading-[17px] text-[#B3B3B3]">
-                  {meridiemLabel}
-                </Text>
-              </View>
-
-              <View style={{ flex: 1, gap: 4, paddingRight: 1 }}>
-                {hasPosts ? (
-                  <>
-                    {visiblePosts.map((p) => (
-                      <DraggableEventCard
-                        key={p.id}
-                        post={p}
-                        isSelected={selectedPostId === p.id}
-                        onPress={() => onPostPress(p)}
-                      />
-                    ))}
-                    {hasMore && (
-                      <Pressable
-                        onPress={() => toggleSlot(slot.hour)}
-                        className="items-center justify-center rounded-[8px] bg-slot-bg-default py-[10px]"
-                      >
-                        <Text className="font-jakarta text-body-4 font-semibold text-buttons-primary-bg">
-                          {isExpanded
-                            ? "Show less"
-                            : `+ Show more (${hiddenCount})`}
-                        </Text>
-                      </Pressable>
-                    )}
-                    {/* Drop zone at the bottom of occupied slots */}
-                    {!isSlotPast ? (
-                      <View style={{ position: "relative" }}>
-                        <SlotBlock
-                          height={44}
-                          isSelected={isSlotSelected}
-                          onPress={() => onSlotPress(slot.hour)}
-                        />
-                        {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
-                      </View>
-                    ) : dragCtx.draggedPost ? (
-                      <View style={{ position: "relative", height: 44 }}>
-                        <DropTargetHighlight hour={slot.hour} />
-                      </View>
-                    ) : null}
-                  </>
-                ) : isPastSlot ? (
-                  <Pressable
-                    onPress={() => onSlotPress(slot.hour)}
-                    style={{ flex: 1, position: "relative" }}
-                  >
-                    <PassedSlotPattern />
-                    {isSlotSelected && (
-                      <View
-                        pointerEvents="none"
-                        className="rounded-[8px] border border-slot-stroke-active"
-                        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-                      />
-                    )}
-                    {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
-                  </Pressable>
-                ) : (
-                  <View style={{ flex: 1, position: "relative" }}>
-                    <SlotBlock
-                      height="flex"
-                      isSelected={isSlotSelected}
-                      onPress={() => onSlotPress(slot.hour)}
-                    />
-                    {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
-                  </View>
-                )}
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
+      <FlatList
+        data={timeSlots}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 16 }}
+        scrollEnabled={dragCtx.scrollEnabled}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        initialNumToRender={10}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+      />
     </View>
   );
 }

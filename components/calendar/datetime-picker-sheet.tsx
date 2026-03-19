@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard, Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { set } from "date-fns";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { BottomSheetWrapper } from "@/components/ui/bottom-sheet-wrapper";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import {
   addMonths,
+  format,
   formatMonthName,
   getCalendarDays,
   subMonths,
@@ -20,21 +20,14 @@ type DateTimePickerSheetProps = {
   onClose: () => void;
 };
 
-type ActiveField = "hour" | "minute";
-
 type TimeFieldProps = {
   value: string;
-  isActive: boolean;
-  onPress: () => void;
+  onChangeText: (text: string) => void;
+  onBlur: () => void;
   onStep: (delta: number) => void;
   accessibilityLabel: string;
+  inputRef: React.RefObject<TextInput | null>;
 };
-
-const NUMBER_PAD_ROWS = [
-  ["1", "2", "3"],
-  ["4", "5", "6"],
-  ["7", "8", "9"],
-];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -51,7 +44,7 @@ function getInitialTimeState(date: Date) {
   };
 }
 
-function normalizeDraft(value: string, field: ActiveField) {
+function normalizeValue(value: string, field: "hour" | "minute") {
   if (!value) {
     return field === "minute" ? "00" : "12";
   }
@@ -72,11 +65,14 @@ function normalizeDraft(value: string, field: ActiveField) {
 
 function TimeField({
   value,
-  isActive,
-  onPress,
+  onChangeText,
+  onBlur,
   onStep,
   accessibilityLabel,
+  inputRef,
 }: TimeFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <View className="w-[74px] items-center gap-1">
       <Pressable
@@ -87,20 +83,27 @@ function TimeField({
         <Ionicons name="chevron-up" size={16} className="text-icon-primary" />
       </Pressable>
 
-      <Pressable
-        className={`h-[52px] w-full items-center justify-center rounded-[10px] border ${
-          isActive
+      <TextInput
+        ref={inputRef}
+        className={`h-[52px] w-full rounded-[10px] border text-center font-jakarta text-body-2 text-text-primary ${
+          isFocused
             ? "border-input-stroke-active bg-main-sections"
             : "border-input-stroke-default bg-input-bg"
         }`}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => {
+          setIsFocused(false);
+          onBlur();
+        }}
+        keyboardType="number-pad"
+        keyboardAppearance="dark"
+        maxLength={2}
+        selectTextOnFocus
         accessibilityLabel={accessibilityLabel}
-        onPress={onPress}
-      >
-        <Text className="font-jakarta text-body-2 text-text-primary">
-          {value}
-          {isActive ? "|" : ""}
-        </Text>
-      </Pressable>
+        cursorColor="#FFFFFF"
+      />
 
       <Pressable
         className="h-5 w-5 items-center justify-center"
@@ -121,20 +124,19 @@ export function DateTimePickerSheet({
 }: DateTimePickerSheetProps) {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [currentMonth, setCurrentMonth] = useState(initialDate);
-  const [activeField, setActiveField] = useState<ActiveField>("minute");
-  const [replaceOnNextDigit, setReplaceOnNextDigit] = useState(true);
   const initialTime = getInitialTimeState(initialDate);
   const [hour, setHour] = useState(initialTime.hour);
   const [minute, setMinute] = useState(initialTime.minute);
   const [ampm, setAmpm] = useState<"am" | "pm">(initialTime.ampm);
 
+  const hourRef = useRef<TextInput>(null);
+  const minuteRef = useRef<TextInput>(null);
+
   const emptyPostsMap = new Map();
   const days = getCalendarDays(currentMonth, selectedDate, emptyPostsMap);
 
   useEffect(() => {
-    if (!isVisible) {
-      return;
-    }
+    if (!isVisible) return;
 
     const nextTime = getInitialTimeState(initialDate);
     setSelectedDate(initialDate);
@@ -142,76 +144,77 @@ export function DateTimePickerSheet({
     setHour(nextTime.hour);
     setMinute(nextTime.minute);
     setAmpm(nextTime.ampm);
-    setActiveField("minute");
-    setReplaceOnNextDigit(true);
   }, [initialDate, isVisible]);
 
-  const updateField = (field: ActiveField, nextValue: string) => {
-    if (field === "hour") {
-      setHour(nextValue);
-      return;
-    }
-
-    setMinute(nextValue);
-  };
-
-  const stepField = (field: ActiveField, delta: number) => {
+  const stepField = (field: "hour" | "minute", delta: number) => {
     const currentValue =
       field === "hour"
-        ? parseInt(normalizeDraft(hour, "hour"), 10)
-        : parseInt(normalizeDraft(minute, "minute"), 10);
+        ? parseInt(normalizeValue(hour, "hour"), 10)
+        : parseInt(normalizeValue(minute, "minute"), 10);
     const nextValue =
       field === "hour"
         ? clamp(currentValue + delta, 1, 12)
         : clamp(currentValue + delta, 0, 59);
 
-    updateField(
-      field,
-      field === "minute" ? String(nextValue).padStart(2, "0") : String(nextValue),
-    );
-    setActiveField(field);
-    setReplaceOnNextDigit(false);
+    if (field === "hour") {
+      setHour(String(nextValue));
+    } else {
+      setMinute(String(nextValue).padStart(2, "0"));
+    }
   };
 
-  const handleFieldPress = (field: ActiveField) => {
-    setActiveField(field);
-    setReplaceOnNextDigit(true);
-  };
+  const handleHourChange = (text: string) => {
+    const digits = text.replace(/[^0-9]/g, "");
+    if (digits.length > 2) return;
 
-  const handleDigitPress = (digit: string) => {
-    const currentValue = activeField === "hour" ? hour : minute;
-    const candidate = replaceOnNextDigit
-      ? digit
-      : `${currentValue}${digit}`.slice(-2);
-
-    const parsed = parseInt(candidate, 10);
-    let nextValue = candidate;
-
-    if (!Number.isNaN(parsed)) {
-      if (activeField === "hour" && parsed > 12) {
-        nextValue = digit;
-      }
-
-      if (activeField === "minute" && parsed > 59) {
-        nextValue = digit;
-      }
+    const parsed = parseInt(digits, 10);
+    if (digits.length > 0 && !Number.isNaN(parsed) && parsed > 12) {
+      setHour(digits.slice(-1));
+      return;
     }
 
-    updateField(activeField, nextValue);
-    setReplaceOnNextDigit(false);
+    setHour(digits);
+
+    if (digits.length === 2) {
+      minuteRef.current?.focus();
+    }
   };
 
-  const handleBackspace = () => {
-    const currentValue = activeField === "hour" ? hour : minute;
-    const nextValue = currentValue.slice(0, -1);
+  const handleMinuteChange = (text: string) => {
+    const digits = text.replace(/[^0-9]/g, "");
+    if (digits.length > 2) return;
 
-    updateField(activeField, nextValue);
-    setReplaceOnNextDigit(false);
+    const parsed = parseInt(digits, 10);
+    if (digits.length > 0 && !Number.isNaN(parsed) && parsed > 59) {
+      setMinute(digits.slice(-1));
+      return;
+    }
+
+    setMinute(digits);
+
+    if (digits.length === 2) {
+      Keyboard.dismiss();
+    }
+  };
+
+  const handleHourBlur = () => {
+    setHour(normalizeValue(hour, "hour"));
+  };
+
+  const handleMinuteBlur = () => {
+    setMinute(normalizeValue(minute, "minute"));
+  };
+
+  const handleClose = () => {
+    Keyboard.dismiss();
+    onClose();
   };
 
   const handleSave = () => {
-    let h = parseInt(normalizeDraft(hour, "hour"), 10);
-    const m = parseInt(normalizeDraft(minute, "minute"), 10);
+    Keyboard.dismiss();
+
+    let h = parseInt(normalizeValue(hour, "hour"), 10);
+    const m = parseInt(normalizeValue(minute, "minute"), 10);
     if (ampm === "pm" && h !== 12) h += 12;
     if (ampm === "am" && h === 12) h = 0;
 
@@ -227,8 +230,9 @@ export function DateTimePickerSheet({
   return (
     <BottomSheetWrapper
       isVisible={isVisible}
-      onClose={onClose}
+      onClose={handleClose}
       showHandle={false}
+      avoidKeyboard
       containerStyle={{
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
@@ -242,10 +246,21 @@ export function DateTimePickerSheet({
           </Text>
           <Pressable
             className="h-8 w-8 items-center justify-center"
-            onPress={onClose}
+            onPress={handleClose}
           >
             <Ionicons name="close" size={20} className="text-icon-primary" />
           </Pressable>
+        </View>
+
+        <View className="mb-4 flex-row items-center gap-3">
+          <Text className="font-jakarta text-h4 font-semibold text-text-primary">
+            Date
+          </Text>
+          <View className="rounded-full bg-main-sections-2 px-4 py-2">
+            <Text className="font-jakarta text-body-2 text-text-primary">
+              {format(selectedDate, "EEE, d MMMM")}
+            </Text>
+          </View>
         </View>
 
         <View className="mb-8 rounded-[12px] bg-main-sections-2 px-4 pb-4 pt-3">
@@ -286,20 +301,22 @@ export function DateTimePickerSheet({
           <View className="flex-row items-center gap-3">
             <View className="flex-row items-center gap-1">
               <TimeField
-                value={hour || ""}
-                isActive={activeField === "hour"}
+                value={hour}
+                onChangeText={handleHourChange}
+                onBlur={handleHourBlur}
+                inputRef={hourRef}
                 accessibilityLabel="Hour field"
-                onPress={() => handleFieldPress("hour")}
                 onStep={(delta) => stepField("hour", delta)}
               />
               <Text className="font-jakarta text-body-2 font-semibold text-text-primary">
                 :
               </Text>
               <TimeField
-                value={minute || ""}
-                isActive={activeField === "minute"}
+                value={minute}
+                onChangeText={handleMinuteChange}
+                onBlur={handleMinuteBlur}
+                inputRef={minuteRef}
                 accessibilityLabel="Minute field"
-                onPress={() => handleFieldPress("minute")}
                 onStep={(delta) => stepField("minute", delta)}
               />
             </View>
@@ -345,87 +362,6 @@ export function DateTimePickerSheet({
             Save
           </Text>
         </Pressable>
-      </View>
-
-      <View className="border-t border-white/10 px-4 pb-2 pt-4">
-        <View className="overflow-hidden rounded-t-[26px] rounded-b-[24px] bg-[#2B2B2E]">
-          <LinearGradient
-            colors={["rgba(255,255,255,0.04)", "rgba(255,255,255,0.02)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="px-2 pb-2 pt-1"
-          >
-            <View className="gap-[6px]">
-              {NUMBER_PAD_ROWS.map((row) => (
-                <View key={row.join("")} className="flex-row gap-[6px]">
-                  {row.map((digit) => (
-                    <Pressable
-                      key={digit}
-                      className="h-[46px] flex-1 items-center justify-center rounded-[12px] bg-white/15"
-                      onPress={() => handleDigitPress(digit)}
-                    >
-                      <Text className="font-jakarta text-[28px] leading-[30px] text-white">
-                        {digit}
-                      </Text>
-                      {digit !== "1" ? (
-                        <Text className="font-jakarta text-[10px] uppercase tracking-[2px] text-white/75">
-                          {{
-                            "2": "ABC",
-                            "3": "DEF",
-                            "4": "GHI",
-                            "5": "JKL",
-                            "6": "MNO",
-                            "7": "PQRS",
-                            "8": "TUV",
-                            "9": "WXYZ",
-                          }[digit] ?? " "}
-                        </Text>
-                      ) : (
-                        <Text className="font-jakarta text-[10px] text-transparent">
-                          .
-                        </Text>
-                      )}
-                    </Pressable>
-                  ))}
-                </View>
-              ))}
-
-              <View className="flex-row gap-[6px]">
-                <Pressable className="h-[46px] flex-1 items-center justify-center rounded-[12px] bg-transparent">
-                  <Text className="font-jakarta text-[18px] font-medium text-white">
-                    + * #
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  className="h-[46px] flex-1 items-center justify-center rounded-[12px] bg-white/15"
-                  onPress={() => handleDigitPress("0")}
-                >
-                  <Text className="font-jakarta text-[28px] leading-[30px] text-white">
-                    0
-                  </Text>
-                  <Text className="font-jakarta text-[10px] text-transparent">
-                    .
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  className="h-[46px] flex-1 items-center justify-center rounded-[12px] bg-transparent"
-                  onPress={handleBackspace}
-                >
-                  <Ionicons name="backspace-outline" size={24} color="#FFFFFF" />
-                </Pressable>
-              </View>
-            </View>
-
-            <LinearGradient
-              colors={["rgba(97,43,211,0.75)", "rgba(97,43,211,0)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="mt-2 h-10 rounded-full"
-            />
-          </LinearGradient>
-        </View>
       </View>
     </BottomSheetWrapper>
   );
