@@ -55,8 +55,8 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
     >
       <View className="relative h-[90px] w-[375px]">
         <MenuButton
-          activeIconSource={require("@/assets/images/navbar/calendar-active.svg")}
-          inactiveIconSource={require("@/assets/images/navbar/calendar.svg")}
+          activeIconSource={require("@/assets/icons/navbar/calendar-active.svg")}
+          inactiveIconSource={require("@/assets/icons/navbar/calendar.svg")}
           active={activeTab === "calendar"}
           onPress={() => {
             if (activeTab !== "calendar") {
@@ -67,8 +67,8 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
         />
 
         <MenuButton
-          activeIconSource={require("@/assets/images/navbar/channels-active.svg")}
-          inactiveIconSource={require("@/assets/images/navbar/channels.svg")}
+          activeIconSource={require("@/assets/icons/navbar/channels-active.svg")}
+          inactiveIconSource={require("@/assets/icons/navbar/channels.svg")}
           active={activeTab === "channels"}
           onPress={() => {
             if (activeTab !== "channels") {
@@ -83,12 +83,12 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
           style={{ left: 165.76, top: 12 }}
           onPress={() => router.push("/(tabs)/add-channel")}
         >
-          <Image source={require("@/assets/images/navbar/plus.svg")} style={{ width: 20, height: 20 }} contentFit="contain" />
+          <Image source={require("@/assets/icons/navbar/plus.svg")} style={{ width: 20, height: 20 }} contentFit="contain" />
         </Pressable>
 
         <MenuButton
-          activeIconSource={require("@/assets/images/navbar/analytics-active.svg")}
-          inactiveIconSource={require("@/assets/images/navbar/analytics.svg")}
+          activeIconSource={require("@/assets/icons/navbar/analytics-active.svg")}
+          inactiveIconSource={require("@/assets/icons/navbar/analytics.svg")}
           active={activeTab === "analytics"}
           onPress={() => {
             if (activeTab !== "analytics") {
@@ -99,8 +99,8 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
         />
 
         <MenuButton
-          activeIconSource={require("@/assets/images/navbar/settings-active.svg")}
-          inactiveIconSource={require("@/assets/images/navbar/settings.svg")}
+          activeIconSource={require("@/assets/icons/navbar/settings-active.svg")}
+          inactiveIconSource={require("@/assets/icons/navbar/settings.svg")}
           active={activeTab === "settings"}
           onPress={() => {
             if (activeTab !== "settings") {

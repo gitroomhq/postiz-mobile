@@ -46,7 +46,7 @@ export default function ResetPasswordScreen() {
           <View className="mb-6 h-[27.359px] w-[84px]">
             <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
               <Image
-                source={require("@/assets/images/login/postiz-mark.svg")}
+                source={require("@/assets/icons/login/postiz-mark.svg")}
                 style={{ width: 24.7, height: 27.359 }}
                 contentFit="contain"
               />
@@ -61,7 +61,7 @@ export default function ResetPasswordScreen() {
               }}
             >
               <Image
-                source={require("@/assets/images/login/postiz-wordmark.svg")}
+                source={require("@/assets/icons/login/postiz-wordmark.svg")}
                 style={{ width: 52.65, height: 23.976 }}
                 contentFit="contain"
               />
@@ -107,7 +107,7 @@ export default function ResetPasswordScreen() {
                         <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
                       ) : (
                         <Image
-                          source={require("@/assets/images/login/eye-slash.svg")}
+                          source={require("@/assets/icons/login/eye-slash.svg")}
                           style={{ width: 20, height: 20 }}
                           contentFit="contain"
                         />
@@ -134,7 +134,7 @@ export default function ResetPasswordScreen() {
                         <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
                       ) : (
                         <Image
-                          source={require("@/assets/images/login/eye-slash.svg")}
+                          source={require("@/assets/icons/login/eye-slash.svg")}
                           style={{ width: 20, height: 20 }}
                           contentFit="contain"
                         />

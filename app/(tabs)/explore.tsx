@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NetworkBadge } from "@/components/ui/network-badge";
 import { SwipeableChannelRow } from "@/components/ui/swipeable-channel-row";
-import { CHANNELS_LIST } from "@/data/mock-channels";
+import { useChannelsStore } from "@/store/channels-store";
 import type { Channel } from "@/types";
 
 const Image = ExpoImage as unknown as FC<ImageProps>;
@@ -42,7 +42,8 @@ function ChannelRow({ channel }: { channel: Channel }) {
 
 export default function ChannelsAddedScreen() {
   const router = useRouter();
-  const [channels, setChannels] = useState(CHANNELS_LIST);
+  const channels = useChannelsStore((state) => state.channels);
+  const storeDeleteChannel = useChannelsStore((state) => state.deleteChannel);
   const [openRowId, setOpenRowId] = useState<string | null>(null);
 
   const handleSwipeOpen = useCallback((id: string) => {
@@ -50,9 +51,9 @@ export default function ChannelsAddedScreen() {
   }, []);
 
   const handleDelete = useCallback((id: string) => {
-    setChannels((prev) => prev.filter((c) => c.id !== id));
+    storeDeleteChannel(id);
     setOpenRowId(null);
-  }, []);
+  }, [storeDeleteChannel]);
 
   return (
     <SafeAreaView

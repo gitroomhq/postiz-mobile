@@ -44,7 +44,7 @@ export default function ForgotPasswordScreen() {
           <View className="mb-6 h-[27.359px] w-[84px]">
             <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
               <Image
-                source={require("@/assets/images/login/postiz-mark.svg")}
+                source={require("@/assets/icons/login/postiz-mark.svg")}
                 style={{ width: 24.7, height: 27.359 }}
                 contentFit="contain"
               />
@@ -59,7 +59,7 @@ export default function ForgotPasswordScreen() {
               }}
             >
               <Image
-                source={require("@/assets/images/login/postiz-wordmark.svg")}
+                source={require("@/assets/icons/login/postiz-wordmark.svg")}
                 style={{ width: 52.65, height: 23.976 }}
                 contentFit="contain"
               />

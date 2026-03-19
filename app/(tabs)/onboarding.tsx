@@ -17,7 +17,7 @@ export default function OnboardingScreen() {
           <View className="h-[380px] w-full rounded-[8px]">
             <View style={{ position: "absolute", left: 27.4, top: 78.16, width: 288.209, height: 225.673 }}>
               <Image
-                source={require("@/assets/images/onboarding/highlight.svg")}
+                source={require("@/assets/icons/onboarding/highlight.svg")}
                 style={{ position: "absolute", left: 78.12, top: 6.92, width: 201.958, height: 202.905 }}
                 contentFit="contain"
               />
@@ -25,7 +25,7 @@ export default function OnboardingScreen() {
               <View style={{ position: "absolute", left: 29.89, top: 74.53, width: 91.606, height: 91.606, alignItems: "center", justifyContent: "center" }}>
                 <View className="h-[73.865px] w-[73.865px] items-center justify-center overflow-hidden rounded-[19.033px] bg-channel-active-bg" style={{ transform: [{ rotate: "-16.27deg" }] }}>
                   <Image
-                    source={require("@/assets/images/onboarding/reddit-icon.svg")}
+                    source={require("@/assets/icons/onboarding/reddit-icon.svg")}
                     style={{ width: 48.99, height: 43.94 }}
                     contentFit="contain"
                   />
@@ -35,7 +35,7 @@ export default function OnboardingScreen() {
               <View style={{ position: "absolute", left: 177.63, top: 80.24, width: 63.616, height: 63.616, alignItems: "center", justifyContent: "center" }}>
                 <View className="h-[51.942px] w-[51.942px] items-center justify-center overflow-hidden rounded-[13.595px] bg-channel-active-bg" style={{ transform: [{ rotate: "15deg" }] }}>
                   <Image
-                    source={require("@/assets/images/onboarding/facebook-icon.svg")}
+                    source={require("@/assets/icons/onboarding/facebook-icon.svg")}
                     style={{ width: 22.27, height: 41.45 }}
                     contentFit="contain"
                   />
@@ -45,7 +45,7 @@ export default function OnboardingScreen() {
               <View style={{ position: "absolute", left: 93.21, top: 107.35 }}>
                 <View className="h-[99.609px] w-[99.609px] items-center justify-center overflow-hidden rounded-[27.19px] bg-input-stroke-default">
                   <Image
-                    source={require("@/assets/images/onboarding/instagram-icon.svg")}
+                    source={require("@/assets/icons/onboarding/instagram-icon.svg")}
                     style={{ width: 65.698, height: 65.7 }}
                     contentFit="contain"
                   />
@@ -56,7 +56,7 @@ export default function OnboardingScreen() {
             <View style={{ position: "absolute", left: -64.85, top: 5.81, width: 180.336, height: 180.336, alignItems: "center", justifyContent: "center" }}>
               <View className="h-[151.159px] w-[151.159px] items-center justify-center overflow-hidden rounded-[24px] bg-surface-deep" style={{ transform: [{ rotate: "12.52deg" }] }}>
                 <Image
-                  source={require("@/assets/images/onboarding/youtube-icon.svg")}
+                  source={require("@/assets/icons/onboarding/youtube-icon.svg")}
                   style={{ width: 90.52, height: 63.02 }}
                   contentFit="contain"
                 />
@@ -66,7 +66,7 @@ export default function OnboardingScreen() {
             <View style={{ position: "absolute", left: 277.6, top: 232.76, width: 107.147, height: 107.147, alignItems: "center", justifyContent: "center" }}>
               <View className="h-[87.485px] w-[87.485px] items-center justify-center overflow-hidden rounded-[16px] bg-channel-active-bg" style={{ transform: [{ rotate: "-15deg" }] }}>
                 <Image
-                  source={require("@/assets/images/onboarding/tiktok-icon.svg")}
+                  source={require("@/assets/icons/onboarding/tiktok-icon.svg")}
                   style={{ width: 51.93, height: 54.38 }}
                   contentFit="contain"
                 />

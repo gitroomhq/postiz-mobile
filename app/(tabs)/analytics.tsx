@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NETWORK_CONFIG } from "@/constants/networks";
-import { ANALYTICS_CHANNELS } from "@/data/mock-channels";
+import { useChannelsStore } from "@/store/channels-store";
 import { CHART_ENGAGEMENT, CHART_FOLLOWERS, CHART_IMPRESSIONS } from "@/data/mock-charts";
 import type { Channel, ChartSpec } from "@/types";
 
@@ -43,6 +43,7 @@ function ChannelSelector({
   selected: Channel;
   onSelect: (channel: Channel) => void;
 }) {
+  const channels = useChannelsStore((state) => state.channels);
   const [open, setOpen] = useState(false);
 
   return (
@@ -80,7 +81,7 @@ function ChannelSelector({
             shadowRadius: 8,
           }}
         >
-          {ANALYTICS_CHANNELS.map((channel) => (
+          {channels.map((channel) => (
             <Pressable
               key={channel.id}
               className={`flex-row items-center gap-3 rounded-[8px] px-3 py-3 ${
@@ -220,7 +221,8 @@ function MetricCard({
 
 export default function AnalyticsScreen() {
   const router = useRouter();
-  const [selectedChannel, setSelectedChannel] = useState(ANALYTICS_CHANNELS[0]);
+  const channels = useChannelsStore((state) => state.channels);
+  const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [selectedPeriod, setSelectedPeriod] = useState("Month");
 
   return (

@@ -11,7 +11,7 @@ export function PostizLogo({ width = 84, height = 27.359 }: PostizLogoProps) {
     <View style={{ width, height }}>
       <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
         <Image
-          source={require("@/assets/images/login/postiz-mark.svg")}
+          source={require("@/assets/icons/login/postiz-mark.svg")}
           style={{ width: width * 0.294048, height }}
           contentFit="contain"
         />
@@ -27,7 +27,7 @@ export function PostizLogo({ width = 84, height = 27.359 }: PostizLogoProps) {
         }}
       >
         <Image
-          source={require("@/assets/images/login/postiz-wordmark.svg")}
+          source={require("@/assets/icons/login/postiz-wordmark.svg")}
           style={{ width: width * 0.626786, height: height * 0.87649 }}
           contentFit="contain"
         />

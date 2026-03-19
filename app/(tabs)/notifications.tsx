@@ -9,7 +9,7 @@ const Image = ExpoImage as unknown as FC<ImageProps>;
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NetworkBadge } from "@/components/ui/network-badge";
-import { NOTIFICATIONS_BY_DAY } from "@/data/mock-notifications";
+import { useNotificationsStore } from "@/store/notifications-store";
 import type { NotificationItem } from "@/types";
 
 function NotificationCard({ item }: { item: NotificationItem }) {
@@ -52,6 +52,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const sections = useNotificationsStore((state) => state.sections);
 
   return (
     <SafeAreaView className="flex-1 bg-main-sections" edges={["top"]}>
@@ -70,7 +71,7 @@ export default function NotificationsScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {NOTIFICATIONS_BY_DAY.map((section, index) => (
+        {sections.map((section, index) => (
           <View key={section.title} style={index > 0 ? { marginTop: 20 } : undefined}>
             <Text className="font-jakarta text-[14px] font-semibold text-text-primary">{section.title}</Text>
             <View style={{ marginTop: 8, gap: 8 }}>

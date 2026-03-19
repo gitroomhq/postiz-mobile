@@ -11,16 +11,18 @@ import { AddPostSheet } from "@/components/calendar/add-post-sheet";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { DatePill } from "@/components/calendar/date-pill";
 import { DateTimePickerSheet } from "@/components/calendar/datetime-picker-sheet";
+import { DragOverlay } from "@/components/calendar/drag-overlay";
 import { MonthSelector } from "@/components/calendar/month-selector";
 import { PostDetailSheet } from "@/components/calendar/post-detail-sheet";
 import { TimelineView } from "@/components/calendar/timeline-view";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { showToast } from "@/components/ui/toast";
+import { TimelineDragProvider } from "@/contexts/timeline-drag-context";
 
 const Image = ExpoImage as unknown as FC<ImageProps>;
 
-import { SCHEDULED_POSTS } from "@/data/mock-posts";
+import { usePostsStore } from "@/store/posts-store";
 import type { ScheduledPost } from "@/types";
 import {
   addMonths,
@@ -37,8 +39,10 @@ import {
 export default function CalendarScreen() {
   const router = useRouter();
 
-  // --- State ---
-  const [posts, setPosts] = useState<ScheduledPost[]>(SCHEDULED_POSTS);
+  // --- Global state ---
+  const posts = usePostsStore((state) => state.posts);
+  const storeDeletePost = usePostsStore((state) => state.deletePost);
+  const storeReschedulePost = usePostsStore((state) => state.reschedulePost);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -98,29 +102,23 @@ export default function CalendarScreen() {
 
   const handleDeleteConfirm = useCallback(() => {
     if (deleteTarget) {
-      setPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      storeDeletePost(deleteTarget.id);
       showToast("Post deleted", "success");
       setDeleteTarget(null);
       setPostDetailVisible(false);
     }
-  }, [deleteTarget]);
+  }, [deleteTarget, storeDeletePost]);
 
   const handleDateTimeSave = useCallback(
     (newDate: Date) => {
       if (editingPostId) {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === editingPostId
-              ? { ...p, scheduledAt: newDate.toISOString() }
-              : p,
-          ),
-        );
+        storeReschedulePost(editingPostId, newDate.toISOString());
         showToast("Date & time updated", "success");
       }
       setDateTimeVisible(false);
       setEditingPostId(null);
     },
-    [editingPostId],
+    [editingPostId, storeReschedulePost],
   );
 
   const handleCreatePost = useCallback(
@@ -134,8 +132,25 @@ export default function CalendarScreen() {
     [router],
   );
 
+  const handlePostDrop = useCallback(
+    (postId: string, newHour: number) => {
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
+      const newDate = set(new Date(post.scheduledAt), {
+        hours: newHour,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      });
+      storeReschedulePost(postId, newDate.toISOString());
+      showToast("Post rescheduled", "success");
+    },
+    [posts, storeReschedulePost],
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-background-primary" edges={["top"]}>
+      <TimelineDragProvider onDrop={handlePostDrop}>
       <StatusBar style="light" />
 
       <View className="h-[60px] flex-row items-center justify-between px-4">
@@ -209,18 +224,29 @@ export default function CalendarScreen() {
           setPostDetailVisible(false);
           router.push({
             pathname: "/(tabs)/create-post",
-            params: { postId: post.id },
+            params: {
+              postId: post.id,
+              mode: "edit",
+              dateTime: post.scheduledAt,
+              content: post.content,
+              imageUri: post.imageUri ?? "",
+              network: post.network,
+            },
           } as any);
         }}
         onDuplicate={(post) => {
-          const duplicate: ScheduledPost = {
-            ...post,
-            id: `post-${Date.now()}`,
-            title: `${post.title} (copy)`,
-          };
-          setPosts((prev) => [...prev, duplicate]);
-          showToast("Post duplicated", "success");
           setPostDetailVisible(false);
+          router.push({
+            pathname: "/(tabs)/create-post",
+            params: {
+              postId: post.id,
+              mode: "duplicate",
+              dateTime: post.scheduledAt,
+              content: post.content,
+              imageUri: post.imageUri ?? "",
+              network: post.network,
+            },
+          } as any);
         }}
         onDelete={(post) => setDeleteTarget(post)}
         onChangeDateTime={(post) => {
@@ -274,6 +300,9 @@ export default function CalendarScreen() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      <DragOverlay />
+      </TimelineDragProvider>
     </SafeAreaView>
   );
 }

@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { type NativeSyntheticEvent, type NativeScrollEvent, Pressable, ScrollView, Text, View } from "react-native";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import Svg, { Rect } from "react-native-svg";
 
-import { TimelineEventCard } from "@/components/calendar/timeline-event-card";
+import { DraggableEventCard } from "@/components/calendar/draggable-event-card";
+import { useTimelineDragContext } from "@/contexts/timeline-drag-context";
 import type { ScheduledPost, TimeSlot } from "@/types";
 import { getPostHour, set } from "@/utils/calendar";
 
-const HOUR_HEIGHT = 120;
+export const HOUR_HEIGHT = 120;
 const MAX_VISIBLE_POSTS = 3;
 const PAST_SLOT_PATTERN_COUNT = 40;
 const PAST_SLOT_START_X = 143.379;
@@ -77,6 +79,28 @@ function SlotBlock({
   );
 }
 
+function DropTargetHighlight({ hour }: { hour: number }) {
+  const { isDragging, targetHour } = useTimelineDragContext();
+
+  const highlightStyle = useAnimatedStyle(() => {
+    const isTarget = isDragging.value && targetHour.value === hour;
+    return {
+      position: "absolute" as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: 8,
+      borderWidth: isTarget ? 2 : 0,
+      borderColor: "#612BD3",
+      backgroundColor: isTarget ? "rgba(97, 43, 211, 0.1)" : "transparent",
+      opacity: isTarget ? 1 : 0,
+    };
+  });
+
+  return <Animated.View style={highlightStyle} pointerEvents="none" />;
+}
+
 export function TimelineView({
   timeSlots,
   posts,
@@ -88,6 +112,8 @@ export function TimelineView({
   onPostPress,
 }: TimelineViewProps) {
   const [expandedSlots, setExpandedSlots] = useState<Set<number>>(new Set());
+  const dragCtx = useTimelineDragContext();
+  const timelineContentRef = useRef<View>(null);
 
   const toggleSlot = (hour: number) => {
     setExpandedSlots((prev) => {
@@ -101,10 +127,27 @@ export function TimelineView({
     });
   };
 
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      dragCtx.scrollOffset.value = e.nativeEvent.contentOffset.y;
+    },
+    [dragCtx.scrollOffset],
+  );
+
+  const measureTimelineOrigin = useCallback(() => {
+    timelineContentRef.current?.measureInWindow((_x, y) => {
+      dragCtx.timelineOriginY.value = y;
+    });
+  }, [dragCtx.timelineOriginY]);
+
   return (
+    <View ref={timelineContentRef} onLayout={measureTimelineOrigin} style={{ flex: 1 }}>
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 16 }}
+      scrollEnabled={dragCtx.scrollEnabled}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
     >
       <View>
         {timeSlots.map((slot) => {
@@ -147,7 +190,7 @@ export function TimelineView({
                 {hasPosts ? (
                   <>
                     {visiblePosts.map((p) => (
-                      <TimelineEventCard
+                      <DraggableEventCard
                         key={p.id}
                         post={p}
                         isSelected={selectedPostId === p.id}
@@ -166,14 +209,21 @@ export function TimelineView({
                         </Text>
                       </Pressable>
                     )}
-                    {/* Small slot block at bottom of occupied slot — only for future slots */}
-                    {!isSlotPast && (
-                      <SlotBlock
-                        height={44}
-                        isSelected={isSlotSelected}
-                        onPress={() => onSlotPress(slot.hour)}
-                      />
-                    )}
+                    {/* Drop zone at the bottom of occupied slots */}
+                    {!isSlotPast ? (
+                      <View style={{ position: "relative" }}>
+                        <SlotBlock
+                          height={44}
+                          isSelected={isSlotSelected}
+                          onPress={() => onSlotPress(slot.hour)}
+                        />
+                        {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
+                      </View>
+                    ) : dragCtx.draggedPost ? (
+                      <View style={{ position: "relative", height: 44 }}>
+                        <DropTargetHighlight hour={slot.hour} />
+                      </View>
+                    ) : null}
                   </>
                 ) : isPastSlot ? (
                   <Pressable
@@ -188,13 +238,17 @@ export function TimelineView({
                         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
                       />
                     )}
+                    {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
                   </Pressable>
                 ) : (
-                  <SlotBlock
-                    height="flex"
-                    isSelected={isSlotSelected}
-                    onPress={() => onSlotPress(slot.hour)}
-                  />
+                  <View style={{ flex: 1, position: "relative" }}>
+                    <SlotBlock
+                      height="flex"
+                      isSelected={isSlotSelected}
+                      onPress={() => onSlotPress(slot.hour)}
+                    />
+                    {dragCtx.draggedPost && <DropTargetHighlight hour={slot.hour} />}
+                  </View>
                 )}
               </View>
             </View>
@@ -202,5 +256,6 @@ export function TimelineView({
         })}
       </View>
     </ScrollView>
+    </View>
   );
 }

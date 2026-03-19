@@ -61,7 +61,7 @@ export default function SignUpScreen() {
           <View className="mb-6 h-[27.359px] w-[84px]">
             <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
               <Image
-                source={require("@/assets/images/login/postiz-mark.svg")}
+                source={require("@/assets/icons/login/postiz-mark.svg")}
                 style={{ width: 24.7, height: 27.359 }}
                 contentFit="contain"
               />
@@ -76,7 +76,7 @@ export default function SignUpScreen() {
               }}
             >
               <Image
-                source={require("@/assets/images/login/postiz-wordmark.svg")}
+                source={require("@/assets/icons/login/postiz-wordmark.svg")}
                 style={{ width: 52.65, height: 23.976 }}
                 contentFit="contain"
               />
@@ -98,7 +98,7 @@ export default function SignUpScreen() {
                 }}
               >
                 <Image
-                  source={require("@/assets/images/login/signup-doodle.svg")}
+                  source={require("@/assets/icons/login/signup-doodle.svg")}
                   style={{ width: 153.375, height: 12.614 }}
                   contentFit="contain"
                 />
@@ -112,21 +112,21 @@ export default function SignUpScreen() {
                   <View className="flex-row gap-2">
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
-                        source={require("@/assets/images/login/google.svg")}
+                        source={require("@/assets/icons/login/google.svg")}
                         style={{ width: 24, height: 24 }}
                         contentFit="contain"
                       />
                     </Pressable>
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
-                        source={require("@/assets/images/login/apple.svg")}
+                        source={require("@/assets/icons/login/apple.svg")}
                         style={{ width: 24, height: 24 }}
                         contentFit="contain"
                       />
                     </Pressable>
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
-                        source={require("@/assets/images/login/wallet.svg")}
+                        source={require("@/assets/icons/login/wallet.svg")}
                         style={{ width: 24, height: 24 }}
                         contentFit="contain"
                       />
@@ -136,7 +136,7 @@ export default function SignUpScreen() {
 
                 <View className="flex-row items-center justify-center gap-5">
                   <Image
-                    source={require("@/assets/images/login/divider.svg")}
+                    source={require("@/assets/icons/login/divider.svg")}
                     style={{ width: 100, height: 1 }}
                     contentFit="contain"
                   />
@@ -144,7 +144,7 @@ export default function SignUpScreen() {
                     or
                   </Text>
                   <Image
-                    source={require("@/assets/images/login/divider.svg")}
+                    source={require("@/assets/icons/login/divider.svg")}
                     style={{ width: 100, height: 1 }}
                     contentFit="contain"
                   />
@@ -196,7 +196,7 @@ export default function SignUpScreen() {
                         />
                       ) : (
                         <Image
-                          source={require("@/assets/images/login/eye-slash.svg")}
+                          source={require("@/assets/icons/login/eye-slash.svg")}
                           style={{ width: 20, height: 20 }}
                           contentFit="contain"
                         />

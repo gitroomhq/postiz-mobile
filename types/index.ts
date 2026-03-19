@@ -1,16 +1,39 @@
 import type { Ionicons } from "@expo/vector-icons";
 
 export type ChannelNetwork =
-  | "facebook"
-  | "instagram"
-  | "linkedin"
-  | "reddit"
-  | "youtube"
-  | "threads"
-  | "bluesky"
-  | "tiktok"
   | "x"
-  | "pinterest";
+  | "linkedin"
+  | "linkedin-page"
+  | "reddit"
+  | "instagram"
+  | "instagram-business"
+  | "facebook"
+  | "threads"
+  | "youtube"
+  | "google-business"
+  | "tiktok"
+  | "pinterest"
+  | "dribbble"
+  | "discord"
+  | "slack"
+  | "kick"
+  | "twitch"
+  | "mastodon"
+  | "bluesky"
+  | "lemmy"
+  | "farcaster"
+  | "telegram"
+  | "nostr"
+  | "vk"
+  | "medium"
+  | "devto"
+  | "hashnode"
+  | "wordpress"
+  | "listmonk"
+  | "moltbook"
+  | "whop"
+  | "skool"
+  | "mewe";
 
 export type Channel = {
   id: string;
