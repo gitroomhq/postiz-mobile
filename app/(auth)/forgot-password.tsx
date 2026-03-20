@@ -20,7 +20,7 @@ export default function ForgotPasswordScreen() {
     if (!email || !email.includes("@")) newErrors.email = "Please enter a valid email";
     setErrors(newErrors);
     if (!newErrors.email) {
-      router.push("/(auth)/reset-password" as any);
+      router.push("/(auth)/verify-otp" as any);
     }
   };
 
