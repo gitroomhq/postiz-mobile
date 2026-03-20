@@ -31,7 +31,7 @@ export default function SignInScreen() {
     <SafeAreaView className="flex-1 bg-background-primary" edges={["top", "bottom"]}>
       <StatusBar style="light" />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
@@ -42,25 +42,17 @@ export default function SignInScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="mb-6 h-[27.359px] w-[84px]">
-            <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
+            <View className="absolute inset-0 right-[70.6%]">
               <Image
                 source={require("@/assets/icons/login/postiz-mark.svg")}
-                style={{ width: 24.7, height: 27.359 }}
+                className="w-[24.7px] h-[27.359px]"
                 contentFit="contain"
               />
             </View>
-            <View
-              style={{
-                position: "absolute",
-                top: "1.61%",
-                bottom: "10.76%",
-                left: "37.32%",
-                right: 0,
-              }}
-            >
+            <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
               <Image
                 source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                style={{ width: 52.65, height: 23.976 }}
+                className="w-[52.65px] h-[23.976px]"
                 contentFit="contain"
               />
             </View>
@@ -68,10 +60,10 @@ export default function SignInScreen() {
 
           <View className="gap-8">
             <View className="relative self-start">
-              <View pointerEvents="none" style={{ position: "absolute", left: -12, top: -2 }}>
+              <View pointerEvents="none" className="absolute -left-3 -top-[2px]">
                 <Image
                   source={require("@/assets/icons/login/title-scribble.svg")}
-                  style={{ width: 125.533, height: 37.9 }}
+                  className="w-[125.533px] h-[37.9px]"
                   contentFit="contain"
                 />
               </View>
@@ -87,21 +79,21 @@ export default function SignInScreen() {
                   <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                     <Image
                       source={require("@/assets/icons/login/google.svg")}
-                      style={{ width: 24, height: 24 }}
+                      className="w-6 h-6"
                       contentFit="contain"
                     />
                   </Pressable>
                   <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                     <Image
                       source={require("@/assets/icons/login/apple.svg")}
-                      style={{ width: 24, height: 24 }}
+                      className="w-6 h-6"
                       contentFit="contain"
                     />
                   </Pressable>
                   <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                     <Image
                       source={require("@/assets/icons/login/wallet.svg")}
-                      style={{ width: 24, height: 24 }}
+                      className="w-6 h-6"
                       contentFit="contain"
                     />
                   </Pressable>
@@ -111,13 +103,13 @@ export default function SignInScreen() {
               <View className="flex-row items-center justify-center gap-5">
                 <Image
                   source={require("@/assets/icons/login/divider.svg")}
-                  style={{ width: 100, height: 1 }}
+                  className="w-[100px] h-px"
                   contentFit="contain"
                 />
                 <Text className="font-jakarta text-sm text-text-secondary">or</Text>
                 <Image
                   source={require("@/assets/icons/login/divider.svg")}
-                  style={{ width: 100, height: 1 }}
+                  className="w-[100px] h-px"
                   contentFit="contain"
                 />
               </View>
@@ -155,7 +147,7 @@ export default function SignInScreen() {
                     ) : (
                       <Image
                         source={require("@/assets/icons/login/eye-slash.svg")}
-                        style={{ width: 20, height: 20 }}
+                        className="w-5 h-5"
                         contentFit="contain"
                       />
                     )}

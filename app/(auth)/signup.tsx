@@ -48,36 +48,28 @@ export default function SignUpScreen() {
     >
       <StatusBar style="light" />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           className="flex-1 bg-background-primary"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 48, paddingBottom: 42 }}
+          contentContainerClassName="px-5 pt-12 pb-[42px]"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View className="mb-6 h-[27.359px] w-[84px]">
-            <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
+            <View className="absolute inset-0 right-[70.6%]">
               <Image
                 source={require("@/assets/icons/login/postiz-mark.svg")}
-                style={{ width: 24.7, height: 27.359 }}
+                className="w-[24.7px] h-[27.359px]"
                 contentFit="contain"
               />
             </View>
-            <View
-              style={{
-                position: "absolute",
-                top: "1.61%",
-                bottom: "10.76%",
-                left: "37.32%",
-                right: 0,
-              }}
-            >
+            <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
               <Image
                 source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                style={{ width: 52.65, height: 23.976 }}
+                className="w-[52.65px] h-[23.976px]"
                 contentFit="contain"
               />
             </View>
@@ -90,16 +82,11 @@ export default function SignUpScreen() {
               </Text>
               <View
                 pointerEvents="none"
-                style={{
-                  position: "absolute",
-                  left: -8.25,
-                  top: 28,
-                  zIndex: 20,
-                }}
+                className="absolute -left-[8.25px] top-7 z-20"
               >
                 <Image
                   source={require("@/assets/icons/login/signup-doodle.svg")}
-                  style={{ width: 153.375, height: 12.614 }}
+                  className="w-[153.375px] h-[12.614px]"
                   contentFit="contain"
                 />
               </View>
@@ -113,21 +100,21 @@ export default function SignUpScreen() {
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
                         source={require("@/assets/icons/login/google.svg")}
-                        style={{ width: 24, height: 24 }}
+                        className="w-6 h-6"
                         contentFit="contain"
                       />
                     </Pressable>
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
                         source={require("@/assets/icons/login/apple.svg")}
-                        style={{ width: 24, height: 24 }}
+                        className="w-6 h-6"
                         contentFit="contain"
                       />
                     </Pressable>
                     <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                       <Image
                         source={require("@/assets/icons/login/wallet.svg")}
-                        style={{ width: 24, height: 24 }}
+                        className="w-6 h-6"
                         contentFit="contain"
                       />
                     </Pressable>
@@ -137,7 +124,7 @@ export default function SignUpScreen() {
                 <View className="flex-row items-center justify-center gap-5">
                   <Image
                     source={require("@/assets/icons/login/divider.svg")}
-                    style={{ width: 100, height: 1 }}
+                    className="w-[100px] h-px"
                     contentFit="contain"
                   />
                   <Text className="font-jakarta text-sm text-text-secondary">
@@ -145,7 +132,7 @@ export default function SignUpScreen() {
                   </Text>
                   <Image
                     source={require("@/assets/icons/login/divider.svg")}
-                    style={{ width: 100, height: 1 }}
+                    className="w-[100px] h-px"
                     contentFit="contain"
                   />
                 </View>
@@ -197,7 +184,7 @@ export default function SignUpScreen() {
                       ) : (
                         <Image
                           source={require("@/assets/icons/login/eye-slash.svg")}
-                          style={{ width: 20, height: 20 }}
+                          className="w-5 h-5"
                           contentFit="contain"
                         />
                       )}

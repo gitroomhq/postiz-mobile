@@ -31,14 +31,14 @@ function ApiKeyText({
 
   if (revealed) {
     return (
-      <View style={{ position: "relative" }}>
+      <View className="relative">
         <Text style={[style, { color: "#EFEFEF" }]}>{fullText}</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ position: "relative" }}>
+    <View className="relative">
       {BLUR_OFFSETS.flatMap((dx) =>
         BLUR_OFFSETS.map((dy) => (
           <Text
@@ -119,7 +119,7 @@ export default function SettingsScreen() {
         <Pressable onPress={() => router.push("/(tabs)/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
-            style={{ width: 24, height: 24 }}
+            className="w-6 h-6"
             contentFit="contain"
           />
         </Pressable>

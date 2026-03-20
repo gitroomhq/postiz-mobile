@@ -10,39 +10,39 @@ export function NoChannelsEmptyState({ onAddChannel }: NoChannelsEmptyStateProps
   return (
     <View className="w-full items-center gap-8 px-4">
       <View className="h-[166px] w-[212px]">
-        <View style={{ position: "absolute", left: 57.46, top: 5.09, width: 148.556, height: 149.252 }}>
+        <View className="absolute left-[57.46px] top-[5.09px] w-[148.556px] h-[149.252px]">
           <Image
             source={require("@/assets/icons/onboarding/highlight.svg")}
-            style={{ width: 148.556, height: 149.252 }}
+            className="w-[148.556px] h-[149.252px]"
             contentFit="contain"
           />
         </View>
 
-        <View style={{ position: "absolute", left: 21.99, top: 54.82, width: 67.383, height: 67.383, alignItems: "center", justifyContent: "center" }}>
-          <View className="h-[54.334px] w-[54.334px] items-center justify-center overflow-hidden rounded-[14px] bg-channel-active-bg" style={{ transform: [{ rotate: "-16.27deg" }] }}>
+        <View className="absolute left-[21.99px] top-[54.82px] w-[67.383px] h-[67.383px] items-center justify-center">
+          <View className="h-[54.334px] w-[54.334px] items-center justify-center overflow-hidden rounded-[14px] bg-channel-active-bg rotate-[-16.27deg]">
             <Image
               source={require("@/assets/icons/onboarding/reddit-icon.svg")}
-              style={{ width: 36.07, height: 32.36 }}
+              className="w-[36.07px] h-[32.36px]"
               contentFit="contain"
             />
           </View>
         </View>
 
-        <View style={{ position: "absolute", left: 130.66, top: 59.02, width: 46.795, height: 46.795, alignItems: "center", justifyContent: "center" }}>
-          <View className="h-[38.208px] w-[38.208px] items-center justify-center overflow-hidden rounded-[10px] bg-channel-active-bg" style={{ transform: [{ rotate: "15deg" }] }}>
+        <View className="absolute left-[130.66px] top-[59.02px] w-[46.795px] h-[46.795px] items-center justify-center">
+          <View className="h-[38.208px] w-[38.208px] items-center justify-center overflow-hidden rounded-[10px] bg-channel-active-bg rotate-[15deg]">
             <Image
               source={require("@/assets/icons/onboarding/facebook-icon.svg")}
-              style={{ width: 16.39, height: 30.5 }}
+              className="w-[16.39px] h-[30.5px]"
               contentFit="contain"
             />
           </View>
         </View>
 
-        <View style={{ position: "absolute", left: 68.56, top: 78.96 }}>
+        <View className="absolute left-[68.56px] top-[78.96px]">
           <View className="h-[73.27px] w-[73.27px] items-center justify-center overflow-hidden rounded-[20px] bg-input-stroke-default">
             <Image
               source={require("@/assets/icons/onboarding/instagram-icon.svg")}
-              style={{ width: 48.326, height: 48.328 }}
+              className="w-[48.326px] h-[48.328px]"
               contentFit="contain"
             />
           </View>

@@ -1,6 +1,13 @@
-import { BlurView } from "expo-blur";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+
+function CloseLargeIcon() {
+  return (
+    <View className="h-5 w-5 items-center justify-center">
+      <View className="absolute h-[1.5px] w-3 rounded-full bg-[#A3A3A3] rotate-45" />
+      <View className="absolute h-[1.5px] w-3 rounded-full bg-[#A3A3A3] -rotate-45" />
+    </View>
+  );
+}
 
 type ConfirmDialogProps = {
   visible: boolean;
@@ -31,36 +38,28 @@ export function ConfirmDialog({
       statusBarTranslucent
     >
       <View style={styles.overlayRoot}>
-        <BlurView
-          intensity={20}
-          tint="dark"
-          experimentalBlurMethod="dimezisBlurView"
-          style={StyleSheet.absoluteFillObject}
-        />
-        <Pressable
-          style={styles.overlayPressable}
-          onPress={onCancel}
-        >
+        <Pressable style={styles.overlayPressable} onPress={onCancel}>
           <Pressable
-            className="mx-6 w-[327px] rounded-[16px] bg-main-sections-2 p-6"
+            className="mx-5 w-full max-w-[335px] rounded-[24px] bg-main-sections px-6 pb-6 pt-12"
+            style={styles.modalCard}
             onPress={(e) => e.stopPropagation()}
           >
             <Pressable
-              className="absolute right-4 top-4 h-8 w-8 items-center justify-center"
+              className="absolute right-5 top-5 h-5 w-5 items-center justify-center"
               onPress={onCancel}
             >
-              <Ionicons name="close" size={20} className="text-icon-primary" />
+              <CloseLargeIcon />
             </Pressable>
 
-            <Text className="mb-2 text-center font-jakarta text-h3 font-semibold text-text-primary">
+            <Text className="mb-2 text-center font-jakarta text-h1 font-semibold text-text-primary">
               {title}
             </Text>
-            <Text className="mb-6 text-center font-jakarta text-body-1 text-text-secondary">
+            <Text className="mb-8 text-center font-jakarta text-body-1 text-text-secondary">
               {message}
             </Text>
             <View className="gap-3">
               <Pressable
-                className="h-11 items-center justify-center rounded-[8px] bg-buttons-tertiary-bg"
+                className="h-11 items-center justify-center rounded-[8px] border border-buttons-stroke-stroke"
                 onPress={onCancel}
               >
                 <Text className="font-jakarta text-button font-semibold text-text-primary">
@@ -96,5 +95,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalCard: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 13 },
+    shadowOpacity: 0.1,
+    shadowRadius: 28,
+    elevation: 24,
   },
 });

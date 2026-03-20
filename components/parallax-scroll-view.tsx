@@ -46,11 +46,12 @@ export default function ParallaxScrollView({
   return (
     <Animated.ScrollView
       ref={scrollRef}
-      style={{ backgroundColor, flex: 1 }}
+      className="flex-1"
+      style={{ backgroundColor }}
       scrollEventThrottle={16}>
       <Animated.View
+        className="h-[250px] overflow-hidden"
         style={[
-          { height: HEADER_HEIGHT, overflow: 'hidden' },
           { backgroundColor: headerBackgroundColor[colorScheme] },
           headerAnimatedStyle,
         ]}>

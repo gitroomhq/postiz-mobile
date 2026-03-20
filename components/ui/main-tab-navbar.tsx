@@ -34,7 +34,7 @@ function MenuButton({
     >
       <Image
         source={active ? activeIconSource : inactiveIconSource}
-        style={{ width: 24, height: 24 }}
+        className="w-6 h-6"
         contentFit="contain"
       />
     </Pressable>
@@ -76,11 +76,10 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
         />
 
         <Pressable
-          className="absolute h-11 w-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
-          style={{ left: 165.76, top: 12 }}
+          className="absolute left-[165.76px] top-3 h-11 w-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
           onPress={() => router.push("/(tabs)/add-channel")}
         >
-          <Image source={require("@/assets/icons/navbar/plus.svg")} style={{ width: 20, height: 20 }} contentFit="contain" />
+          <Image source={require("@/assets/icons/navbar/plus.svg")} className="w-5 h-5" contentFit="contain" />
         </Pressable>
 
         <MenuButton

@@ -14,7 +14,7 @@ function NotificationCard({ item }: { item: NotificationItem }) {
     <View className="w-full flex-row items-center gap-2 rounded-[10px] bg-channel-active-bg p-3">
       <View className="flex-1 flex-row items-start gap-4">
         <View className="relative">
-          <Image source={{ uri: item.avatar }} style={{ width: 40, height: 40, borderRadius: 8 }} contentFit="cover" />
+          <Image source={{ uri: item.avatar }} className="w-10 h-10 rounded-lg" contentFit="cover" />
           <NetworkBadge network={item.social} />
         </View>
 
@@ -64,14 +64,14 @@ export default function NotificationsScreen() {
       </View>
 
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        className="flex-1"
+        contentContainerClassName="px-4 pb-6"
         showsVerticalScrollIndicator={false}
       >
         {sections.map((section, index) => (
-          <View key={section.title} style={index > 0 ? { marginTop: 20 } : undefined}>
+          <View key={section.title} className={index > 0 ? "mt-5" : undefined}>
             <Text className="font-jakarta text-[14px] font-semibold text-text-primary">{section.title}</Text>
-            <View style={{ marginTop: 8, gap: 8 }}>
+            <View className="mt-2 gap-2">
               {section.items.map((item) => (
                 <NotificationCard key={item.id} item={item} />
               ))}

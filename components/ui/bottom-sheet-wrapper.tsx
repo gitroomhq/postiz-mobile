@@ -55,35 +55,22 @@ export function BottomSheetWrapper({
       style={{ justifyContent: "flex-end", margin: 0 }}
       useNativeDriverForBackdrop
       avoidKeyboard={avoidKeyboard}
+      statusBarTranslucent
     >
       <View
+        className="bg-[#242323] rounded-t-3xl px-4 pt-[10px] overflow-hidden"
         style={[
           {
-            backgroundColor: "#242323",
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            paddingHorizontal: 16,
-            paddingTop: 10,
             paddingBottom: useBottomInsetPadding
               ? Math.max(insets.bottom, 34)
               : 0,
-            overflow: "hidden",
             height: fullHeight ? sheetHeight : undefined,
           },
           containerStyle,
         ]}
       >
         {showHandle ? (
-          <View
-            style={{
-              width: 33,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: "#454444",
-              alignSelf: "center",
-              marginBottom: 18,
-            }}
-          />
+          <View className="w-[33px] h-1 rounded-sm bg-[#454444] self-center mb-[18px]" />
         ) : null}
         {children}
       </View>

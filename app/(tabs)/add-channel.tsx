@@ -104,7 +104,7 @@ export default function AddChannelScreen() {
 
       <ScrollView
         className="flex-1 px-4"
-        contentContainerStyle={{ gap: 8, paddingBottom: 20 }}
+        contentContainerClassName="gap-2 pb-5"
         showsVerticalScrollIndicator={false}
       >
         {channels.map((channel) => (

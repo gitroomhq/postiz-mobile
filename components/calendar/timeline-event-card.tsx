@@ -17,9 +17,9 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
   const previewText = post.content || post.title;
 
   return (
-    <Pressable onPress={onPress} style={{ position: "relative" }}>
+    <Pressable onPress={onPress} className="relative">
       {/* Card content — no border styling here so backgrounds always render */}
-      <View style={{ height: 72, overflow: "hidden", borderRadius: 8 }}>
+      <View className="h-[72px] overflow-hidden rounded-lg">
         <View className="h-6 items-center justify-center bg-slot-bg-header px-2">
           <Text
             className="font-jakarta text-caption font-medium leading-[15px] text-white"
@@ -33,7 +33,7 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
           <View className="relative">
             <Image
               source={{ uri: post.authorAvatar }}
-              style={{ width: 20, height: 20, borderRadius: 4 }}
+              className="w-5 h-5 rounded"
               contentFit="cover"
             />
             <View
@@ -59,8 +59,7 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
       {isSelected && (
         <View
           pointerEvents="none"
-          className="rounded-[8px] border-2 border-slot-stroke-active"
-          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+          className="absolute inset-0 rounded-[8px] border-2 border-slot-stroke-active"
         />
       )}
     </Pressable>

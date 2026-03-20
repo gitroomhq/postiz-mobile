@@ -1,0 +1,46 @@
+import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
+
+import { Image } from "@/components/ui/image";
+import { NETWORK_CONFIG } from "@/constants/networks";
+import type { ChannelNetwork } from "@/types";
+
+export function ChannelAvatar({
+  avatar,
+  network,
+  size = 32,
+}: {
+  avatar: string;
+  network: ChannelNetwork;
+  size?: number;
+}) {
+  const networkConfig = NETWORK_CONFIG[network];
+  const badgeSize = Math.max(12, Math.round(size * 0.42));
+
+  return (
+    <View
+      className="relative items-center justify-center overflow-hidden rounded-full"
+      style={{ width: size, height: size }}
+    >
+      <Image
+        source={{ uri: avatar }}
+        style={{ width: size, height: size }}
+        contentFit="cover"
+      />
+      <View
+        className="absolute bottom-0 right-0 items-center justify-center rounded-[4px]"
+        style={{
+          width: badgeSize,
+          height: badgeSize,
+          backgroundColor: networkConfig.bg,
+        }}
+      >
+        <Ionicons
+          name={networkConfig.icon}
+          size={Math.max(8, Math.round(badgeSize * 0.58))}
+          className="text-white"
+        />
+      </View>
+    </View>
+  );
+}

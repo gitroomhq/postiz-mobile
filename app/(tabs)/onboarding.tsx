@@ -15,59 +15,59 @@ export default function OnboardingScreen() {
       <View className="flex-1 overflow-hidden bg-background-primary">
         <View className="flex-1 px-4 pt-6 pb-[140px]">
           <View className="h-[380px] w-full rounded-[8px]">
-            <View style={{ position: "absolute", left: 27.4, top: 78.16, width: 288.209, height: 225.673 }}>
+            <View className="absolute left-[27.4px] top-[78.16px] w-[288.209px] h-[225.673px]">
               <Image
                 source={require("@/assets/icons/onboarding/highlight.svg")}
-                style={{ position: "absolute", left: 78.12, top: 6.92, width: 201.958, height: 202.905 }}
+                className="absolute left-[78.12px] top-[6.92px] w-[201.958px] h-[202.905px]"
                 contentFit="contain"
               />
 
-              <View style={{ position: "absolute", left: 29.89, top: 74.53, width: 91.606, height: 91.606, alignItems: "center", justifyContent: "center" }}>
-                <View className="h-[73.865px] w-[73.865px] items-center justify-center overflow-hidden rounded-[19.033px] bg-channel-active-bg" style={{ transform: [{ rotate: "-16.27deg" }] }}>
+              <View className="absolute left-[29.89px] top-[74.53px] w-[91.606px] h-[91.606px] items-center justify-center">
+                <View className="h-[73.865px] w-[73.865px] items-center justify-center overflow-hidden rounded-[19.033px] bg-channel-active-bg rotate-[-16.27deg]">
                   <Image
                     source={require("@/assets/icons/onboarding/reddit-icon.svg")}
-                    style={{ width: 48.99, height: 43.94 }}
+                    className="w-[48.99px] h-[43.94px]"
                     contentFit="contain"
                   />
                 </View>
               </View>
 
-              <View style={{ position: "absolute", left: 177.63, top: 80.24, width: 63.616, height: 63.616, alignItems: "center", justifyContent: "center" }}>
-                <View className="h-[51.942px] w-[51.942px] items-center justify-center overflow-hidden rounded-[13.595px] bg-channel-active-bg" style={{ transform: [{ rotate: "15deg" }] }}>
+              <View className="absolute left-[177.63px] top-[80.24px] w-[63.616px] h-[63.616px] items-center justify-center">
+                <View className="h-[51.942px] w-[51.942px] items-center justify-center overflow-hidden rounded-[13.595px] bg-channel-active-bg rotate-[15deg]">
                   <Image
                     source={require("@/assets/icons/onboarding/facebook-icon.svg")}
-                    style={{ width: 22.27, height: 41.45 }}
+                    className="w-[22.27px] h-[41.45px]"
                     contentFit="contain"
                   />
                 </View>
               </View>
 
-              <View style={{ position: "absolute", left: 93.21, top: 107.35 }}>
+              <View className="absolute left-[93.21px] top-[107.35px]">
                 <View className="h-[99.609px] w-[99.609px] items-center justify-center overflow-hidden rounded-[27.19px] bg-input-stroke-default">
                   <Image
                     source={require("@/assets/icons/onboarding/instagram-icon.svg")}
-                    style={{ width: 65.698, height: 65.7 }}
+                    className="w-[65.698px] h-[65.7px]"
                     contentFit="contain"
                   />
                 </View>
               </View>
             </View>
 
-            <View style={{ position: "absolute", left: -64.85, top: 5.81, width: 180.336, height: 180.336, alignItems: "center", justifyContent: "center" }}>
-              <View className="h-[151.159px] w-[151.159px] items-center justify-center overflow-hidden rounded-[24px] bg-surface-deep" style={{ transform: [{ rotate: "12.52deg" }] }}>
+            <View className="absolute -left-[64.85px] top-[5.81px] w-[180.336px] h-[180.336px] items-center justify-center">
+              <View className="h-[151.159px] w-[151.159px] items-center justify-center overflow-hidden rounded-[24px] bg-surface-deep rotate-[12.52deg]">
                 <Image
                   source={require("@/assets/icons/onboarding/youtube-icon.svg")}
-                  style={{ width: 90.52, height: 63.02 }}
+                  className="w-[90.52px] h-[63.02px]"
                   contentFit="contain"
                 />
               </View>
             </View>
 
-            <View style={{ position: "absolute", left: 277.6, top: 232.76, width: 107.147, height: 107.147, alignItems: "center", justifyContent: "center" }}>
-              <View className="h-[87.485px] w-[87.485px] items-center justify-center overflow-hidden rounded-[16px] bg-channel-active-bg" style={{ transform: [{ rotate: "-15deg" }] }}>
+            <View className="absolute left-[277.6px] top-[232.76px] w-[107.147px] h-[107.147px] items-center justify-center">
+              <View className="h-[87.485px] w-[87.485px] items-center justify-center overflow-hidden rounded-[16px] bg-channel-active-bg -rotate-[15deg]">
                 <Image
                   source={require("@/assets/icons/onboarding/tiktok-icon.svg")}
-                  style={{ width: 51.93, height: 54.38 }}
+                  className="w-[51.93px] h-[54.38px]"
                   contentFit="contain"
                 />
               </View>

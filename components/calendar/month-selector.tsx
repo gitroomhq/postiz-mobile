@@ -16,8 +16,7 @@ export function MonthSelector({
 }: MonthSelectorProps) {
   return (
     <Pressable
-      className="h-11 flex-row items-center gap-[2px] rounded-[8px]"
-      style={{ minWidth: 130 }}
+      className="h-11 flex-row items-center gap-[2px] rounded-[8px] min-w-[130px]"
       onPress={onToggle}
     >
       <Text className="pb-[2px] font-jakarta text-h2 font-semibold text-text-primary">
@@ -29,7 +28,7 @@ export function MonthSelector({
             ? require("@/assets/icons/month-chevron-closed.svg")
             : require("@/assets/icons/month-chevron-open.svg")
         }
-        style={{ width: 20, height: 20 }}
+        className="w-5 h-5"
         contentFit="contain"
       />
     </Pressable>

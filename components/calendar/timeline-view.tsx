@@ -167,7 +167,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
         </Text>
       </View>
 
-      <View style={{ flex: 1, gap: 4, paddingRight: 1 }}>
+      <View className="flex-1 gap-1 pr-px">
         {hasPosts ? (
           <>
             {visiblePosts.map((p) => (
@@ -191,7 +191,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
               </Pressable>
             )}
             {!isSlotPast ? (
-              <View style={{ position: "relative" }}>
+              <View className="relative">
                 <SlotBlock
                   height={44}
                   isSelected={isSlotSelected}
@@ -200,7 +200,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
                 {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
               </View>
             ) : hasDraggedPost ? (
-              <View style={{ position: "relative", height: 44 }}>
+              <View className="relative h-[44px]">
                 <DropTargetHighlight hour={slot.hour} />
               </View>
             ) : null}
@@ -208,20 +208,19 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
         ) : isPastSlot ? (
           <Pressable
             onPress={() => onSlotPress(slot.hour)}
-            style={{ flex: 1, position: "relative" }}
+            className="flex-1 relative"
           >
             <PassedSlotPattern />
             {isSlotSelected && (
               <View
                 pointerEvents="none"
-                className="rounded-[8px] border border-slot-stroke-active"
-                style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+                className="absolute inset-0 rounded-[8px] border border-slot-stroke-active"
               />
             )}
             {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
           </Pressable>
         ) : (
-          <View style={{ flex: 1, position: "relative" }}>
+          <View className="flex-1 relative">
             <SlotBlock
               height="flex"
               isSelected={isSlotSelected}
@@ -313,13 +312,13 @@ export function TimelineView({
   );
 
   return (
-    <View ref={timelineContentRef} onLayout={measureTimelineOrigin} style={{ flex: 1 }}>
+    <View ref={timelineContentRef} onLayout={measureTimelineOrigin} className="flex-1">
       <FlatList
         data={timeSlots}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 16 }}
+        contentContainerClassName="pb-4"
         scrollEnabled={dragCtx.scrollEnabled}
         onScroll={handleScroll}
         scrollEventThrottle={16}

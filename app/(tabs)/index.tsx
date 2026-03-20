@@ -162,7 +162,7 @@ export default function CalendarScreen() {
         <Pressable onPress={() => router.push("/(tabs)/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
-            style={{ width: 24, height: 24 }}
+            className="w-6 h-6"
             contentFit="contain"
           />
         </Pressable>

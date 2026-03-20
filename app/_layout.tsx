@@ -60,7 +60,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1A1919' }}>
+    <GestureHandlerRootView className="flex-1 bg-[#1A1919]">
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
           <ToastProvider>

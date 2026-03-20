@@ -63,7 +63,7 @@ export function PostDetailSheet({
             <View className="relative">
               <Image
                 source={{ uri: post.authorAvatar }}
-                style={{ width: 40, height: 40, borderRadius: 8 }}
+                className="w-10 h-10 rounded-lg"
                 contentFit="cover"
               />
               <View

@@ -88,36 +88,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const icon = ICON_MAP[toast.type];
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1">
       {children}
       {toast.visible && (
         <Animated.View
-          style={[
-            {
-              position: "absolute",
-              bottom: 100,
-              alignSelf: "center",
-              zIndex: 9999,
-              elevation: 10,
-              backgroundColor: "#242323",
-              borderRadius: 8,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-            },
-            animatedStyle,
-          ]}
+          className="absolute bottom-[100px] self-center z-[9999] bg-[#242323] rounded-lg px-4 py-3 flex-row items-center gap-2"
+          style={[{ elevation: 10 }, animatedStyle]}
         >
           <Ionicons name={icon.name} size={20} color={icon.color} />
-          <Text
-            style={{
-              color: "#FFFFFF",
-              fontFamily: "PlusJakartaSans",
-              fontSize: 14,
-            }}
-          >
+          <Text className="text-white font-jakarta text-sm">
             {toast.message}
           </Text>
         </Animated.View>

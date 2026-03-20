@@ -19,7 +19,7 @@ function ChannelRow({ channel }: { channel: Channel }) {
         <View className="relative">
           <Image
             source={{ uri: channel.avatar }}
-            style={{ width: 40, height: 40, borderRadius: 8 }}
+            className="w-10 h-10 rounded-lg"
             contentFit="cover"
           />
           <NetworkBadge network={channel.network} />
@@ -77,7 +77,7 @@ export default function ChannelsAddedScreen() {
           <Pressable onPress={() => router.push("/(tabs)/notifications")}>
             <Image
               source={require("@/assets/icons/notification-bell.svg")}
-              style={{ width: 24, height: 24 }}
+              className="w-6 h-6"
               contentFit="contain"
             />
           </Pressable>

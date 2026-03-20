@@ -31,7 +31,7 @@ export default function ForgotPasswordScreen() {
     >
       <StatusBar style="light" />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
@@ -42,25 +42,17 @@ export default function ForgotPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="mb-6 h-[27.359px] w-[84px]">
-            <View style={{ position: "absolute", inset: 0, right: "70.6%" }}>
+            <View className="absolute inset-0 right-[70.6%]">
               <Image
                 source={require("@/assets/icons/login/postiz-mark.svg")}
-                style={{ width: 24.7, height: 27.359 }}
+                className="w-[24.7px] h-[27.359px]"
                 contentFit="contain"
               />
             </View>
-            <View
-              style={{
-                position: "absolute",
-                top: "1.61%",
-                bottom: "10.76%",
-                left: "37.32%",
-                right: 0,
-              }}
-            >
+            <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
               <Image
                 source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                style={{ width: 52.65, height: 23.976 }}
+                className="w-[52.65px] h-[23.976px]"
                 contentFit="contain"
               />
             </View>
