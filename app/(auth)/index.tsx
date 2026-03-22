@@ -60,7 +60,7 @@ export default function SignInScreen() {
 
           <View className="gap-8">
             <View className="relative self-start">
-              <View pointerEvents="none" className="absolute -left-3 -top-[2px]">
+              <View pointerEvents="none" className="absolute" style={{ left: -12, top: -2 }}>
                 <Image
                   source={require("@/assets/icons/login/title-scribble.svg")}
                   className="w-[125.533px] h-[37.9px]"

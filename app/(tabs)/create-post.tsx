@@ -42,7 +42,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Image } from "@/components/ui/image";
 import { SvgIcon } from "@/components/ui/svg-icon";
 import { showToast } from "@/components/ui/toast";
-import { useChannelsStore, getChannelLimit } from "@/store/channels-store";
+import { useChannelsStore } from "@/store/channels-store";
 import { usePostsStore } from "@/store/posts-store";
 
 function BackChevronButton({ onPress }: { onPress: () => void }) {
@@ -97,6 +97,7 @@ export default function CreatePostScreen() {
     content?: string;
     imageUri?: string;
     network?: string;
+    channelId?: string;
   }>();
 
   const mode = params.mode === "duplicate"
@@ -123,17 +124,20 @@ export default function CreatePostScreen() {
     MEDIA_LIBRARY_ASSETS.map((asset) => ({ ...asset })),
   );
   const [selectedMediaIds, setSelectedMediaIds] = useState<string[]>([]);
-  const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>(
-    mode === "create" && initialContent.length === 0 && !initialImageUri
-      ? []
-      : channels.slice(0, 3).map((channel) => channel.id),
-  );
+  const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>(() => {
+    if (mode === "edit" && params.channelId) {
+      return [params.channelId];
+    }
+    if (mode === "create" && initialContent.length === 0 && !initialImageUri) {
+      return [];
+    }
+    return channels.slice(0, 3).map((channel) => channel.id);
+  });
 
   const [dateTimePickerVisible, setDateTimePickerVisible] = useState(false);
   const [channelSheetVisible, setChannelSheetVisible] = useState(false);
   const [postActionMenuVisible, setPostActionMenuVisible] = useState(false);
   const [settingsSheet, setSettingsSheet] = useState<SettingsSheet>(null);
-  const [expandedLimitPostId, setExpandedLimitPostId] = useState<string | null>(null);
   const [focusedChannelId, setFocusedChannelId] = useState<string | null>(null);
   const [networkCarouselEnabled, setNetworkCarouselEnabled] = useState(false);
   const [networkRepostersEnabled, setNetworkRepostersEnabled] = useState(true);
@@ -192,9 +196,6 @@ export default function CreatePostScreen() {
 
   const deletePost = (postId: string) => {
     setPosts((current) => (current.length === 1 ? current : current.filter((post) => post.id !== postId)));
-    if (expandedLimitPostId === postId) {
-      setExpandedLimitPostId(null);
-    }
   };
 
   const toggleChannel = (channelId: string) => {
@@ -257,21 +258,6 @@ export default function CreatePostScreen() {
     setDateTimePickerVisible(false);
     showToast("Date & time updated", "success");
   }, []);
-
-  const getPostLimits = (content: string) => {
-    const textLength = stripHtml(content).length;
-    return selectedChannels.map((channel) => {
-      const limit = getChannelLimit(channel);
-      return {
-        id: channel.id,
-        label: `${channel.name} (${channel.network[0].toUpperCase()}${channel.network.slice(1)})`,
-        network: channel.network,
-        current: textLength,
-        limit,
-        exceeded: textLength > limit,
-      };
-    });
-  };
 
   const openMediaLibrary = () => {
     setMediaLibraryVisible(true);
@@ -370,7 +356,6 @@ export default function CreatePostScreen() {
       if (!first) return current;
       return [{ ...first, content: "", imageUris: [] }];
     });
-    setExpandedLimitPostId(null);
     setDeleteDialogVisible(false);
     showToast("Post deleted", "success");
   };
@@ -589,10 +574,8 @@ export default function CreatePostScreen() {
           {/* Post editors */}
           <View>
           {posts.map((post, index) => {
-            const limits = getPostLimits(post.content);
-            const hasExceededLimits = limits.some((limit) => limit.exceeded);
-            const showLimitDetails = expandedLimitPostId === post.id;
             const plainText = post.content.replace(/<[^>]*>/g, "").trim();
+            const plainTextLength = plainText.length;
             const hasContent = plainText.length > 0 || post.imageUris.length > 0;
 
             return (
@@ -627,10 +610,10 @@ export default function CreatePostScreen() {
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerClassName="mt-4 mb-4 gap-3 px-4"
+                    contentContainerClassName="mb-4 mt-4 gap-4"
                   >
                     {post.imageUris.map((uri, mediaIndex) => (
-                      <View key={`${post.id}-${uri}`} className="relative">
+                      <View key={`${post.id}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
                         <Pressable
                           onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
                         >
@@ -641,7 +624,8 @@ export default function CreatePostScreen() {
                           />
                         </Pressable>
                         <Pressable
-                          className="absolute -right-2 -top-2 h-7 w-7 items-center justify-center rounded-full bg-text-critical"
+                          className="absolute h-[24px] w-[24px] items-center justify-center"
+                          style={{ right: -8, top: -8 }}
                           onPress={() =>
                             updatePost(post.id, (current) => ({
                               ...current,
@@ -649,72 +633,24 @@ export default function CreatePostScreen() {
                             }))
                           }
                         >
-                          <Ionicons name="close" size={16} className="text-white" />
+                          <SvgIcon
+                            source={require("@/assets/icons/create-post/media-remove.svg")}
+                            size={24}
+                          />
                         </Pressable>
                       </View>
                     ))}
                   </ScrollView>
                 ) : null}
 
-                {hasContent && selectedChannels.length > 0 ? (
+                {hasContent ? (
                   <View className="mb-3 items-end">
-                    <Pressable
-                      className="flex-row items-center gap-2"
-                      onPress={() =>
-                        setExpandedLimitPostId((current) => (current === post.id ? null : post.id))
-                      }
+                    <Text
+                      className="font-jakarta text-[12px] font-medium"
+                      style={{ color: plainTextLength > 3000 ? "#FF3F3F" : "#656464" }}
                     >
-                      <Ionicons
-                        name={hasExceededLimits ? "warning-outline" : "checkmark-circle-outline"}
-                        size={16}
-                        className={hasExceededLimits ? "text-text-critical" : "text-[#00C566]"}
-                      />
-                      <Text
-                        className={`font-jakarta text-body-3 ${
-                          hasExceededLimits ? "text-text-critical" : "text-text-tertiary"
-                        }`}
-                      >
-                        Character Limit
-                      </Text>
-                      <Ionicons
-                        name={showLimitDetails ? "chevron-up" : "chevron-down"}
-                        size={12}
-                        className={hasExceededLimits ? "text-text-critical" : "text-icon-secondary"}
-                      />
-                    </Pressable>
-                  </View>
-                ) : null}
-
-                {showLimitDetails && limits.length > 0 ? (
-                  <View className="mb-3 rounded-[10px] border border-text-critical bg-transparent px-4 py-3">
-                    {limits.map((limit) => (
-                      <View
-                        key={`${post.id}-${limit.id}`}
-                        className="mb-2 flex-row items-center justify-between last:mb-0"
-                      >
-                        <View className="flex-row items-center gap-2">
-                          <ChannelAvatar
-                            avatar={channels.find((channel) => channel.id === limit.id)?.avatar ?? channels[0]?.avatar ?? ""}
-                            network={limit.network}
-                            size={16}
-                          />
-                          <Text
-                            className={`font-jakarta text-body-3 ${
-                              limit.exceeded ? "text-text-critical" : "text-text-primary"
-                            }`}
-                          >
-                            {limit.label}:
-                          </Text>
-                        </View>
-                        <Text
-                          className={`font-jakarta text-body-3 ${
-                            limit.exceeded ? "text-text-critical" : "text-text-primary"
-                          }`}
-                        >
-                          {limit.current}/{limit.limit}
-                        </Text>
-                      </View>
-                    ))}
+                      {plainTextLength}/3000
+                    </Text>
                   </View>
                 ) : null}
               </View>
@@ -745,8 +681,6 @@ export default function CreatePostScreen() {
         isVisible={settingsSheet !== null}
         onClose={() => setSettingsSheet(settingsSheet === "main" ? null : "main")}
         showHandle={settingsSheet !== "new-tag"}
-        backdropColor="#414042"
-        backdropOpacity={0.3}
         fullHeight={settingsSheet === "new-tag"}
         topOffset={settingsSheet === "new-tag" ? 12 : 0}
         useBottomInsetPadding={false}

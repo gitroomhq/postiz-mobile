@@ -358,6 +358,7 @@ export function SettingsSheetContent({
                           avatar={focusedChannel.avatar}
                           network={focusedChannel.network}
                           size={36}
+                          allowBadgeOverflow
                         />
                       </View>
                     ) : null}
@@ -518,9 +519,10 @@ export function SettingsSheetContent({
                   className="h-[14px] rounded-full"
                 />
                 <View
-                  className="absolute -top-[6px] h-7 w-7 rounded-full border-[6px] border-white"
+                  className="absolute h-7 w-7 rounded-full border-[6px] border-white"
                   pointerEvents="none"
                   style={{
+                    top: -6,
                     left: (hsv.h / 360) * hueBarWidth - 14,
                     backgroundColor: pureHueColor,
                   }}

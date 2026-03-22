@@ -9,30 +9,37 @@ export function ChannelAvatar({
   avatar,
   network,
   size = 32,
+  allowBadgeOverflow = false,
 }: {
   avatar: string;
   network: ChannelNetwork;
   size?: number;
+  allowBadgeOverflow?: boolean;
 }) {
   const networkConfig = NETWORK_CONFIG[network];
   const badgeSize = Math.max(12, Math.round(size * 0.42));
+  const badgeOffset = allowBadgeOverflow ? Math.round(badgeSize * -0.22) : 0;
 
   return (
     <View
-      className="relative items-center justify-center overflow-hidden rounded-full"
+      className={`relative items-center justify-center rounded-full ${
+        allowBadgeOverflow ? "overflow-visible" : "overflow-hidden"
+      }`}
       style={{ width: size, height: size }}
     >
       <Image
         source={{ uri: avatar }}
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
         contentFit="cover"
       />
       <View
-        className="absolute bottom-0 right-0 items-center justify-center rounded-[4px]"
+        className="absolute items-center justify-center rounded-[4px]"
         style={{
           width: badgeSize,
           height: badgeSize,
           backgroundColor: networkConfig.bg,
+          bottom: badgeOffset,
+          right: badgeOffset,
         }}
       >
         <Ionicons

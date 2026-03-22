@@ -1,5 +1,6 @@
+import { BlurView } from "expo-blur";
 import type { StyleProp, ViewStyle } from "react-native";
-import { useWindowDimensions, View } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import Modal from "react-native-modal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,8 +10,6 @@ type BottomSheetWrapperProps = {
   onClose?: () => void;
   showHandle?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
-  backdropColor?: string;
-  backdropOpacity?: number;
   fullHeight?: boolean;
   topOffset?: number;
   useBottomInsetPadding?: boolean;
@@ -24,8 +23,6 @@ export function BottomSheetWrapper({
   onClose,
   showHandle = true,
   containerStyle,
-  backdropColor = "#000000",
-  backdropOpacity = 0.6,
   fullHeight = false,
   topOffset = 0,
   useBottomInsetPadding = true,
@@ -39,9 +36,19 @@ export function BottomSheetWrapper({
   return (
     <Modal
       isVisible={isVisible}
-      hasBackdrop
-      backdropColor={backdropColor}
-      backdropOpacity={backdropOpacity}
+      customBackdrop={
+        <Pressable
+          style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(65, 64, 66, 0.3)" }]}
+          onPress={onClose}
+        >
+          <BlurView
+            intensity={20}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Pressable>
+      }
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
       hideModalContentWhileAnimating
@@ -53,7 +60,6 @@ export function BottomSheetWrapper({
       animationInTiming={300}
       animationOutTiming={300}
       style={{ justifyContent: "flex-end", margin: 0 }}
-      useNativeDriverForBackdrop
       avoidKeyboard={avoidKeyboard}
       statusBarTranslucent
     >

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { set } from "date-fns";
 
@@ -80,12 +80,12 @@ function TimeField({
         accessibilityLabel={`${accessibilityLabel} increment`}
         onPress={() => onStep(1)}
       >
-        <Ionicons name="chevron-up" size={16} className="text-icon-primary" />
+        <Ionicons name="chevron-up" size={14} className="text-text-secondary" />
       </Pressable>
 
       <TextInput
         ref={inputRef}
-        className={`h-[52px] w-full rounded-[10px] border text-center font-jakarta text-body-2 text-text-primary ${
+        className={`h-[52px] w-full rounded-[10px] border text-center font-jakarta text-body-1 text-text-primary ${
           isFocused
             ? "border-input-stroke-active bg-main-sections"
             : "border-input-stroke-default bg-input-bg"
@@ -110,7 +110,7 @@ function TimeField({
         accessibilityLabel={`${accessibilityLabel} decrement`}
         onPress={() => onStep(-1)}
       >
-        <Ionicons name="chevron-down" size={16} className="text-icon-primary" />
+        <Ionicons name="chevron-down" size={14} className="text-text-secondary" />
       </Pressable>
     </View>
   );
@@ -122,6 +122,7 @@ export function DateTimePickerSheet({
   onSave,
   onClose,
 }: DateTimePickerSheetProps) {
+  const { height: windowHeight } = useWindowDimensions();
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [currentMonth, setCurrentMonth] = useState(initialDate);
   const initialTime = getInitialTimeState(initialDate);
@@ -237,27 +238,28 @@ export function DateTimePickerSheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
+        height: windowHeight * 0.95,
       }}
     >
-      <View className="px-4 pb-4 pt-6">
-        <View className="mb-6 flex-row items-center justify-between">
-          <Text className="font-jakarta text-h3 font-semibold text-text-primary">
+      <View className="px-4 pb-0 pt-5">
+        <View className="mb-8 flex-row items-center justify-between">
+          <Text className="font-jakarta text-h1 font-semibold text-text-primary">
             Change Date or Time
           </Text>
           <Pressable
-            className="h-8 w-8 items-center justify-center"
+            className="h-5 w-5 items-center justify-center"
             onPress={handleClose}
           >
-            <Ionicons name="close" size={20} className="text-icon-primary" />
+            <Ionicons name="close" size={20} color="#A3A3A3" />
           </Pressable>
         </View>
 
-        <View className="mb-4 flex-row items-center gap-3">
-          <Text className="font-jakarta text-h4 font-semibold text-text-primary">
+        <View className="mb-3 flex-row items-center gap-4">
+          <Text className="w-14 font-jakarta text-h4 font-semibold text-text-primary">
             Date
           </Text>
-          <View className="rounded-full bg-main-sections-2 px-4 py-2">
-            <Text className="font-jakarta text-body-2 text-text-primary">
+          <View className="h-[52px] flex-1 justify-center rounded-[10px] border border-input-stroke-default bg-input-bg px-4">
+            <Text className="font-jakarta text-body-1 text-text-primary">
               {format(selectedDate, "EEE, d MMMM")}
             </Text>
           </View>
@@ -265,7 +267,7 @@ export function DateTimePickerSheet({
 
         <View className="mb-8 rounded-[12px] bg-main-sections-2 px-4 pb-4 pt-3">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="font-jakarta text-h4 font-semibold text-text-primary">
+            <Text className="font-jakarta text-h3 font-semibold text-text-primary">
               {formatMonthName(currentMonth)}, {currentMonth.getFullYear()}
             </Text>
             <View className="flex-row gap-2">
@@ -273,13 +275,13 @@ export function DateTimePickerSheet({
                 className="h-8 w-8 items-center justify-center"
                 onPress={() => setCurrentMonth(subMonths(currentMonth, 1))}
               >
-                <Ionicons name="chevron-back" size={18} className="text-icon-primary" />
+                <Ionicons name="chevron-back" size={18} className="text-text-secondary" />
               </Pressable>
               <Pressable
                 className="h-8 w-8 items-center justify-center"
                 onPress={() => setCurrentMonth(addMonths(currentMonth, 1))}
               >
-                <Ionicons name="chevron-forward" size={18} className="text-icon-primary" />
+                <Ionicons name="chevron-forward" size={18} className="text-text-secondary" />
               </Pressable>
             </View>
           </View>
@@ -354,14 +356,16 @@ export function DateTimePickerSheet({
           </View>
         </View>
 
-        <Pressable
-          className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
-          onPress={handleSave}
-        >
-          <Text className="font-jakarta text-button font-semibold text-white">
-            Save
-          </Text>
-        </Pressable>
+        <View className="pb-[34px] pt-6">
+          <Pressable
+            className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
+            onPress={handleSave}
+          >
+            <Text className="font-jakarta text-button font-semibold text-white">
+              Save
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheetWrapper>
   );

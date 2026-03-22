@@ -22,7 +22,7 @@ export function CalendarGrid({ days, onDayPress }: CalendarGridProps) {
             key={label}
             className="h-10 w-10 items-center justify-center p-[10px]"
           >
-            <Text className="font-jakarta text-h4 font-semibold text-text-secondary">
+            <Text className="font-jakarta text-body-2 font-semibold text-text-secondary">
               {label}
             </Text>
           </View>
@@ -52,7 +52,11 @@ export function CalendarGrid({ days, onDayPress }: CalendarGridProps) {
                   onPress={() => onDayPress(day.date)}
                 >
                   <Text
-                    className={`font-jakarta text-body-2 font-semibold ${textColor}`}
+                    className={`font-jakarta text-body-1 ${
+                      day.isSelected || day.isToday || day.hasEvents
+                        ? "font-semibold"
+                        : "font-normal"
+                    } ${textColor}`}
                   >
                     {dayNum}
                   </Text>

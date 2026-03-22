@@ -82,7 +82,8 @@ export default function SignUpScreen() {
               </Text>
               <View
                 pointerEvents="none"
-                className="absolute -left-[8.25px] top-7 z-20"
+                className="absolute top-7 z-20"
+                style={{ left: -8.25 }}
               >
                 <Image
                   source={require("@/assets/icons/login/signup-doodle.svg")}

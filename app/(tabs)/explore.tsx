@@ -14,7 +14,7 @@ import type { Channel } from "@/types";
 
 function ChannelRow({ channel }: { channel: Channel }) {
   return (
-    <View className="w-full flex-row items-center gap-2 py-2">
+    <View className="w-full flex-row items-center gap-2 px-2 py-2">
       <View className="min-h-px min-w-px flex-1 flex-row items-center gap-3">
         <View className="relative">
           <Image

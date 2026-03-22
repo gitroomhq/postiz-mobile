@@ -1,3 +1,4 @@
+import { BlurView } from "expo-blur";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 function CloseLargeIcon() {
@@ -38,6 +39,12 @@ export function ConfirmDialog({
       statusBarTranslucent
     >
       <View style={styles.overlayRoot}>
+        <BlurView
+          intensity={20}
+          tint="dark"
+          experimentalBlurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFillObject}
+        />
         <Pressable style={styles.overlayPressable} onPress={onCancel}>
           <Pressable
             className="mx-5 w-full max-w-[335px] rounded-[24px] bg-main-sections px-6 pb-6 pt-12"

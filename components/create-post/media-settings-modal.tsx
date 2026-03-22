@@ -1,6 +1,7 @@
+import { BlurView } from "expo-blur";
 import { useEffect, useState } from "react";
 import Modal from "react-native-modal";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 function CloseLargeIcon() {
   return (
@@ -35,12 +36,22 @@ export function MediaSettingsModal({
       isVisible={isVisible}
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
-      backdropColor="#000000"
-      backdropOpacity={0.6}
+      customBackdrop={
+        <Pressable
+          style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(65, 64, 66, 0.3)" }]}
+          onPress={onClose}
+        >
+          <BlurView
+            intensity={20}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Pressable>
+      }
       animationIn="fadeIn"
       animationOut="fadeOut"
       style={{ marginHorizontal: 20, justifyContent: "center" }}
-      useNativeDriverForBackdrop
     >
       <View
         className="rounded-[24px] bg-main-sections p-6"

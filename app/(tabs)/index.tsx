@@ -37,6 +37,7 @@ export default function CalendarScreen() {
 
   // --- Global state ---
   const posts = usePostsStore((state) => state.posts);
+  const storeAddPost = usePostsStore((state) => state.addPost);
   const storeDeletePost = usePostsStore((state) => state.deletePost);
   const storeReschedulePost = usePostsStore((state) => state.reschedulePost);
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -231,20 +232,28 @@ export default function CalendarScreen() {
               content: post.content,
               imageUri: post.imageUri ?? "",
               network: post.network,
+              channelId: post.channelId,
             },
           } as any);
         }}
         onDuplicate={(post) => {
+          const newId = `dup-${post.id}-${Date.now()}`;
+          storeAddPost({
+            ...post,
+            id: newId,
+            title: post.title,
+          });
           setPostDetailVisible(false);
           router.push({
             pathname: "/(tabs)/create-post",
             params: {
-              postId: post.id,
-              mode: "duplicate",
+              postId: newId,
+              mode: "edit",
               dateTime: post.scheduledAt,
               content: post.content,
               imageUri: post.imageUri ?? "",
               network: post.network,
+              channelId: post.channelId,
             },
           } as any);
         }}

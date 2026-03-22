@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useRef, useState } from "react";
 import {
   Modal as RNModal,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -45,9 +47,17 @@ export function DropUpSelect({
       <RNModal
         visible={open}
         transparent
-        animationType="none"
+        animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => setOpen(false)}
       >
+        <View style={{ flex: 1, backgroundColor: "rgba(65, 64, 66, 0.3)" }}>
+          <BlurView
+            intensity={20}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={StyleSheet.absoluteFillObject}
+          />
         <Pressable
           className="flex-1"
           onPress={() => setOpen(false)}
@@ -80,6 +90,7 @@ export function DropUpSelect({
             </ScrollView>
           </View>
         </Pressable>
+        </View>
       </RNModal>
     </View>
   );

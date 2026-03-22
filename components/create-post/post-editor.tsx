@@ -9,7 +9,7 @@ import {
 const EDITOR_CSS = `
   * {
     font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
-    color: #EAEAEA;
+    color: #FFFFFF;
   }
   body {
     background-color: transparent;
@@ -21,8 +21,9 @@ const EDITOR_CSS = `
     outline: none;
   }
   .tiptap p {
-    font-size: 15px;
-    line-height: 24px;
+    font-size: 14px;
+    line-height: 14px;
+    font-weight: 400;
     margin: 0;
   }
   .tiptap h1, .tiptap h2, .tiptap h3 {
