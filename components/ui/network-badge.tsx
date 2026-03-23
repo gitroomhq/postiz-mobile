@@ -10,7 +10,7 @@ export function NetworkBadge({ network }: { network: ChannelNetwork }) {
   return (
     <View
       className="absolute h-4 w-4 items-center justify-center rounded-[4px]"
-      style={{ bottom: -3, right: -3, backgroundColor: config.bg }}
+      style={{ bottom: -4, right: -4, backgroundColor: config.bg }}
     >
       <Ionicons name={config.icon} size={11} color="#FFFFFF" />
     </View>

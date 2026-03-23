@@ -77,7 +77,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
 
         <Pressable
           className="absolute left-[165.76px] top-3 h-11 w-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
-          onPress={() => router.push("/(tabs)/add-channel")}
+          onPress={() => router.push("/add-channel")}
         >
           <Image source={require("@/assets/icons/navbar/plus.svg")} className="w-5 h-5" contentFit="contain" />
         </Pressable>

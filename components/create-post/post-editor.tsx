@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import {
   RichText,
@@ -9,7 +9,9 @@ import {
 const EDITOR_CSS = `
   * {
     font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
+    caret-color: #FFFFFF;
+    -webkit-text-fill-color: #FFFFFF;
   }
   body {
     background-color: transparent;
@@ -34,6 +36,7 @@ const EDITOR_CSS = `
   }
   .is-editor-empty:first-child::before {
     color: #656464 !important;
+    -webkit-text-fill-color: #656464 !important;
   }
   .ProseMirror-menubar,
   .floating-menu,
@@ -59,6 +62,7 @@ export function PostEditor({
   editorRef?: (editor: EditorBridge) => void;
 }) {
   const hasInjectedCSS = useRef(false);
+  const [styleReady, setStyleReady] = useState(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
@@ -85,6 +89,7 @@ export function PostEditor({
       hasInjectedCSS.current = true;
       editor.injectCSS(EDITOR_CSS, "dark-theme");
       editor.setPlaceholder("What would you like to share?");
+      setStyleReady(true);
     }
   }, [(editorState as any).isReady]);
 
@@ -105,7 +110,7 @@ export function PostEditor({
   }, [(editorState as any).isFocused]);
 
   return (
-    <View style={{ minHeight }}>
+    <View style={{ minHeight, opacity: styleReady ? 1 : 0 }}>
       <RichText
         editor={editor}
         className="bg-transparent"

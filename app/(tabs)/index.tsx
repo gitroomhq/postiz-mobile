@@ -126,7 +126,7 @@ export default function CalendarScreen() {
     (dateTime: Date) => {
       setAddPostVisible(false);
       router.push({
-        pathname: "/(tabs)/create-post",
+        pathname: "/create-post",
         params: { dateTime: dateTime.toISOString() },
       } as any);
     },
@@ -160,7 +160,7 @@ export default function CalendarScreen() {
           isOpen={monthSelectorOpen}
           onToggle={() => setMonthSelectorOpen((o) => !o)}
         />
-        <Pressable onPress={() => router.push("/(tabs)/notifications")}>
+        <Pressable onPress={() => router.push("/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
             className="w-6 h-6"
@@ -224,7 +224,7 @@ export default function CalendarScreen() {
         onEdit={(post) => {
           setPostDetailVisible(false);
           router.push({
-            pathname: "/(tabs)/create-post",
+            pathname: "/create-post",
             params: {
               postId: post.id,
               mode: "edit",
@@ -245,7 +245,7 @@ export default function CalendarScreen() {
           });
           setPostDetailVisible(false);
           router.push({
-            pathname: "/(tabs)/create-post",
+            pathname: "/create-post",
             params: {
               postId: newId,
               mode: "edit",

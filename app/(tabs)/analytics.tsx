@@ -17,6 +17,7 @@ export default function AnalyticsScreen() {
   const channels = useChannelsStore((state) => state.channels);
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [selectedPeriod, setSelectedPeriod] = useState("Month");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
     <SafeAreaView className="flex-1 bg-main-sections" edges={["top"]}>
@@ -26,7 +27,7 @@ export default function AnalyticsScreen() {
         <Text className="font-jakarta text-h2 font-semibold text-text-primary">
           Analytics
         </Text>
-        <Pressable onPress={() => router.push("/(tabs)/notifications")}>
+        <Pressable onPress={() => router.push("/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
             className="w-6 h-6"
@@ -39,6 +40,7 @@ export default function AnalyticsScreen() {
         className="flex-1 px-5"
         contentContainerStyle={{ gap: 24, paddingTop: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={!dropdownOpen}
       >
         <View className="gap-2">
           <Text className="font-jakarta text-body-2 font-semibold text-text-primary">
@@ -47,6 +49,7 @@ export default function AnalyticsScreen() {
           <ChannelSelector
             selected={selectedChannel}
             onSelect={setSelectedChannel}
+            onOpenChange={setDropdownOpen}
           />
         </View>
 

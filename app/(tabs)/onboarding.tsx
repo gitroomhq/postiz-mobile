@@ -87,7 +87,7 @@ export default function OnboardingScreen() {
         <View className="absolute bottom-0 left-0 right-0 px-5 pb-5">
           <AppButton
             label="Connect Channels"
-            onPress={() => router.push("/(tabs)/add-channel")}
+            onPress={() => router.push("/add-channel")}
           />
           <View className="mt-3">
             <AppButton

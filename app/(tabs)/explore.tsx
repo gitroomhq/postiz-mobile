@@ -67,14 +67,14 @@ export default function ChannelsAddedScreen() {
         <View className="flex-row items-center gap-5">
           <Pressable
             className="h-[34px] flex-row items-center justify-center gap-2 rounded-[6px] bg-buttons-tertiary-bg px-4"
-            onPress={() => router.push("/(tabs)/add-channel")}
+            onPress={() => router.push("/add-channel")}
           >
             <Ionicons name="add" size={16} className="text-white" />
             <Text className="font-jakarta text-[13px] font-semibold text-text-primary">
               Add Channel
             </Text>
           </Pressable>
-          <Pressable onPress={() => router.push("/(tabs)/notifications")}>
+          <Pressable onPress={() => router.push("/notifications")}>
             <Image
               source={require("@/assets/icons/notification-bell.svg")}
               className="w-6 h-6"

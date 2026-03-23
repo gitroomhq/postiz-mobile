@@ -51,24 +51,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="add-channel"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="create-post"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }

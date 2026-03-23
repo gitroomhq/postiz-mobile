@@ -9,7 +9,6 @@ import {
 
 import { BottomSheetWrapper } from "@/components/ui/bottom-sheet-wrapper";
 import { ChannelAvatar } from "@/components/ui/channel-avatar";
-import { showToast } from "@/components/ui/toast";
 import type { Channel } from "@/types";
 
 export function ChannelSelectionSheet({
@@ -18,6 +17,7 @@ export function ChannelSelectionSheet({
   selectedChannelIds,
   onToggleChannel,
   onClose,
+  onAddChannel,
   bottomInset,
 }: {
   isVisible: boolean;
@@ -25,6 +25,7 @@ export function ChannelSelectionSheet({
   selectedChannelIds: string[];
   onToggleChannel: (channelId: string) => void;
   onClose: () => void;
+  onAddChannel?: () => void;
   bottomInset: number;
 }) {
   const { height: windowHeight } = useWindowDimensions();
@@ -102,9 +103,7 @@ export function ChannelSelectionSheet({
         <View className="gap-3 bg-background-primary px-5 pb-3 pt-3">
           <Pressable
             className="h-11 flex-row items-center justify-center gap-2 rounded-[8px] bg-buttons-tertiary-bg"
-            onPress={() =>
-              showToast("Add channel flow not implemented yet", "success")
-            }
+            onPress={() => onAddChannel?.()}
           >
             <Ionicons name="add" size={18} className="text-white" />
             <Text className="font-jakarta text-button font-semibold text-text-primary">

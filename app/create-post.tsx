@@ -760,6 +760,10 @@ export default function CreatePostScreen() {
         selectedChannelIds={selectedChannelIds}
         onToggleChannel={toggleChannel}
         onClose={() => setChannelSheetVisible(false)}
+        onAddChannel={() => {
+          setChannelSheetVisible(false);
+          router.push("/add-channel");
+        }}
         bottomInset={bottom}
       />
 

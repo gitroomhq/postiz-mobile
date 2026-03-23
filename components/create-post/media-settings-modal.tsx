@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import { useEffect, useState } from "react";
 import Modal from "react-native-modal";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 function CloseLargeIcon() {
   return (
@@ -51,6 +51,8 @@ export function MediaSettingsModal({
       }
       animationIn="fadeIn"
       animationOut="fadeOut"
+      statusBarTranslucent
+      deviceHeight={Dimensions.get("screen").height}
       style={{ marginHorizontal: 20, justifyContent: "center" }}
     >
       <View

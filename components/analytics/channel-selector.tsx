@@ -9,9 +9,11 @@ import type { Channel } from "@/types";
 export function ChannelSelector({
   selected,
   onSelect,
+  onOpenChange,
 }: {
   selected: Channel;
   onSelect: (channel: Channel) => void;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const channels = useChannelsStore((state) => state.channels);
   const [open, setOpen] = useState(false);
@@ -20,7 +22,11 @@ export function ChannelSelector({
     <View className="relative z-10">
       <Pressable
         className="h-[52px] w-full flex-row items-center justify-between rounded-[10px] border border-input-stroke-default bg-input-bg px-3"
-        onPress={() => setOpen(!open)}
+        onPress={() => {
+          const next = !open;
+          setOpen(next);
+          onOpenChange?.(next);
+        }}
       >
         <View className="flex-row items-center gap-3">
           <ChannelAvatar avatar={selected.avatar} network={selected.network} size={32} />
@@ -55,6 +61,7 @@ export function ChannelSelector({
               onPress={() => {
                 onSelect(channel);
                 setOpen(false);
+                onOpenChange?.(false);
               }}
             >
               <ChannelAvatar avatar={channel.avatar} network={channel.network} size={32} />

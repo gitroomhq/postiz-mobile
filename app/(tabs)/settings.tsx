@@ -116,7 +116,7 @@ export default function SettingsScreen() {
         <Text className="font-jakarta text-h2 font-semibold text-text-primary">
           Settings
         </Text>
-        <Pressable onPress={() => router.push("/(tabs)/notifications")}>
+        <Pressable onPress={() => router.push("/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
             className="w-6 h-6"
