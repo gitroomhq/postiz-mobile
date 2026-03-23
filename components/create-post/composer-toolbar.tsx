@@ -29,11 +29,13 @@ export function ComposerToolbar({
   onFormatPress,
   onAddPost,
   bottomInset,
+  addPostDisabled = false,
 }: {
   onMediaToolPress: (toolId: string) => void;
   onFormatPress: (toolId: string) => void;
   onAddPost: () => void;
   bottomInset: number;
+  addPostDisabled?: boolean;
 }) {
   return (
     <View className="bg-background-primary" style={{ paddingBottom: Math.max(bottomInset, 8) }}>
@@ -77,10 +79,17 @@ export function ComposerToolbar({
         </View>
 
         <Pressable
-          className="h-10 w-10 items-center justify-center rounded-[8px] bg-buttons-secondary-bg"
+          className={`h-10 w-10 items-center justify-center rounded-[8px] ${
+            addPostDisabled ? "bg-[#3C3C3C]" : "bg-buttons-secondary-bg"
+          }`}
           onPress={onAddPost}
+          disabled={addPostDisabled}
         >
-          <SvgIcon source={require("@/assets/icons/create-post/plus.svg")} size={20} />
+          <SvgIcon
+            source={require("@/assets/icons/create-post/plus.svg")}
+            size={20}
+            tintColor={addPostDisabled ? "#9E9E9E" : undefined}
+          />
         </Pressable>
       </View>
     </View>

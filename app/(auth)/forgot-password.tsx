@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -14,6 +14,7 @@ export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
   const [focusedField, setFocusedField] = useState<"email" | null>(null);
   const [errors, setErrors] = useState<{ email?: string }>({});
+  const isEmailValid = email.includes("@");
 
   const handleSendResetLink = () => {
     const newErrors: { email?: string } = {};
@@ -32,56 +33,48 @@ export default function ForgotPasswordScreen() {
       <StatusBar style="light" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
-        <ScrollView
-          className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"
-          contentContainerClassName="flex-grow"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="mb-6 h-[27.359px] w-[84px]">
-            <View className="absolute inset-0 right-[70.6%]">
-              <Image
-                source={require("@/assets/icons/login/postiz-mark.svg")}
-                className="w-[24.7px] h-[27.359px]"
-                contentFit="contain"
-              />
-            </View>
-            <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
-              <Image
-                source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                className="w-[52.65px] h-[23.976px]"
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View className="mb-6 w-full">
-            <Pressable
-              className="h-6 w-6 items-center justify-center"
-              onPress={() => router.back()}
-            >
-              <Ionicons name="chevron-back" size={20} className="text-icon-primary" />
-            </Pressable>
-          </View>
-
-          <View className="flex-1 justify-between">
-            <View className="gap-8">
-              <View className="gap-3">
-                <Text className="font-jakarta text-2xl font-semibold leading-8 text-text-primary">
-                  Forgot Password
-                </Text>
-                <Text className="font-jakarta text-sm text-text-secondary">
-                  Enter your email and we&apos;ll send you a reset link.
-                </Text>
+        <View className="flex-1 bg-background-primary px-5 pb-[42px] pt-12">
+            <View className="mb-6 h-[27.359px] w-[84px]">
+              <View className="absolute inset-0 right-[70.6%]">
+                <Image
+                  source={require("@/assets/icons/login/postiz-mark.svg")}
+                  className="w-[24.7px] h-[27.359px]"
+                  contentFit="contain"
+                />
               </View>
+              <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
+                <Image
+                  source={require("@/assets/icons/login/postiz-wordmark.svg")}
+                  className="w-[52.65px] h-[23.976px]"
+                  contentFit="contain"
+                />
+              </View>
+            </View>
+
+            <View className="mb-6 w-full">
+              <Pressable
+                className="h-6 w-6 items-center justify-center"
+                onPress={() => router.back()}
+              >
+                <Ionicons name="chevron-back" size={20} className="text-icon-primary" />
+              </Pressable>
+            </View>
+
+            <View className="gap-8">
+              <Text className="font-jakarta text-h1 font-semibold text-text-primary">
+                Forgot password
+              </Text>
 
               <AuthInput
                 label="Email"
                 value={email}
-                onChangeText={(text) => { setEmail(text); if (errors.email) setErrors((prev) => ({ ...prev, email: undefined })); }}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
                 placeholder="Enter email address"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -91,13 +84,26 @@ export default function ForgotPasswordScreen() {
                 error={!!errors.email}
                 hint={errors.email}
               />
-            </View>
 
-            <View className="gap-8">
-              <AppButton label="Send Reset Link" onPress={handleSendResetLink} />
+              <AppButton
+                label="Send Password Reset Email"
+                onPress={handleSendResetLink}
+                variant={isEmailValid ? "primary" : "disabled"}
+                disabled={!isEmailValid}
+              />
+
+              <View className="flex-row items-baseline gap-2">
+                <Text className="font-jakarta text-body-1 text-text-primary">
+                  Don&apos;t have an account?
+                </Text>
+                <Pressable onPress={() => router.replace("/(auth)/signup")}>
+                  <Text className="font-jakarta text-button font-semibold text-main-accent-pink">
+                    Sign Up
+                  </Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

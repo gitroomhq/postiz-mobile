@@ -1,14 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { useRef, useState } from "react";
-import {
-  Modal as RNModal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Modal, Platform, Pressable, StatusBar, Text, View } from "react-native";
+
+const ITEM_HEIGHT = 44;
 
 export function DropUpSelect({
   value,
@@ -23,19 +17,24 @@ export function DropUpSelect({
   const triggerRef = useRef<View>(null);
   const [pos, setPos] = useState({ x: 0, y: 0, w: 0 });
 
+  const dropdownHeight = options.length * ITEM_HEIGHT + 16;
+
   const handleOpen = () => {
     triggerRef.current?.measureInWindow((x, y, width) => {
-      setPos({ x, y, w: width });
+      const statusBarOffset = Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0;
+      setPos({ x, y: y + statusBarOffset - dropdownHeight - 4, w: width });
       setOpen(true);
     });
   };
+
+  const handleClose = () => setOpen(false);
 
   return (
     <View>
       <View ref={triggerRef}>
         <Pressable
           className="h-[52px] flex-row items-center justify-between rounded-[10px] border border-input-stroke-default bg-background-primary px-4"
-          onPress={() => (open ? setOpen(false) : handleOpen())}
+          onPress={() => (open ? handleClose() : handleOpen())}
         >
           <Text className="font-jakarta text-body-1 text-text-primary">
             {value}
@@ -44,54 +43,44 @@ export function DropUpSelect({
         </Pressable>
       </View>
 
-      <RNModal
+      <Modal
         visible={open}
         transparent
-        animationType="fade"
+        animationType="none"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={handleClose}
       >
-        <View style={{ flex: 1, backgroundColor: "rgba(65, 64, 66, 0.3)" }}>
-          <BlurView
-            intensity={20}
-            tint="dark"
-            experimentalBlurMethod="dimezisBlurView"
-            style={StyleSheet.absoluteFillObject}
-          />
         <Pressable
           className="flex-1"
-          onPress={() => setOpen(false)}
+          style={{ backgroundColor: "transparent" }}
+          onPress={handleClose}
         >
           <View
-            className="absolute max-h-[128px] rounded-xl bg-[#242323] p-2"
+            className="rounded-xl bg-main-menu-bg p-2"
             style={{
+              position: "absolute",
               left: pos.x,
-              top: pos.y - 128 - 8,
+              top: pos.y,
               width: pos.w,
-              elevation: 10,
             }}
-            onStartShouldSetResponder={() => true}
           >
-            <ScrollView bounces={false} nestedScrollEnabled showsVerticalScrollIndicator>
-              {options.map((option) => (
-                <Pressable
-                  key={option}
-                  className={`rounded-[8px] px-3 py-[10px] ${option === value ? "bg-channel-active-bg" : ""}`}
-                  onPress={() => {
-                    onSelect(option);
-                    setOpen(false);
-                  }}
-                >
-                  <Text className="font-jakarta text-body-1 font-semibold text-text-primary">
-                    {option}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+            {options.map((option) => (
+              <Pressable
+                key={option}
+                className={`rounded-[8px] px-3 py-[10px] ${option === value ? "bg-channel-active-bg" : ""}`}
+                onPress={() => {
+                  onSelect(option);
+                  handleClose();
+                }}
+              >
+                <Text className="font-jakarta text-body-1 font-semibold text-text-primary">
+                  {option}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </Pressable>
-        </View>
-      </RNModal>
+      </Modal>
     </View>
   );
 }

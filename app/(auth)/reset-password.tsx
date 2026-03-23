@@ -9,6 +9,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/components/ui/app-button";
 import { AuthInput } from "@/components/ui/auth-input";
 
+function PasswordVisibilityToggle({
+  visible,
+  onPress,
+}: {
+  visible: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      className="h-5 w-5 items-center justify-center"
+      hitSlop={10}
+      onPress={onPress}
+    >
+      {visible ? (
+        <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
+      ) : (
+        <Image
+          source={require("@/assets/icons/login/eye-slash.svg")}
+          className="h-5 w-5"
+          contentFit="contain"
+        />
+      )}
+    </Pressable>
+  );
+}
+
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const [password, setPassword] = useState("");
@@ -34,8 +60,8 @@ export default function ResetPasswordScreen() {
       <StatusBar style="light" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <ScrollView
           className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"
@@ -69,77 +95,59 @@ export default function ResetPasswordScreen() {
             </Pressable>
           </View>
 
-          <View className="flex-1 justify-between">
-            <View className="gap-8">
-              <View className="gap-3">
-                <Text className="font-jakarta text-2xl font-semibold leading-8 text-text-primary">
-                  Create New Password
-                </Text>
-                <Text className="font-jakarta text-sm text-text-secondary">
-                  Set a strong password to secure access.
-                </Text>
-              </View>
-
-              <View className="gap-5">
-                <AuthInput
-                  label="Password"
-                  value={password}
-                  onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
-                  placeholder="Enter password"
-                  secureTextEntry={!passwordVisible}
-                  autoCapitalize="none"
-                  focused={focusedField === "password"}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
-                  error={!!errors.password}
-                  hint={errors.password}
-                  rightSlot={
-                    <Pressable onPress={() => setPasswordVisible((prev) => !prev)}>
-                      {passwordVisible ? (
-                        <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
-                      ) : (
-                        <Image
-                          source={require("@/assets/icons/login/eye-slash.svg")}
-                          className="w-5 h-5"
-                          contentFit="contain"
-                        />
-                      )}
-                    </Pressable>
-                  }
-                />
-
-                <AuthInput
-                  label="Confirm Password"
-                  value={confirmPassword}
-                  onChangeText={(text) => { setConfirmPassword(text); if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
-                  placeholder="Confirm password"
-                  secureTextEntry={!confirmPasswordVisible}
-                  autoCapitalize="none"
-                  focused={focusedField === "confirmPassword"}
-                  onFocus={() => setFocusedField("confirmPassword")}
-                  onBlur={() => setFocusedField(null)}
-                  error={!!errors.confirmPassword}
-                  hint={errors.confirmPassword}
-                  rightSlot={
-                    <Pressable onPress={() => setConfirmPasswordVisible((prev) => !prev)}>
-                      {confirmPasswordVisible ? (
-                        <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
-                      ) : (
-                        <Image
-                          source={require("@/assets/icons/login/eye-slash.svg")}
-                          className="w-5 h-5"
-                          contentFit="contain"
-                        />
-                      )}
-                    </Pressable>
-                  }
-                />
-              </View>
+          <View className="gap-8">
+            <View className="gap-3">
+              <Text className="font-jakarta text-2xl font-semibold leading-8 text-text-primary">
+                Create New Password
+              </Text>
+              <Text className="font-jakarta text-sm text-text-secondary">
+                Set a strong password to secure access.
+              </Text>
             </View>
 
-            <View className="gap-8">
-              <AppButton label="Reset Password" onPress={handleResetPassword} />
+            <View className="gap-5">
+              <AuthInput
+                label="Password"
+                value={password}
+                onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
+                placeholder="Enter password"
+                secureTextEntry={!passwordVisible}
+                autoCapitalize="none"
+                focused={focusedField === "password"}
+                onFocus={() => setFocusedField("password")}
+                onBlur={() => setFocusedField(null)}
+                error={!!errors.password}
+                hint={errors.password}
+                rightSlot={
+                  <PasswordVisibilityToggle
+                    visible={passwordVisible}
+                    onPress={() => setPasswordVisible((prev) => !prev)}
+                  />
+                }
+              />
+
+              <AuthInput
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={(text) => { setConfirmPassword(text); if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
+                placeholder="Confirm password"
+                secureTextEntry={!confirmPasswordVisible}
+                autoCapitalize="none"
+                focused={focusedField === "confirmPassword"}
+                onFocus={() => setFocusedField("confirmPassword")}
+                onBlur={() => setFocusedField(null)}
+                error={!!errors.confirmPassword}
+                hint={errors.confirmPassword}
+                rightSlot={
+                  <PasswordVisibilityToggle
+                    visible={confirmPasswordVisible}
+                    onPress={() => setConfirmPasswordVisible((prev) => !prev)}
+                  />
+                }
+              />
             </View>
+
+            <AppButton label="Reset Password" onPress={handleResetPassword} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

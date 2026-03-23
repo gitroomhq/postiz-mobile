@@ -51,6 +51,7 @@ export function MediaSettingsModal({
       }
       animationIn="fadeIn"
       animationOut="fadeOut"
+      avoidKeyboard
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
       style={{ marginHorizontal: 20, justifyContent: "center" }}

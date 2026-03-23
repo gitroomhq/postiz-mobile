@@ -75,8 +75,8 @@ export default function VerifyOtpScreen() {
       <StatusBar style="light" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <ScrollView
           className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"
@@ -110,40 +110,38 @@ export default function VerifyOtpScreen() {
             </Pressable>
           </View>
 
-          <View className="flex-1 justify-between">
-            <View className="gap-8">
-              <View className="gap-3">
-                <Text className="font-jakarta text-2xl font-semibold leading-8 text-text-primary">
-                  Verify your account
-                </Text>
-                <Text className="font-jakarta text-sm text-text-secondary">
-                  Enter the 5-digit code sent to your email
-                </Text>
-              </View>
+          <View className="gap-8">
+            <View className="gap-3">
+              <Text className="font-jakarta text-2xl font-semibold leading-8 text-text-primary">
+                Verify your account
+              </Text>
+              <Text className="font-jakarta text-sm text-text-secondary">
+                Enter the 5-digit code sent to your email
+              </Text>
+            </View>
 
-              <View className="gap-1">
-                <View className="flex-row gap-2">
+            <View className="gap-1">
+              <View className="w-full flex-row justify-between">
                 {code.map((digit, index) => (
                   <View
                     key={index}
-                    className={`h-[52px] flex-1 items-center justify-center rounded-[10px] border ${
+                    className={`h-[52px] w-[55.8px] items-center justify-center rounded-[10px] border ${
                       error
                         ? "border-text-critical"
                         : focusedIndex === index
                           ? "border-main-accent-purple"
                           : "border-input-stroke-default"
-                    } bg-background-primary`}
+                    } bg-input-bg px-3 py-1`}
                   >
                     <TextInput
                       ref={(ref) => { inputRefs.current[index] = ref; }}
-                      className={`h-full w-full text-center font-jakarta text-sm ${error ? "text-text-critical" : "text-text-primary"}`}
+                      className={`h-full w-full text-center font-jakarta text-body-1 font-normal ${error ? "text-text-critical" : "text-text-primary"}`}
                       value={digit}
                       onChangeText={(text) => handleChange(text, index)}
                       onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
                       onFocus={() => setFocusedIndex(index)}
                       onBlur={() => setFocusedIndex(null)}
                       keyboardType="number-pad"
-                      maxLength={1}
                       selectTextOnFocus
                       selectionColor="#8A62FD"
                     />
@@ -154,27 +152,24 @@ export default function VerifyOtpScreen() {
               {error ? (
                 <Text className="font-jakarta text-xs leading-3 text-text-critical">{error}</Text>
               ) : null}
-              </View>
             </View>
 
-            <View className="gap-8">
-              <AppButton
-                label="Verify"
-                variant={canVerify ? "primary" : "disabled"}
-                disabled={!canVerify}
-                onPress={handleVerify}
-              />
+            <AppButton
+              label="Verify"
+              variant={canVerify ? "primary" : "disabled"}
+              disabled={!canVerify}
+              onPress={handleVerify}
+            />
 
-              <View className="flex-row items-center gap-2">
-                <Text className="font-jakarta text-sm text-text-primary">
-                  Don&apos;t received code?
+            <View className="flex-row items-center gap-2">
+              <Text className="font-jakarta text-sm text-text-primary">
+                Don&apos;t received code?
+              </Text>
+              <Pressable onPress={handleResend}>
+                <Text className="font-jakarta text-[15px] font-semibold text-main-accent-pink">
+                  Resend
                 </Text>
-                <Pressable onPress={handleResend}>
-                  <Text className="font-jakarta text-[15px] font-semibold text-main-accent-pink">
-                    Resend
-                  </Text>
-                </Pressable>
-              </View>
+              </Pressable>
             </View>
           </View>
         </ScrollView>

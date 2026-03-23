@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import {
+  BridgeExtension,
   RichText,
+  TenTapStartKit,
   useEditorBridge,
   type EditorBridge,
 } from "@10play/tentap-editor";
@@ -46,6 +48,13 @@ const EDITOR_CSS = `
   }
 `;
 
+// Bridge extension that injects dark theme CSS at page load time
+// (via WebView's injectedJavaScript prop, before any content renders)
+const DarkThemeBridge = new BridgeExtension({
+  forceName: "dark-theme",
+  extendCSS: EDITOR_CSS,
+});
+
 export function PostEditor({
   initialContent,
   onChange,
@@ -61,8 +70,6 @@ export function PostEditor({
   minHeight: number;
   editorRef?: (editor: EditorBridge) => void;
 }) {
-  const hasInjectedCSS = useRef(false);
-  const [styleReady, setStyleReady] = useState(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
@@ -71,6 +78,7 @@ export function PostEditor({
     avoidIosKeyboard: true,
     dynamicHeight: true,
     initialContent: initialContent || "<p></p>",
+    bridgeExtensions: [...TenTapStartKit, DarkThemeBridge],
     theme: {
       webview: {
         backgroundColor: "transparent",
@@ -82,14 +90,19 @@ export function PostEditor({
     },
   });
 
-  // Inject dark theme CSS once the editor is ready
   const editorState = editor.getEditorState();
+  const hasSetup = useRef(false);
+
+  // Set placeholder and force Android WebView repaint once editor is ready
   useEffect(() => {
-    if ((editorState as any).isReady && !hasInjectedCSS.current) {
-      hasInjectedCSS.current = true;
-      editor.injectCSS(EDITOR_CSS, "dark-theme");
+    if ((editorState as any).isReady && !hasSetup.current) {
+      hasSetup.current = true;
       editor.setPlaceholder("What would you like to share?");
-      setStyleReady(true);
+      // Focus forces Android WebView to repaint, blur dismisses keyboard
+      setTimeout(() => {
+        editor.focus();
+        setTimeout(() => editor.blur(), 50);
+      }, 100);
     }
   }, [(editorState as any).isReady]);
 
@@ -110,7 +123,7 @@ export function PostEditor({
   }, [(editorState as any).isFocused]);
 
   return (
-    <View style={{ minHeight, opacity: styleReady ? 1 : 0 }}>
+    <View style={{ minHeight }}>
       <RichText
         editor={editor}
         className="bg-transparent"

@@ -6,6 +6,10 @@ import { Image } from "@/components/ui/image";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import type { ScheduledPost } from "@/types";
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
 type TimelineEventCardProps = {
   post: ScheduledPost;
   isSelected: boolean;
@@ -14,7 +18,7 @@ type TimelineEventCardProps = {
 
 export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelected, onPress }: TimelineEventCardProps) {
   const network = NETWORK_CONFIG[post.network];
-  const previewText = post.content || post.title;
+  const previewText = stripHtml(post.content || post.title);
 
   return (
     <Pressable onPress={onPress} className="relative">

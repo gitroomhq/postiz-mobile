@@ -32,8 +32,8 @@ export default function SignInScreen() {
       <StatusBar style="light" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <ScrollView
           className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"

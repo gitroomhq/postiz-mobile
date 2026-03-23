@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { set } from "date-fns";
 
@@ -152,10 +152,15 @@ export function DateTimePickerSheet({
       field === "hour"
         ? parseInt(normalizeValue(hour, "hour"), 10)
         : parseInt(normalizeValue(minute, "minute"), 10);
-    const nextValue =
-      field === "hour"
-        ? clamp(currentValue + delta, 1, 12)
-        : clamp(currentValue + delta, 0, 59);
+
+    let nextValue: number;
+    if (field === "hour") {
+      // Wrap 1-12: going below 1 wraps to 12, going above 12 wraps to 1
+      nextValue = ((currentValue - 1 + delta + 12) % 12) + 1;
+    } else {
+      // Wrap 0-59: going below 0 wraps to 59, going above 59 wraps to 0
+      nextValue = (currentValue + delta + 60) % 60;
+    }
 
     if (field === "hour") {
       setHour(String(nextValue));
@@ -241,7 +246,11 @@ export function DateTimePickerSheet({
         height: windowHeight * 0.95,
       }}
     >
-      <View className="px-4 pb-0 pt-5">
+      <ScrollView
+        className="flex-1 px-4 pt-5"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View className="mb-8 flex-row items-center justify-between">
           <Text className="font-jakarta text-h1 font-semibold text-text-primary">
             Change Date or Time
@@ -366,7 +375,7 @@ export function DateTimePickerSheet({
             </Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </BottomSheetWrapper>
   );
 }

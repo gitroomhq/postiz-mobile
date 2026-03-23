@@ -37,7 +37,7 @@ cssInterop(Ionicons, {
 });
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 void SplashScreen.preventAutoHideAsync();
@@ -64,9 +64,9 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
           <ToastProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack initialRouteName="(auth)">
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
               <Stack.Screen name="add-channel" options={{ headerShown: false, animation: 'slide_from_right' }} />
               <Stack.Screen name="create-post" options={{ headerShown: false, animation: 'slide_from_right' }} />

@@ -77,10 +77,38 @@ function ChannelTab({
           ? "border-[1.5px] border-main-accent-pink bg-main-sections-2"
           : "bg-buttons-tertiary-bg"
       }`}
+      style={{ overflow: "visible" }}
       onPress={onPress}
     >
       {children}
     </Pressable>
+  );
+}
+
+function LockedTemplateCard({ onPress }: { onPress: () => void }) {
+  return (
+    <View
+      className="w-full items-center justify-center gap-4 rounded-[8px] py-6"
+      style={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+    >
+      <SvgIcon
+        source={require("@/assets/icons/create-post/lock.svg")}
+        size={24}
+        tintColor="#FFFFFF"
+        opacity={0.7}
+      />
+      <Text className="w-[309px] text-center font-jakarta text-[14px] leading-[14px] text-text-primary">
+        Click this button to stop using the current template and customize the post
+      </Text>
+      <Pressable
+        className="h-11 items-center justify-center rounded-[8px] bg-buttons-secondary-bg px-8 pb-[14px] pt-3"
+        onPress={onPress}
+      >
+        <Text className="font-jakarta text-[15px] font-semibold leading-[15px] text-buttons-secondary-text">
+          Edit Content
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -148,6 +176,9 @@ export default function CreatePostScreen() {
   const [newTagName, setNewTagName] = useState("New");
   const [newTagColor, setNewTagColor] = useState<(typeof TAG_COLOR_OPTIONS)[number]>("#E89623");
   const [activePostId, setActivePostId] = useState(posts[0]?.id ?? "post-1");
+  const [channelOverrides, setChannelOverrides] = useState<
+    Record<string, { content: string; imageUris: string[] }>
+  >({});
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [mediaSettingsTarget, setMediaSettingsTarget] = useState<{
@@ -198,12 +229,8 @@ export default function CreatePostScreen() {
     setPosts((current) => (current.length === 1 ? current : current.filter((post) => post.id !== postId)));
   };
 
-  const toggleChannel = (channelId: string) => {
-    setSelectedChannelIds((current) =>
-      current.includes(channelId)
-        ? current.filter((id) => id !== channelId)
-        : [...current, channelId],
-    );
+  const handleChannelsSave = (channelIds: string[]) => {
+    setSelectedChannelIds(channelIds);
   };
 
   const handleSave = (action: string = "calendar") => {
@@ -213,20 +240,29 @@ export default function CreatePostScreen() {
       if (!stripHtml(post.content)) continue;
 
       for (const channel of selectedChannels) {
+        // Use per-channel override if it exists, otherwise use the default post
+        const override = channelOverrides[channel.id];
+        const content = override ? override.content : post.content;
+        const imageUri = override
+          ? override.imageUris[0] ?? undefined
+          : post.imageUris[0] ?? undefined;
+
+        if (!stripHtml(content)) continue;
+
         if (mode === "edit" && params.postId) {
           updatePostInStore(params.postId, {
-            content: post.content,
-            imageUri: post.imageUris[0] ?? undefined,
+            content,
+            imageUri,
             scheduledAt: scheduledDate.toISOString(),
             network: channel.network,
           });
         } else {
           addPostToStore({
             id: `${Date.now()}-${channel.id}-${post.id}`,
-            title: post.content.slice(0, 40),
-            content: post.content,
+            title: content.slice(0, 40),
+            content,
             category: "Social",
-            imageUri: post.imageUris[0] ?? undefined,
+            imageUri,
             scheduledAt: scheduledDate.toISOString(),
             network: channel.network,
             channelId: channel.id,
@@ -342,6 +378,26 @@ export default function CreatePostScreen() {
   const openSettingsSheet = () => {
     setPostActionMenuVisible(false);
     setSettingsSheet("main");
+  };
+
+  const handleUnlockChannel = (channelId: string) => {
+    const defaultPost = posts[0];
+    if (!defaultPost) return;
+    setChannelOverrides((current) => ({
+      ...current,
+      [channelId]: { content: defaultPost.content, imageUris: [...defaultPost.imageUris] },
+    }));
+  };
+
+  const updateChannelOverride = (
+    channelId: string,
+    updater: (prev: { content: string; imageUris: string[] }) => { content: string; imageUris: string[] },
+  ) => {
+    setChannelOverrides((current) => {
+      const existing = current[channelId];
+      if (!existing) return current;
+      return { ...current, [channelId]: updater(existing) };
+    });
   };
 
   const handleDeleteComposerPost = () => {
@@ -486,7 +542,7 @@ export default function CreatePostScreen() {
           </Pressable>
 
           {postActionMenuVisible ? (
-            <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3 shadow-[0px_8px_30px_rgba(0,0,0,0.5)]">
+            <View className="absolute right-0 top-12 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ zIndex: 20, elevation: 2 }}>
               {POST_ACTIONS.map((action) => (
                 <Pressable
                   key={action.id}
@@ -499,7 +555,7 @@ export default function CreatePostScreen() {
                   } ${action.id === "draft" ? "mb-0" : ""}`}
                   onPress={() => handleSave(action.id)}
                 >
-                  <Text className="font-jakarta text-button font-semibold text-white">
+                  <Text className="font-jakarta text-button-2 font-semibold text-white">
                     {action.label}
                   </Text>
                 </Pressable>
@@ -510,19 +566,24 @@ export default function CreatePostScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
+        className="flex-1 bg-background-primary"
       >
         {/* Content */}
         <ScrollView
-          className="flex-1"
+          className="flex-1 bg-background-primary"
           contentContainerClassName="px-4 pt-3 pb-[92px]"
           keyboardShouldPersistTaps="handled"
         >
           {/* Channel tabs */}
           <View className="mb-4 flex-row items-center gap-1">
             <ChannelTab active={!focusedChannelId} onPress={() => setFocusedChannelId(null)}>
-              <SvgIcon source={require("@/assets/icons/create-post/globe-active.svg")} size={24} />
+              <SvgIcon
+                source={require("@/assets/icons/create-post/globe-active.svg")}
+                size={24}
+                tintColor={focusedChannelId ? "#A3A3A3" : undefined}
+              />
             </ChannelTab>
 
             <View
@@ -540,7 +601,7 @@ export default function CreatePostScreen() {
                     active={channel.id === focusedChannelId}
                     onPress={() => setFocusedChannelId(channel.id)}
                   >
-                    <ChannelAvatar avatar={channel.avatar} network={channel.network} size={26} />
+                    <ChannelAvatar avatar={channel.avatar} network={channel.network} size={26} allowBadgeOverflow />
                   </ChannelTab>
                 ))}
               </ScrollView>
@@ -572,91 +633,153 @@ export default function CreatePostScreen() {
           </View>
 
           {/* Post editors */}
-          <View>
-          {posts.map((post, index) => {
-            const plainText = post.content.replace(/<[^>]*>/g, "").trim();
-            const plainTextLength = plainText.length;
-            const hasContent = plainText.length > 0 || post.imageUris.length > 0;
+          {focusedChannelId && !channelOverrides[focusedChannelId] ? (
+            /* Locked template state — channel is using the default post */
+            <View className="flex-1 justify-center py-16">
+              <LockedTemplateCard onPress={() => handleUnlockChannel(focusedChannelId)} />
+            </View>
+          ) : focusedChannelId && channelOverrides[focusedChannelId] ? (
+            /* Unlocked per-channel editor */
+            <View>
+              <PostEditor
+                key={`channel-${focusedChannelId}`}
+                initialContent={channelOverrides[focusedChannelId].content}
+                onChange={(html) =>
+                  updateChannelOverride(focusedChannelId, (prev) => ({ ...prev, content: html }))
+                }
+                onFocus={() => setActivePostId(`channel-${focusedChannelId}`)}
+                autoFocus
+                minHeight={120}
+                editorRef={(editor) => {
+                  editorRefs.current[`channel-${focusedChannelId}`] = editor;
+                }}
+              />
 
-            return (
-              <View key={post.id} className={index > 0 ? "mt-5" : ""}>
-                {index > 0 ? (
-                  <View className="mb-4 border-t border-input-stroke-default pt-4">
-                    <View className="flex-row items-center justify-between">
-                      <Text className="font-jakarta text-h4 text-text-tertiary">
-                        Add another post
-                      </Text>
-                      <Pressable onPress={() => deletePost(post.id)}>
-                        <Ionicons name="trash-outline" size={18} className="text-text-critical" />
+              {channelOverrides[focusedChannelId].imageUris.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerClassName="mb-4 mt-4 gap-4"
+                >
+                  {channelOverrides[focusedChannelId].imageUris.map((uri, mediaIndex) => (
+                    <View key={`channel-${focusedChannelId}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                      <Pressable
+                        onPress={() => setMediaSettingsTarget({ postId: `channel-${focusedChannelId}`, uri })}
+                      >
+                        <Image
+                          source={{ uri }}
+                          className="h-[60px] w-[60px] rounded-lg"
+                          contentFit="cover"
+                        />
+                      </Pressable>
+                      <Pressable
+                        className="absolute h-[24px] w-[24px] items-center justify-center"
+                        style={{ right: -8, top: -8 }}
+                        onPress={() =>
+                          updateChannelOverride(focusedChannelId, (prev) => ({
+                            ...prev,
+                            imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
+                          }))
+                        }
+                      >
+                        <SvgIcon
+                          source={require("@/assets/icons/create-post/media-remove.svg")}
+                          size={24}
+                        />
                       </Pressable>
                     </View>
-                  </View>
-                ) : null}
+                  ))}
+                </ScrollView>
+              ) : null}
+            </View>
+          ) : (
+            /* Default post editors (globe tab) */
+            <View>
+            {posts.map((post, index) => {
+              const plainText = post.content.replace(/<[^>]*>/g, "").trim();
+              const plainTextLength = plainText.length;
+              const hasContent = plainText.length > 0 || post.imageUris.length > 0;
 
-                <PostEditor
-                  initialContent={post.content}
-                  onChange={(html) =>
-                    updatePost(post.id, (current) => ({ ...current, content: html }))
-                  }
-                  onFocus={() => setActivePostId(post.id)}
-                  autoFocus={index === 0}
-                  minHeight={120}
-                  editorRef={(editor) => {
-                    editorRefs.current[post.id] = editor;
-                  }}
-                />
-
-                {post.imageUris.length > 0 ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerClassName="mb-4 mt-4 gap-4"
-                  >
-                    {post.imageUris.map((uri, mediaIndex) => (
-                      <View key={`${post.id}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
-                        <Pressable
-                          onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
-                        >
-                          <Image
-                            source={{ uri }}
-                            className="h-[60px] w-[60px] rounded-lg"
-                            contentFit="cover"
-                          />
-                        </Pressable>
-                        <Pressable
-                          className="absolute h-[24px] w-[24px] items-center justify-center"
-                          style={{ right: -8, top: -8 }}
-                          onPress={() =>
-                            updatePost(post.id, (current) => ({
-                              ...current,
-                              imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
-                            }))
-                          }
-                        >
-                          <SvgIcon
-                            source={require("@/assets/icons/create-post/media-remove.svg")}
-                            size={24}
-                          />
+              return (
+                <View key={post.id} className={index > 0 ? "mt-5" : ""}>
+                  {index > 0 ? (
+                    <View className="mb-4 border-t border-input-stroke-default pt-4">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="font-jakarta text-h4 text-text-tertiary">
+                          Add another post
+                        </Text>
+                        <Pressable onPress={() => deletePost(post.id)}>
+                          <Ionicons name="trash-outline" size={18} className="text-text-critical" />
                         </Pressable>
                       </View>
-                    ))}
-                  </ScrollView>
-                ) : null}
+                    </View>
+                  ) : null}
 
-                {hasContent ? (
-                  <View className="mb-3 items-end">
-                    <Text
-                      className="font-jakarta text-[12px] font-medium"
-                      style={{ color: plainTextLength > 3000 ? "#FF3F3F" : "#656464" }}
+                  <PostEditor
+                    initialContent={post.content}
+                    onChange={(html) =>
+                      updatePost(post.id, (current) => ({ ...current, content: html }))
+                    }
+                    onFocus={() => setActivePostId(post.id)}
+                    autoFocus={index === 0}
+                    minHeight={120}
+                    editorRef={(editor) => {
+                      editorRefs.current[post.id] = editor;
+                    }}
+                  />
+
+                  {post.imageUris.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerClassName="mb-4 mt-4 gap-4"
                     >
-                      {plainTextLength}/3000
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            );
-          })}
-          </View>
+                      {post.imageUris.map((uri, mediaIndex) => (
+                        <View key={`${post.id}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                          <Pressable
+                            onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
+                          >
+                            <Image
+                              source={{ uri }}
+                              className="h-[60px] w-[60px] rounded-lg"
+                              contentFit="cover"
+                            />
+                          </Pressable>
+                          <Pressable
+                            className="absolute h-[24px] w-[24px] items-center justify-center"
+                            style={{ right: -8, top: -8 }}
+                            onPress={() =>
+                              updatePost(post.id, (current) => ({
+                                ...current,
+                                imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
+                              }))
+                            }
+                          >
+                            <SvgIcon
+                              source={require("@/assets/icons/create-post/media-remove.svg")}
+                              size={24}
+                            />
+                          </Pressable>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  ) : null}
+
+                  {hasContent ? (
+                    <View className="mb-3 items-end">
+                      <Text
+                        className="font-jakarta text-[12px] font-medium"
+                        style={{ color: plainTextLength > 3000 ? "#FF3F3F" : "#656464" }}
+                      >
+                        {plainTextLength}/3000
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              );
+            })}
+            </View>
+          )}
 
         </ScrollView>
 
@@ -665,7 +788,8 @@ export default function CreatePostScreen() {
           onMediaToolPress={handleMediaToolPress}
           onFormatPress={handleFormatPress}
           onAddPost={addAnotherPost}
-          bottomInset={bottom}
+          bottomInset={8}
+          addPostDisabled={focusedChannelId !== null}
         />
       </KeyboardAvoidingView>
 
@@ -758,10 +882,9 @@ export default function CreatePostScreen() {
         isVisible={channelSheetVisible}
         channels={channels}
         selectedChannelIds={selectedChannelIds}
-        onToggleChannel={toggleChannel}
+        onSave={handleChannelsSave}
         onClose={() => setChannelSheetVisible(false)}
         onAddChannel={() => {
-          setChannelSheetVisible(false);
           router.push("/add-channel");
         }}
         bottomInset={bottom}

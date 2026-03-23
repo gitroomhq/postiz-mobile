@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -15,7 +16,7 @@ export function ChannelSelectionSheet({
   isVisible,
   channels,
   selectedChannelIds,
-  onToggleChannel,
+  onSave,
   onClose,
   onAddChannel,
   bottomInset,
@@ -23,12 +24,32 @@ export function ChannelSelectionSheet({
   isVisible: boolean;
   channels: Channel[];
   selectedChannelIds: string[];
-  onToggleChannel: (channelId: string) => void;
+  onSave: (channelIds: string[]) => void;
   onClose: () => void;
   onAddChannel?: () => void;
   bottomInset: number;
 }) {
   const { height: windowHeight } = useWindowDimensions();
+  const [localSelection, setLocalSelection] = useState<string[]>(selectedChannelIds);
+
+  useEffect(() => {
+    if (isVisible) {
+      setLocalSelection(selectedChannelIds);
+    }
+  }, [isVisible, selectedChannelIds]);
+
+  const toggleChannel = (channelId: string) => {
+    setLocalSelection((prev) =>
+      prev.includes(channelId)
+        ? prev.filter((id) => id !== channelId)
+        : [...prev, channelId],
+    );
+  };
+
+  const handleDone = () => {
+    onSave(localSelection);
+    onClose();
+  };
 
   return (
     <BottomSheetWrapper
@@ -61,13 +82,13 @@ export function ChannelSelectionSheet({
           contentContainerClassName="pb-4"
         >
           {channels.map((channel) => {
-            const selected = selectedChannelIds.includes(channel.id);
+            const selected = localSelection.includes(channel.id);
 
             return (
               <Pressable
                 key={channel.id}
                 className="flex-row items-center justify-between py-2"
-                onPress={() => onToggleChannel(channel.id)}
+                onPress={() => toggleChannel(channel.id)}
               >
                 <View className="flex-row items-center gap-3">
                   <ChannelAvatar
@@ -113,16 +134,16 @@ export function ChannelSelectionSheet({
 
           <Pressable
             className={`h-11 items-center justify-center rounded-[8px] ${
-              selectedChannelIds.length > 0
+              localSelection.length > 0
                 ? "bg-buttons-primary-bg"
                 : "bg-buttons-disabled-bg"
             }`}
-            disabled={selectedChannelIds.length === 0}
-            onPress={onClose}
+            disabled={localSelection.length === 0}
+            onPress={handleDone}
           >
             <Text
               className={`font-jakarta text-button font-semibold ${
-                selectedChannelIds.length > 0
+                localSelection.length > 0
                   ? "text-white"
                   : "text-buttons-disabled-text"
               }`}
