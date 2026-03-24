@@ -15,6 +15,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=11",
     status: "published",
     imageUri: "https://picsum.photos/seed/postiz-media-1/720/720",
+    tagLabel: "Important",
+    tagColor: "#E323E0",
   },
 
   // ── Mar 18 14:00 — published, with image ────────────────────────────────
@@ -31,6 +33,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=12",
     status: "published",
     imageUri: "https://picsum.photos/seed/postiz-media-2/720/720",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Mar 19 (2 days ago) 10:00 — published, no image ────────────────────
@@ -46,6 +50,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorName: "Daniel Hamilton",
     authorAvatar: "https://i.pravatar.cc/80?img=13",
     status: "published",
+    tagLabel: "General",
+    tagColor: "#3023E3",
   },
 
   // ── Mar 19 16:00 — published, with image ────────────────────────────────
@@ -62,6 +68,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=15",
     status: "published",
     imageUri: "https://picsum.photos/seed/postiz-media-4/720/720",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Mar 20 (yesterday) 08:30 — published, with image ───────────────────
@@ -78,6 +86,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=16",
     status: "published",
     imageUri: "https://picsum.photos/seed/postiz-media-3/720/720",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Mar 20 13:00 — published, no image ──────────────────────────────────
@@ -93,6 +103,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorName: "Daniel Hamilton",
     authorAvatar: "https://i.pravatar.cc/80?img=14",
     status: "published",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Today (Mar 21) 08:00 — published, with image ───────────────────────
@@ -109,6 +121,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=12",
     status: "published",
     imageUri: "https://picsum.photos/seed/postiz-media-5/720/720",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Today (Mar 21) 14:00 — scheduled, with image ───────────────────────
@@ -125,6 +139,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=11",
     status: "scheduled",
     imageUri: "https://picsum.photos/seed/postiz-media-6/720/720",
+    tagLabel: "Important",
+    tagColor: "#E323E0",
   },
 
   // ── Today (Mar 21) 18:00 — draft, no image ─────────────────────────────
@@ -140,6 +156,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorName: "Daniel Hamilton",
     authorAvatar: "https://i.pravatar.cc/80?img=13",
     status: "draft",
+    tagLabel: "General",
+    tagColor: "#3023E3",
   },
 
   // ── Tomorrow (Mar 22) 09:00 — scheduled, no image ──────────────────────
@@ -155,6 +173,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorName: "Daniel Hamilton",
     authorAvatar: "https://i.pravatar.cc/80?img=18",
     status: "scheduled",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Tomorrow (Mar 22) 12:00 — draft, with image ────────────────────────
@@ -171,6 +191,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=17",
     status: "draft",
     imageUri: "https://picsum.photos/seed/postiz-media-1/720/720",
+    tagLabel: "Important",
+    tagColor: "#E323E0",
   },
 
   // ── Tomorrow (Mar 22) 17:00 — scheduled, with image ────────────────────
@@ -187,6 +209,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=16",
     status: "scheduled",
     imageUri: "https://picsum.photos/seed/postiz-media-2/720/720",
+    tagLabel: "General",
+    tagColor: "#3023E3",
   },
 
   // ── Mar 23 10:00 — scheduled, with image ────────────────────────────────
@@ -203,6 +227,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=15",
     status: "scheduled",
     imageUri: "https://picsum.photos/seed/postiz-media-4/720/720",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Mar 23 15:00 — draft, no image ──────────────────────────────────────
@@ -218,6 +244,8 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorName: "Daniel Hamilton",
     authorAvatar: "https://i.pravatar.cc/80?img=13",
     status: "draft",
+    tagLabel: "Personal",
+    tagColor: "#5D5FFF",
   },
 
   // ── Mar 24 11:00 — scheduled, with image ────────────────────────────────
@@ -234,5 +262,7 @@ export const SCHEDULED_POSTS: ScheduledPost[] = [
     authorAvatar: "https://i.pravatar.cc/80?img=12",
     status: "scheduled",
     imageUri: "https://picsum.photos/seed/postiz-media-3/720/720",
+    tagLabel: "General",
+    tagColor: "#3023E3",
   },
 ];

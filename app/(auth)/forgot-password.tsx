@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -34,7 +34,6 @@ export default function ForgotPasswordScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <View className="flex-1 bg-background-primary px-5 pb-[42px] pt-12">
             <View className="mb-6 h-[27.359px] w-[84px]">

@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -50,7 +49,6 @@ export default function SignUpScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <ScrollView
           className="flex-1 bg-background-primary"

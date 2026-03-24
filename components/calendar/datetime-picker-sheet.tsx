@@ -24,6 +24,7 @@ type TimeFieldProps = {
   value: string;
   onChangeText: (text: string) => void;
   onBlur: () => void;
+  onFocus?: () => void;
   onStep: (delta: number) => void;
   accessibilityLabel: string;
   inputRef: React.RefObject<TextInput | null>;
@@ -67,6 +68,7 @@ function TimeField({
   value,
   onChangeText,
   onBlur,
+  onFocus,
   onStep,
   accessibilityLabel,
   inputRef,
@@ -92,7 +94,10 @@ function TimeField({
         }`}
         value={value}
         onChangeText={onChangeText}
-        onFocus={() => setIsFocused(true)}
+        onFocus={() => {
+          setIsFocused(true);
+          onFocus?.();
+        }}
         onBlur={() => {
           setIsFocused(false);
           onBlur();
@@ -129,9 +134,30 @@ export function DateTimePickerSheet({
   const [hour, setHour] = useState(initialTime.hour);
   const [minute, setMinute] = useState(initialTime.minute);
   const [ampm, setAmpm] = useState<"am" | "pm">(initialTime.ampm);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const hourRef = useRef<TextInput>(null);
   const minuteRef = useRef<TextInput>(null);
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToTime = () => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 300);
+  };
 
   const emptyPostsMap = new Map();
   const days = getCalendarDays(currentMonth, selectedDate, emptyPostsMap);
@@ -243,10 +269,11 @@ export function DateTimePickerSheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
-        height: windowHeight * 0.95,
+        height: windowHeight * 0.95 - keyboardHeight,
       }}
     >
       <ScrollView
+        ref={scrollRef}
         className="flex-1 px-4 pt-5"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -315,6 +342,7 @@ export function DateTimePickerSheet({
                 value={hour}
                 onChangeText={handleHourChange}
                 onBlur={handleHourBlur}
+                onFocus={scrollToTime}
                 inputRef={hourRef}
                 accessibilityLabel="Hour field"
                 onStep={(delta) => stepField("hour", delta)}
@@ -326,6 +354,7 @@ export function DateTimePickerSheet({
                 value={minute}
                 onChangeText={handleMinuteChange}
                 onBlur={handleMinuteBlur}
+                onFocus={scrollToTime}
                 inputRef={minuteRef}
                 accessibilityLabel="Minute field"
                 onStep={(delta) => stepField("minute", delta)}

@@ -23,13 +23,16 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
   return (
     <Pressable onPress={onPress} className="relative">
       {/* Card content — no border styling here so backgrounds always render */}
-      <View className="h-[72px] overflow-hidden rounded-lg">
-        <View className="h-6 items-center justify-center bg-slot-bg-header px-2">
+      <View className={`${post.status === "draft" ? "h-[88px]" : "h-[72px]"} overflow-hidden rounded-lg`}>
+        <View
+          className="h-6 items-center justify-center px-2"
+          style={{ backgroundColor: post.tagColor || "#3B64F6" }}
+        >
           <Text
             className="font-jakarta text-caption font-medium leading-[15px] text-white"
             numberOfLines={1}
           >
-            {post.category}
+            {post.tagLabel || post.category}
           </Text>
         </View>
 
@@ -49,12 +52,20 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
           </View>
 
           <View className="flex-1 justify-center">
-            <Text
-              className="font-jakarta text-body-4 font-medium text-text-primary"
-              numberOfLines={1}
-            >
-              {previewText}
-            </Text>
+            {post.status === "draft" ? (
+              <>
+                <Text className="font-jakarta text-body-4 font-bold text-text-primary" numberOfLines={1}>
+                  Draft:
+                </Text>
+                <Text className="font-jakarta text-body-4 font-medium text-text-primary" numberOfLines={1}>
+                  {previewText}
+                </Text>
+              </>
+            ) : (
+              <Text className="font-jakarta text-body-4 font-medium text-text-primary" numberOfLines={1}>
+                {previewText}
+              </Text>
+            )}
           </View>
         </View>
       </View>

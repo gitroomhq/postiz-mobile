@@ -81,6 +81,9 @@ export type ScheduledPost = {
   authorAvatar: string;
   status: PostStatus;
   imageUri?: string;
+  tagLabel?: string;
+  tagColor?: string;
+  composerPosts?: { id: string; content: string; imageUris: string[] }[];
 };
 
 export type TimeSlot = {

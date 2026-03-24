@@ -57,7 +57,7 @@ export const MEDIA_LIBRARY_ASSETS = [
 ] as const;
 
 export const INITIAL_TAGS: ComposerTag[] = [
-  { id: "personal", label: "Personal", color: "#5D5FFF", selected: false },
+  { id: "personal", label: "Personal", color: "#5D5FFF", selected: true },
   { id: "important", label: "Important", color: "#E323E0", selected: false },
   { id: "general", label: "General", color: "#3023E3", selected: false },
 ];

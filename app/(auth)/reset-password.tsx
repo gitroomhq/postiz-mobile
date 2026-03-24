@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -61,7 +61,6 @@ export default function ResetPasswordScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
       >
         <ScrollView
           className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"

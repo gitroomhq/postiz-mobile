@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.postiz.app",
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "adjustResize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

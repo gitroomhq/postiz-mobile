@@ -64,7 +64,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
           <ToastProvider>
-            <Stack initialRouteName="(auth)">
+            <Stack initialRouteName="(tabs)">
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
