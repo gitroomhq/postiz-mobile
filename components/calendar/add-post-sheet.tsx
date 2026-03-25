@@ -59,7 +59,7 @@ export function AddPostSheet({
         </Text>
       ) : null}
 
-      <View className="pt-[10px]">
+      <View className="pb-2 pt-[10px]">
         <Pressable
           className={`h-11 flex-row items-center justify-center gap-2 rounded-[8px] ${
           passed ? "bg-buttons-disabled-bg" : "bg-buttons-primary-bg"

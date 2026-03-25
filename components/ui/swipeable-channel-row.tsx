@@ -87,7 +87,7 @@ export function SwipeableChannelRow({
   };
 
   return (
-    <View onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)} style={{ overflow: 'visible' }}>
+    <View onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)} className="overflow-visible">
       <GestureDetector gesture={panGesture}>
         <Animated.View style={slideStyle} className="flex-row items-center">
           <Animated.View style={[cardBgStyle, { width: rowWidth || "100%", flexShrink: 0 }]}>

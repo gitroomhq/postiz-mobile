@@ -1,14 +1,17 @@
 import * as Clipboard from "expo-clipboard";
+import { Image as ExpoImage, type ImageProps } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import type { FC } from "react";
 import { useState } from "react";
 import type { StyleProp, TextStyle } from "react-native";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { showToast } from "@/components/ui/toast";
+
+const Image = ExpoImage as unknown as FC<ImageProps>;
 
 const API_KEY =
   "b02b31841331e2f56f683189c6f05bd6e096fe17ff616fc42e61de8f2e9c8300";
@@ -31,14 +34,14 @@ function ApiKeyText({
 
   if (revealed) {
     return (
-      <View className="relative">
+      <View style={{ position: "relative" }}>
         <Text style={[style, { color: "#EFEFEF" }]}>{fullText}</Text>
       </View>
     );
   }
 
   return (
-    <View className="relative">
+    <View style={{ position: "relative" }}>
       {BLUR_OFFSETS.flatMap((dx) =>
         BLUR_OFFSETS.map((dy) => (
           <Text
@@ -119,7 +122,7 @@ export default function SettingsScreen() {
         <Pressable onPress={() => router.push("/notifications")}>
           <Image
             source={require("@/assets/icons/notification-bell.svg")}
-            className="w-6 h-6"
+            style={{ width: 24, height: 24 }}
             contentFit="contain"
           />
         </Pressable>

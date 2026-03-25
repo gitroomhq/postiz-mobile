@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 
 function CloseLargeIcon() {
   return (
@@ -38,17 +38,17 @@ export function ConfirmDialog({
       animationType="fade"
       statusBarTranslucent
     >
-      <View style={styles.overlayRoot}>
+      <View className="flex-1 bg-[rgba(65,64,66,0.3)]">
         <BlurView
           intensity={20}
           tint="dark"
           experimentalBlurMethod="dimezisBlurView"
-          style={StyleSheet.absoluteFillObject}
+          className="absolute inset-0"
         />
-        <Pressable style={styles.overlayPressable} onPress={onCancel}>
+        <Pressable className="flex-1 items-center justify-center" onPress={onCancel}>
           <Pressable
             className="mx-5 w-full max-w-[335px] rounded-[24px] bg-main-sections px-6 pb-6 pt-12"
-            style={styles.modalCard}
+            style={{ shadowColor: "#000000", shadowOffset: { width: 0, height: 13 }, shadowOpacity: 0.1, shadowRadius: 28, elevation: 24 }}
             onPress={(e) => e.stopPropagation()}
           >
             <Pressable
@@ -92,22 +92,3 @@ export function ConfirmDialog({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlayRoot: {
-    flex: 1,
-    backgroundColor: "rgba(65, 64, 66, 0.3)",
-  },
-  overlayPressable: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalCard: {
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 13 },
-    shadowOpacity: 0.1,
-    shadowRadius: 28,
-    elevation: 24,
-  },
-});

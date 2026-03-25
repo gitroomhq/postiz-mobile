@@ -10,15 +10,23 @@ type NotificationSection = {
 
 type NotificationsState = {
   sections: NotificationSection[];
+  error: string | null;
 
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  clearError: () => void;
 };
 
-export const useNotificationsStore = create<NotificationsState>((set) => ({
+export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   sections: NOTIFICATIONS_BY_DAY,
+  error: null,
 
-  markAsRead: (id) =>
+  markAsRead: (id) => {
+    const exists = get().sections.some((s) => s.items.some((i) => i.id === id));
+    if (!exists) {
+      set({ error: `Notification "${id}" not found.` });
+      return;
+    }
     set((state) => ({
       sections: state.sections.map((section) => ({
         ...section,
@@ -26,7 +34,9 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
           item.id === id ? { ...item, unread: false } : item,
         ),
       })),
-    })),
+      error: null,
+    }));
+  },
 
   markAllAsRead: () =>
     set((state) => ({
@@ -34,7 +44,10 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
         ...section,
         items: section.items.map((item) => ({ ...item, unread: false })),
       })),
+      error: null,
     })),
+
+  clearError: () => set({ error: null }),
 }));
 
 export const useUnreadCount = () =>

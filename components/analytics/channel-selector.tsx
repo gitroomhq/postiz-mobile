@@ -77,9 +77,8 @@ export function ChannelSelector({
       >
         <Pressable className="flex-1" onPress={handleClose}>
           <View
-            className="rounded-[12px] bg-main-sections p-2"
+            className="absolute rounded-[12px] bg-main-sections p-2"
             style={{
-              position: "absolute",
               left: pos.x,
               top: pos.y,
               width: pos.w,

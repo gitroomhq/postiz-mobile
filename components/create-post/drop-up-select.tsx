@@ -51,14 +51,12 @@ export function DropUpSelect({
         onRequestClose={handleClose}
       >
         <Pressable
-          className="flex-1"
-          style={{ backgroundColor: "transparent" }}
+          className="flex-1 bg-transparent"
           onPress={handleClose}
         >
           <View
-            className="rounded-xl bg-main-menu-bg p-2"
+            className="absolute rounded-xl bg-main-menu-bg p-2"
             style={{
-              position: "absolute",
               left: pos.x,
               top: pos.y,
               width: pos.w,

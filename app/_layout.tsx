@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ToastProvider } from '@/components/ui/toast';
 
@@ -63,17 +64,19 @@ export default function RootLayout() {
     <GestureHandlerRootView className="flex-1 bg-[#1A1919]">
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
-          <ToastProvider>
-            <Stack initialRouteName="(tabs)">
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
-              <Stack.Screen name="add-channel" options={{ headerShown: false, animation: 'slide_from_right' }} />
-              <Stack.Screen name="create-post" options={{ headerShown: false, animation: 'slide_from_right' }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ToastProvider>
+          <ErrorBoundary>
+            <ToastProvider>
+              <Stack initialRouteName="(tabs)">
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
+                <Stack.Screen name="add-channel" options={{ headerShown: false, animation: 'slide_from_right' }} />
+                <Stack.Screen name="create-post" options={{ headerShown: false, animation: 'slide_from_right' }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </ToastProvider>
+          </ErrorBoundary>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

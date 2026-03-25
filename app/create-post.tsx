@@ -73,12 +73,11 @@ function ChannelTab({
 }) {
   return (
     <Pressable
-      className={`h-11 w-11 items-center justify-center rounded-[8px] ${
+      className={`h-11 w-11 items-center justify-center overflow-visible rounded-[8px] ${
         active
           ? "border-[1.5px] border-main-accent-pink bg-main-sections-2"
           : "bg-buttons-tertiary-bg"
       }`}
-      style={{ overflow: "visible" }}
       onPress={onPress}
     >
       {children}
@@ -89,8 +88,7 @@ function ChannelTab({
 function LockedTemplateCard({ onPress }: { onPress: () => void }) {
   return (
     <View
-      className="w-full items-center justify-center gap-4 rounded-[8px] py-6"
-      style={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+      className="w-full items-center justify-center gap-4 rounded-[8px] bg-white/[0.02] py-6"
     >
       <SvgIcon
         source={require("@/assets/icons/create-post/lock.svg")}
@@ -170,7 +168,7 @@ function CharacterLimitStatus({
   if (!hasChannels) return null;
 
   return (
-    <View className="relative mb-3 items-end" style={{ overflow: "visible" }}>
+    <View className="relative mb-3 items-end overflow-visible">
       <Pressable
         className="flex-row items-center gap-[6px]"
         hitSlop={10}
@@ -209,10 +207,10 @@ function CharacterLimitStatus({
 
       {menuOpen ? (
         <View
-          className={`absolute right-0 top-7 w-[343px] rounded-[8px] border bg-main-menu-bg p-3 shadow-2xl ${
+          className={`absolute right-0 top-7 z-30 w-[343px] rounded-[8px] border bg-main-menu-bg p-3 shadow-2xl ${
             hasErrors ? "border-text-critical" : "border-input-stroke-default"
           }`}
-          style={{ zIndex: 30, elevation: 6 }}
+          style={{ elevation: 6 }}
         >
           {statuses.map((status, index) => {
             const networkConfig = NETWORK_CONFIG[status.network];
@@ -279,6 +277,28 @@ function CharacterLimitStatus({
           })}
         </View>
       ) : null}
+    </View>
+  );
+}
+
+function SimpleCharacterLimit({
+  currentLength,
+  limit,
+}: {
+  currentLength: number;
+  limit: number;
+}) {
+  const isOverLimit = currentLength > limit;
+
+  return (
+    <View className="mb-3 items-end">
+      <Text
+        className={`font-jakarta text-[12px] font-medium ${
+          isOverLimit ? "text-text-critical" : "text-icon-secondary"
+        }`}
+      >
+        {currentLength}/{limit}
+      </Text>
     </View>
   );
 }
@@ -401,6 +421,7 @@ export default function CreatePostScreen() {
     altText?: string;
   } | null>(null);
   const editorRefs = useRef<Record<string, EditorBridge>>({});
+  const postIdCounter = useRef(posts.length);
 
   // --- Derived values ---
   const dateLabel = format(scheduledDate, "MMM d, h:mm a")
@@ -435,7 +456,20 @@ export default function CreatePostScreen() {
   };
 
   const addAnotherPost = () => {
-    const nextPostId = `post-${posts.length + 1}`;
+    postIdCounter.current += 1;
+    const nextPostId = `post-${postIdCounter.current}`;
+
+    if (focusedChannelId && channelOverrides[focusedChannelId]) {
+      const chRefId = `channel-${focusedChannelId}-${nextPostId}`;
+      setChannelOverrides((current) => ({
+        ...current,
+        [focusedChannelId]: [...current[focusedChannelId], makePost(nextPostId, "")],
+      }));
+      setActivePostId(chRefId);
+      setPendingAutoFocusPostId(chRefId);
+      return;
+    }
+
     setPosts((current) => [...current, makePost(nextPostId, "")]);
     setActivePostId(nextPostId);
     setPendingAutoFocusPostId(nextPostId);
@@ -663,10 +697,19 @@ export default function CreatePostScreen() {
 
   const confirmDeleteComposerPost = () => {
     setPosts((current) => {
-      if (current.length > 1) return current.slice(0, -1);
-      const [first] = current;
-      if (!first) return current;
-      return [{ ...first, content: "", imageUris: [] }];
+      if (current.length <= 1) {
+        const [first] = current;
+        if (!first) return current;
+        return [{ ...first, content: "", imageUris: [] }];
+      }
+
+      const index = current.findIndex((p) => p.id === activePostId);
+      const nextPosts = current.filter((p) => p.id !== activePostId);
+      const fallback = nextPosts[Math.max(0, index - 1)] ?? nextPosts[0];
+      if (fallback) {
+        setActivePostId(fallback.id);
+      }
+      return nextPosts;
     });
     setDeleteDialogVisible(false);
     showToast("Post deleted", "success");
@@ -747,11 +790,12 @@ export default function CreatePostScreen() {
       return;
     }
     setFocusedChannelId(null);
-  }, [focusedChannelId, selectedChannels]);
+    setActivePostId(posts[0]?.id ?? "post-1");
+  }, [focusedChannelId, selectedChannels, posts]);
 
   // --- Render ---
   return (
-    <SafeAreaView className="flex-1 bg-background-primary" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background-primary" edges={["top", "bottom"]}>
       <StatusBar style="light" />
 
       {/* Header */}
@@ -795,7 +839,7 @@ export default function CreatePostScreen() {
           </Pressable>
 
           {postActionMenuVisible ? (
-            <View className="absolute right-0 top-12 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ zIndex: 20, elevation: 2 }}>
+            <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
               {POST_ACTIONS.map((action) => (
                 <Pressable
                   key={action.id}
@@ -919,9 +963,6 @@ export default function CreatePostScreen() {
             <View>
               {channelOverrides[focusedChannelId].map((chPost, chIndex) => {
                 const chPlainText = stripEditorHtml(chPost.content);
-                const chLimitStatuses = focusedChannel
-                  ? buildNetworkLimitStatuses([focusedChannel], chPlainText.length)
-                  : [];
                 const chRefId = `channel-${focusedChannelId}-${chPost.id}`;
                 const isChActive = activePostId === chRefId ||
                   (channelOverrides[focusedChannelId].length === 1 && chIndex === 0);
@@ -930,7 +971,17 @@ export default function CreatePostScreen() {
                   setChannelOverrides((current) => {
                     const arr = current[focusedChannelId];
                     if (!arr || arr.length <= 1) return current;
-                    return { ...current, [focusedChannelId]: arr.filter((p) => p.id !== chPost.id) };
+                    const nextArr = arr.filter((p) => p.id !== chPost.id);
+
+                    if (activePostId === chRefId) {
+                      const idx = arr.findIndex((p) => p.id === chPost.id);
+                      const fallback = nextArr[Math.max(0, idx - 1)] ?? nextArr[0];
+                      if (fallback) {
+                        setActivePostId(`channel-${focusedChannelId}-${fallback.id}`);
+                      }
+                    }
+
+                    return { ...current, [focusedChannelId]: nextArr };
                   });
                 };
 
@@ -954,7 +1005,7 @@ export default function CreatePostScreen() {
                             contentContainerClassName="mb-4 mt-4 gap-4"
                           >
                             {chPost.imageUris.map((uri, mediaIndex) => (
-                              <View key={`${chRefId}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                              <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
                                 <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
                                   <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
                                 </Pressable>
@@ -975,7 +1026,12 @@ export default function CreatePostScreen() {
                           </ScrollView>
                         ) : null}
 
-                        <CharacterLimitStatus statuses={chLimitStatuses} />
+                        {focusedChannel ? (
+                          <SimpleCharacterLimit
+                            currentLength={chPlainText.length}
+                            limit={NETWORK_CHARACTER_LIMITS[focusedChannel.network]}
+                          />
+                        ) : null}
                       </>
                     ) : (
                       <>
@@ -1012,7 +1068,7 @@ export default function CreatePostScreen() {
                             contentContainerClassName="mb-4 mt-4 gap-4"
                           >
                             {chPost.imageUris.map((uri, mediaIndex) => (
-                              <View key={`${chRefId}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                              <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
                                 <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
                                   <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
                                 </Pressable>
@@ -1033,7 +1089,12 @@ export default function CreatePostScreen() {
                           </ScrollView>
                         ) : null}
 
-                        <CharacterLimitStatus statuses={chLimitStatuses} />
+                        {focusedChannel ? (
+                          <SimpleCharacterLimit
+                            currentLength={chPlainText.length}
+                            limit={NETWORK_CHARACTER_LIMITS[focusedChannel.network]}
+                          />
+                        ) : null}
                       </>
                     )}
                   </View>
@@ -1069,7 +1130,7 @@ export default function CreatePostScreen() {
                           contentContainerClassName="mb-4 mt-4 gap-4"
                         >
                           {post.imageUris.map((uri, mediaIndex) => (
-                            <View key={`${post.id}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                            <View key={`${post.id}-${uri}`} className="relative overflow-visible">
                               <Pressable
                                 onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
                               >
@@ -1099,7 +1160,14 @@ export default function CreatePostScreen() {
                         </ScrollView>
                       ) : null}
 
-                      <CharacterLimitStatus statuses={limitStatuses} />
+                      {mode === "edit" && selectedChannels[0] ? (
+                        <SimpleCharacterLimit
+                          currentLength={plainTextLength}
+                          limit={NETWORK_CHARACTER_LIMITS[selectedChannels[0].network]}
+                        />
+                      ) : (
+                        <CharacterLimitStatus statuses={limitStatuses} />
+                      )}
                     </>
                   ) : (
                     <>
@@ -1145,7 +1213,7 @@ export default function CreatePostScreen() {
                           contentContainerClassName="mb-4 mt-4 gap-4"
                         >
                           {post.imageUris.map((uri, mediaIndex) => (
-                            <View key={`${post.id}-${uri}`} className="relative" style={{ overflow: 'visible' }}>
+                            <View key={`${post.id}-${uri}`} className="relative overflow-visible">
                               <Pressable
                                 onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
                               >
@@ -1175,7 +1243,14 @@ export default function CreatePostScreen() {
                         </ScrollView>
                       ) : null}
 
-                      <CharacterLimitStatus statuses={limitStatuses} />
+                      {mode === "edit" && selectedChannels[0] ? (
+                        <SimpleCharacterLimit
+                          currentLength={plainTextLength}
+                          limit={NETWORK_CHARACTER_LIMITS[selectedChannels[0].network]}
+                        />
+                      ) : (
+                        <CharacterLimitStatus statuses={limitStatuses} />
+                      )}
                     </>
                   )}
                 </View>
@@ -1191,8 +1266,8 @@ export default function CreatePostScreen() {
           onMediaToolPress={handleMediaToolPress}
           onFormatPress={handleFormatPress}
           onAddPost={addAnotherPost}
-          bottomInset={8}
-          addPostDisabled={focusedChannelId !== null}
+          bottomInset={0}
+          addPostDisabled={focusedChannelId !== null && !channelOverrides[focusedChannelId]}
         />
       </KeyboardAvoidingView>
 

@@ -78,7 +78,7 @@ export function PostDetailSheet({
             </Text>
           </View>
 
-          <View className="flex-row gap-2">
+          <View className="flex-row gap-2 pb-2">
             <Pressable
               className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-[8px] bg-buttons-tertiary-bg"
               onPress={() => onDuplicate(post)}

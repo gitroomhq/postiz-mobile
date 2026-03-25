@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { set } from "date-fns";
 
@@ -127,7 +127,6 @@ export function DateTimePickerSheet({
   onSave,
   onClose,
 }: DateTimePickerSheetProps) {
-  const { height: windowHeight } = useWindowDimensions();
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [currentMonth, setCurrentMonth] = useState(initialDate);
   const initialTime = getInitialTimeState(initialDate);
@@ -143,6 +142,9 @@ export function DateTimePickerSheet({
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
       setKeyboardHeight(e.endCoordinates.height);
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 300);
     });
     const hideSub = Keyboard.addListener("keyboardDidHide", () => {
       setKeyboardHeight(0);
@@ -264,12 +266,11 @@ export function DateTimePickerSheet({
       isVisible={isVisible}
       onClose={handleClose}
       showHandle={false}
-      avoidKeyboard
+      fullHeight
       containerStyle={{
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
-        height: windowHeight * 0.95 - keyboardHeight,
       }}
     >
       <ScrollView
@@ -277,6 +278,7 @@ export function DateTimePickerSheet({
         className="flex-1 px-4 pt-5"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        style={{ marginBottom: keyboardHeight }}
       >
         <View className="mb-8 flex-row items-center justify-between">
           <Text className="font-jakarta text-h1 font-semibold text-text-primary">

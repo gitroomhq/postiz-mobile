@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,7 +15,7 @@ type MenuButtonProps = {
   inactiveIconSource: any;
   active?: boolean;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  positionClassName?: string;
 };
 
 function MenuButton({
@@ -24,13 +23,12 @@ function MenuButton({
   inactiveIconSource,
   active = false,
   onPress,
-  style,
+  positionClassName,
 }: MenuButtonProps) {
   return (
     <Pressable
-      className={`h-11 w-11 items-center justify-center ${active ? "rounded-[8px] bg-buttons-menu-bg-active" : "rounded-[12px]"}`}
+      className={`h-11 w-11 items-center justify-center ${active ? "rounded-[8px] bg-buttons-menu-bg-active" : "rounded-[12px]"} ${positionClassName ?? ""}`}
       onPress={onPress}
-      style={style}
     >
       <Image
         source={active ? activeIconSource : inactiveIconSource}
@@ -60,7 +58,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
               router.replace("/(tabs)");
             }
           }}
-          style={{ position: "absolute", left: 24.76, top: 12 }}
+          positionClassName="absolute left-[24.76px] top-3"
         />
 
         <MenuButton
@@ -72,7 +70,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
               router.replace("/(tabs)/explore");
             }
           }}
-          style={{ position: "absolute", left: 95.51, top: 12 }}
+          positionClassName="absolute left-[95.51px] top-3"
         />
 
         <Pressable
@@ -91,7 +89,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
               router.replace("/(tabs)/analytics");
             }
           }}
-          style={{ position: "absolute", left: 236.5, top: 12 }}
+          positionClassName="absolute left-[236.5px] top-3"
         />
 
         <MenuButton
@@ -103,7 +101,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
               router.replace("/(tabs)/settings");
             }
           }}
-          style={{ position: "absolute", left: 307.76, top: 12 }}
+          positionClassName="absolute left-[307.76px] top-3"
         />
 
       </View>

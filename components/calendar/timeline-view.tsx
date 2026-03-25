@@ -77,10 +77,10 @@ function SlotBlock({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={height === "flex" ? { flex: 1 } : undefined}>
+    <Pressable onPress={onPress} className={height === "flex" ? "flex-1" : ""}>
       <View
-        className={`rounded-[8px] border bg-slot-bg-default ${isSelected ? "border-slot-stroke-active" : "border-slot-stroke-default"}`}
-        style={height === "flex" ? { flex: 1 } : { height }}
+        className={`rounded-[8px] border bg-slot-bg-default ${isSelected ? "border-slot-stroke-active" : "border-slot-stroke-default"} ${height === "flex" ? "flex-1" : ""}`}
+        style={height !== "flex" ? { height } : undefined}
       />
     </Pressable>
   );

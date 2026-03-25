@@ -38,8 +38,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1A1919"
           }
+        }
+      ],
+      [
+        "expo-system-ui",
+        {
+          "backgroundColor": "#1A1919"
         }
       ]
     ],

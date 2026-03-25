@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 import { TimelineEventCard } from "@/components/calendar/timeline-event-card";
@@ -50,7 +50,7 @@ export function DragOverlay() {
     <View
       ref={containerRef}
       onLayout={handleLayout}
-      style={StyleSheet.absoluteFill}
+      className="absolute inset-0"
       pointerEvents="box-none"
     >
       {draggedPost && (

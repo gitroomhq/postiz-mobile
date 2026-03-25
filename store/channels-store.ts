@@ -6,21 +6,41 @@ import type { Channel } from "@/types";
 
 type ChannelsState = {
   channels: Channel[];
+  error: string | null;
 
   addChannel: (channel: Channel) => void;
   deleteChannel: (id: string) => void;
+  clearError: () => void;
 };
 
-export const useChannelsStore = create<ChannelsState>((set) => ({
+export const useChannelsStore = create<ChannelsState>((set, get) => ({
   channels: CHANNELS_LIST,
+  error: null,
 
-  addChannel: (channel) =>
-    set((state) => ({ channels: [...state.channels, channel] })),
+  addChannel: (channel) => {
+    if (!channel.id || !channel.network) {
+      set({ error: "Channel must have an id and network." });
+      return;
+    }
+    if (get().channels.some((c) => c.id === channel.id)) {
+      set({ error: `Channel with id "${channel.id}" already exists.` });
+      return;
+    }
+    set((state) => ({ channels: [...state.channels, channel], error: null }));
+  },
 
-  deleteChannel: (id) =>
+  deleteChannel: (id) => {
+    if (!get().channels.some((c) => c.id === id)) {
+      set({ error: `Channel "${id}" not found.` });
+      return;
+    }
     set((state) => ({
       channels: state.channels.filter((c) => c.id !== id),
-    })),
+      error: null,
+    }));
+  },
+
+  clearError: () => set({ error: null }),
 }));
 
 export function getChannelLimit(channel: Channel): number {
