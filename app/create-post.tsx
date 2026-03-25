@@ -738,7 +738,7 @@ export default function CreatePostScreen() {
       selected: true,
     };
 
-    setTags((current) => [...current, nextTag]);
+    setTags((current) => [...current.map((t) => ({ ...t, selected: false })), nextTag]);
     setSettingsSheet("tags");
     showToast("Tag created", "success");
   };
@@ -1267,7 +1267,7 @@ export default function CreatePostScreen() {
           onFormatPress={handleFormatPress}
           onAddPost={addAnotherPost}
           bottomInset={0}
-          addPostDisabled={focusedChannelId !== null && !channelOverrides[focusedChannelId]}
+          addPostDisabled={mode !== "edit" && focusedChannelId !== null && !channelOverrides[focusedChannelId]}
         />
       </KeyboardAvoidingView>
 

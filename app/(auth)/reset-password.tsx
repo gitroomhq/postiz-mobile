@@ -18,8 +18,6 @@ function PasswordVisibilityToggle({
 }) {
   return (
     <Pressable
-      className="h-5 w-5 items-center justify-center"
-      hitSlop={10}
       onPress={onPress}
     >
       {visible ? (

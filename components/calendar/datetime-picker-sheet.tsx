@@ -273,25 +273,25 @@ export function DateTimePickerSheet({
         paddingTop: 0,
       }}
     >
+      <View className="mb-8 flex-row items-center justify-between px-4 pt-5">
+        <Text className="font-jakarta text-h1 font-semibold text-text-primary">
+          Change Date or Time
+        </Text>
+        <Pressable
+          className="h-5 w-5 items-center justify-center"
+          onPress={handleClose}
+        >
+          <Ionicons name="close" size={20} color="#A3A3A3" />
+        </Pressable>
+      </View>
+
       <ScrollView
         ref={scrollRef}
-        className="flex-1 px-4 pt-5"
+        className="flex-1 px-4"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={{ marginBottom: keyboardHeight }}
       >
-        <View className="mb-8 flex-row items-center justify-between">
-          <Text className="font-jakarta text-h1 font-semibold text-text-primary">
-            Change Date or Time
-          </Text>
-          <Pressable
-            className="h-5 w-5 items-center justify-center"
-            onPress={handleClose}
-          >
-            <Ionicons name="close" size={20} color="#A3A3A3" />
-          </Pressable>
-        </View>
-
         <View className="mb-3 flex-row items-center gap-4">
           <Text className="w-14 font-jakarta text-h4 font-semibold text-text-primary">
             Date

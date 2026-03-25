@@ -2,7 +2,9 @@ import '@/utils/suppress-warnings';
 import '@/global.css';
 
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Image } from 'expo-image';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, type Theme, ThemeProvider } from '@react-navigation/native';
@@ -49,6 +51,13 @@ export default function RootLayout() {
     PlusJakartaSans: require('@/assets/fonts/PlusJakartaSans.ttf'),
     'PlusJakartaSans-Italic': require('@/assets/fonts/PlusJakartaSans-Italic.ttf'),
   });
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      void NavigationBar.setBackgroundColorAsync('#1A1919');
+      void NavigationBar.setButtonStyleAsync('light');
+    }
+  }, []);
 
   useEffect(() => {
     if (loaded) {

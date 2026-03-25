@@ -1,5 +1,7 @@
+import { useCallback } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Dimensions, useWindowDimensions, View } from "react-native";
+import { Dimensions, Platform, useWindowDimensions, View } from "react-native";
+import * as NavigationBar from "expo-navigation-bar";
 import Modal from "react-native-modal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +34,12 @@ export function BottomSheetWrapper({
   const { height: windowHeight } = useWindowDimensions();
   const sheetHeight = Math.max(0, windowHeight - insets.top - topOffset);
 
+  const setNavBarColor = useCallback(() => {
+    if (Platform.OS === "android") {
+      void NavigationBar.setBackgroundColorAsync("#1A1919");
+    }
+  }, []);
+
   return (
     <Modal
       isVisible={isVisible}
@@ -49,13 +57,16 @@ export function BottomSheetWrapper({
       avoidKeyboard={avoidKeyboard}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
+      onModalShow={setNavBarColor}
+      onModalWillShow={setNavBarColor}
+      onModalHide={setNavBarColor}
     >
       <View
-        className="bg-[#242323] rounded-t-3xl px-4 pt-[10px] overflow-hidden"
+        className="bg-[#1A1919] rounded-t-3xl px-4 pt-[10px] overflow-hidden"
         style={[
           {
             paddingBottom: useBottomInsetPadding
-              ? Math.max(insets.bottom, 34)
+              ? Math.max(insets.bottom, 34) + 10
               : 0,
             height: fullHeight ? sheetHeight : undefined,
           },

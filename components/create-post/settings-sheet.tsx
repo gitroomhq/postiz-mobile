@@ -280,7 +280,7 @@ export function SettingsSheetContent({
 
         <View
           className="gap-2 px-4"
-          style={{ paddingTop: 20, paddingBottom: Math.max(bottomInset, 34) + 20 }}
+          style={{ paddingTop: 20, paddingBottom: Math.max(bottomInset, 34) + 30 }}
         >
           {REPEAT_OPTIONS.map((option) => {
             const selected = option === repeatValue;
@@ -371,7 +371,7 @@ export function SettingsSheetContent({
 
         <View
           className="justify-center px-4"
-          style={{ paddingBottom: Math.max(bottomInset, 34), paddingTop: 6 }}
+          style={{ paddingBottom: Math.max(bottomInset, 34) + 10, paddingTop: 6 }}
         >
           <Pressable
             className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
@@ -408,7 +408,7 @@ export function SettingsSheetContent({
           ))}
         </ScrollView>
 
-        <View className="gap-3 px-4 pt-1" style={{ paddingBottom: Math.max(bottomInset, 34) }}>
+        <View className="gap-3 px-4 pt-1" style={{ paddingBottom: Math.max(bottomInset, 34) + 10 }}>
           <Pressable
             className="h-11 flex-row items-center justify-center gap-2 rounded-[8px] bg-buttons-secondary-bg"
             onPress={onOpenNewTag}
@@ -556,7 +556,7 @@ export function SettingsSheetContent({
         </View>
       </ScrollView>
 
-      <View className="px-5 pt-3" style={{ paddingBottom: Math.max(bottomInset, 34) }}>
+      <View className="px-5 pt-3" style={{ paddingBottom: Math.max(bottomInset, 34) + 10 }}>
         <Pressable
           className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
           onPress={onSaveNewTag}
