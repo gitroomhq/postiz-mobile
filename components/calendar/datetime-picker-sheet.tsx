@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { set } from "date-fns";
 
@@ -87,13 +87,14 @@ function TimeField({
 
       <TextInput
         ref={inputRef}
-        className={`h-[52px] w-full rounded-[10px] border text-center font-jakarta text-body-1 text-text-primary ${
+        className={`h-[52px] w-full overflow-hidden rounded-[10px] border text-center font-jakarta text-body-1 text-text-primary ${
           isFocused
             ? "border-input-stroke-active bg-main-sections"
             : "border-input-stroke-default bg-input-bg"
         }`}
         value={value}
         onChangeText={onChangeText}
+        showSoftInputOnFocus
         onFocus={() => {
           setIsFocused(true);
           onFocus?.();
@@ -261,6 +262,8 @@ export function DateTimePickerSheet({
     onSave(newDate);
   };
 
+  const { height: windowHeight } = useWindowDimensions();
+
   return (
     <BottomSheetWrapper
       isVisible={isVisible}
@@ -271,6 +274,7 @@ export function DateTimePickerSheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
+        height: windowHeight * 0.9,
       }}
     >
       <View className="mb-8 flex-row items-center justify-between px-4 pt-5">

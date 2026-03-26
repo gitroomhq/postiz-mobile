@@ -2,9 +2,7 @@ import '@/utils/suppress-warnings';
 import '@/global.css';
 
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 import { Image } from 'expo-image';
-import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, type Theme, ThemeProvider } from '@react-navigation/native';
@@ -53,13 +51,6 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      void NavigationBar.setBackgroundColorAsync('#1A1919');
-      void NavigationBar.setButtonStyleAsync('light');
-    }
-  }, []);
-
-  useEffect(() => {
     if (loaded) {
       void SplashScreen.hideAsync();
     }
@@ -75,12 +66,12 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
           <ErrorBoundary>
             <ToastProvider>
-              <Stack initialRouteName="(tabs)">
+              <Stack initialRouteName="(auth)">
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
                 <Stack.Screen name="add-channel" options={{ headerShown: false, animation: 'slide_from_right' }} />
-                <Stack.Screen name="create-post" options={{ headerShown: false, animation: 'slide_from_right' }} />
+                <Stack.Screen name="create-post" options={{ headerShown: false, presentation: 'containedTransparentModal', animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
               </Stack>
               <StatusBar style="auto" />

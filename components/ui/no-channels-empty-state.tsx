@@ -10,39 +10,39 @@ export function NoChannelsEmptyState({ onAddChannel }: NoChannelsEmptyStateProps
   return (
     <View className="w-full items-center gap-8 px-4">
       <View className="h-[166px] w-[212px]">
-        <View className="absolute left-[57.46px] top-[5.09px] w-[148.556px] h-[149.252px]">
+        <View className="absolute left-[57px] top-[5px] w-[149px] h-[149px]">
           <Image
             source={require("@/assets/icons/onboarding/highlight.svg")}
-            className="w-[148.556px] h-[149.252px]"
+            className="w-[149px] h-[149px]"
             contentFit="contain"
           />
         </View>
 
-        <View className="absolute left-[21.99px] top-[54.82px] w-[67.383px] h-[67.383px] items-center justify-center">
-          <View className="h-[54.334px] w-[54.334px] items-center justify-center overflow-hidden rounded-[14px] bg-channel-active-bg rotate-[-16.27deg]">
+        <View className="absolute left-[22px] top-[55px] w-[67px] h-[67px] items-center justify-center">
+          <View className="h-[54px] w-[54px] items-center justify-center overflow-hidden rounded-[14px] bg-channel-active-bg rotate-[-16.27deg]">
             <Image
               source={require("@/assets/icons/onboarding/reddit-icon.svg")}
-              className="w-[36.07px] h-[32.36px]"
+              className="w-[36px] h-[32px]"
               contentFit="contain"
             />
           </View>
         </View>
 
-        <View className="absolute left-[130.66px] top-[59.02px] w-[46.795px] h-[46.795px] items-center justify-center">
-          <View className="h-[38.208px] w-[38.208px] items-center justify-center overflow-hidden rounded-[10px] bg-channel-active-bg rotate-[15deg]">
+        <View className="absolute left-[131px] top-[59px] w-[47px] h-[47px] items-center justify-center">
+          <View className="h-[38px] w-[38px] items-center justify-center overflow-hidden rounded-[10px] bg-channel-active-bg rotate-[15deg]">
             <Image
               source={require("@/assets/icons/onboarding/facebook-icon.svg")}
-              className="w-[16.39px] h-[30.5px]"
+              className="w-[16px] h-[30.5px]"
               contentFit="contain"
             />
           </View>
         </View>
 
-        <View className="absolute left-[68.56px] top-[78.96px]">
-          <View className="h-[73.27px] w-[73.27px] items-center justify-center overflow-hidden rounded-[20px] bg-input-stroke-default">
+        <View className="absolute left-[69px] top-[79px]">
+          <View className="h-[73px] w-[73px] items-center justify-center overflow-hidden rounded-[20px] bg-input-stroke-default">
             <Image
               source={require("@/assets/icons/onboarding/instagram-icon.svg")}
-              className="w-[48.326px] h-[48.328px]"
+              className="w-[48px] h-[48px]"
               contentFit="contain"
             />
           </View>

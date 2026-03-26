@@ -68,6 +68,15 @@ const DarkThemeBridge = new BridgeExtension({
 
 const EMPTY_EDITOR_HTML = "<p></p>";
 
+const FORCE_HEIGHT_RECALC_JS =
+  "(function(){var pm=document.querySelector('.ProseMirror');" +
+  "if(pm){var h=pm.getBoundingClientRect().height;" +
+  "if(h>0){" +
+  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
+  "requestAnimationFrame(function(){" +
+  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});}" +
+  "}})();true;";
+
 function normalizeEditorHtml(content: string) {
   return content.trim().length > 0 ? content : EMPTY_EDITOR_HTML;
 }
@@ -110,22 +119,8 @@ function PostEditorInner({
       },
     },
     onChange: () => {
-      // Force Android WebView repaint on single-line edits.
-      // tentap's dynamicHeight uses a ResizeObserver on .ProseMirror — when typing
-      // on one line the height doesn't change, so the native container never
-      // re-layouts and Android skips repainting the WebView.  Sending a temporary
-      // height bump (h + 0.1) via postMessage forces setEditorHeight on the native
-      // side, triggering a container re-layout and WebView repaint. The correct
-      // height is restored on the next animation frame.
-      if (Platform.OS === "android") {
-        editor.injectJS(
-          "(function(){var pm=document.querySelector('.ProseMirror');" +
-          "if(pm){var h=pm.getBoundingClientRect().height;" +
-          "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
-          "requestAnimationFrame(function(){" +
-          "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});}})();true;"
-        );
-      }
+      
+      editor.injectJS(FORCE_HEIGHT_RECALC_JS);
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
@@ -141,16 +136,24 @@ function PostEditorInner({
   const isEditorFocused = Boolean((editorState as any).isFocused);
   const hasSetup = useRef(false);
 
-  // Set placeholder and force Android WebView repaint once editor is ready
+  // Set placeholder and force WebView repaint once editor is ready
   useEffect(() => {
     if (isEditorReady && !hasSetup.current) {
       hasSetup.current = true;
       editor.setPlaceholder(placeholder);
-      // Focus forces Android WebView to repaint, blur dismisses keyboard
+
+      // Focus/blur forces the WebView to repaint on initial load
       setTimeout(() => {
         editor.focus();
         setTimeout(() => editor.blur(), 50);
       }, 100);
+
+      // Force height recalculation after initial content renders.
+      // Two attempts: the first catches fast renders, the second is a
+      // safety net for slower devices or complex content.
+      const t1 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 200);
+      const t2 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 600);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, [editor, isEditorReady, placeholder]);
 
@@ -168,15 +171,7 @@ function PostEditorInner({
 
     editor.setContent(normalizedInitialContent);
     lastKnownHtmlRef.current = normalizedInitialContent;
-    if (Platform.OS === "android") {
-      editor.injectJS(
-        "(function(){var pm=document.querySelector('.ProseMirror');" +
-        "if(pm){var h=pm.getBoundingClientRect().height;" +
-        "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
-        "requestAnimationFrame(function(){" +
-        "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});}})();true;"
-      );
-    }
+    editor.injectJS(FORCE_HEIGHT_RECALC_JS);
   }, [editor, initialContent, isEditorReady]);
 
   // Expose the editor bridge to parent

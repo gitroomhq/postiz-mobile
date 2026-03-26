@@ -30,7 +30,7 @@ export function AddPostSheet({
   const passed = isDatePassed(dateTime);
 
   return (
-    <BottomSheetWrapper isVisible={isVisible} onClose={onClose}>
+    <BottomSheetWrapper isVisible={isVisible} onClose={onClose} hasBackdrop={false}>
       <Text className="mb-5 font-jakarta text-h3 font-semibold text-text-primary">
         Add Post
       </Text>

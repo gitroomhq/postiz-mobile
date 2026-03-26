@@ -7,6 +7,7 @@ import { format, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -138,7 +139,11 @@ function buildNetworkLimitStatuses(channels: Channel[], textLength: number): Net
 }
 
 function stripEditorHtml(html: string) {
-  return html.replace(/<[^>]*>/g, "").trim();
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .trim();
 }
 
 function buildCompactPreviewText(text: string, placeholder = "What would you like to share?") {
@@ -244,7 +249,7 @@ function CharacterLimitStatus({
                     ) : (
                       <View
                         className={`h-4 w-4 items-center justify-center ${
-                          isLinkedIn ? "rounded-[2.669px]" : "rounded-[4px]"
+                          isLinkedIn ? "rounded-[3px]" : "rounded-[4px]"
                         }`}
                         style={{ backgroundColor: networkConfig.bg }}
                       >
@@ -337,7 +342,7 @@ function CompactPostRow({
 
 export default function CreatePostScreen() {
   const router = useRouter();
-  const { bottom } = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const channels = useChannelsStore((state) => state.channels);
   const addPostToStore = usePostsStore((state) => state.addPost);
   const updatePostInStore = usePostsStore((state) => state.updatePost);
@@ -795,12 +800,16 @@ export default function CreatePostScreen() {
 
   // --- Render ---
   return (
-    <SafeAreaView className="flex-1 bg-background-primary" edges={["top", "bottom"]}>
-      <StatusBar style="light" />
+    <View className="flex-1" style={{ paddingTop: 40 }}>
+      <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={["bottom"]}>
+        <StatusBar style="light" />
 
-      {/* Header */}
-      <View className="h-[60px] flex-row items-center gap-2 px-4">
-        <BackChevronButton onPress={() => router.back()} />
+        {/* Handle */}
+        <View className="w-[33px] h-1 rounded-sm bg-[#454444] self-center mt-[10px] mb-[8px]" />
+
+        {/* Header */}
+        <View className="h-[60px] flex-row items-center gap-2 px-4">
+          <BackChevronButton onPress={() => router.back()} />
 
         <Pressable
           className="min-h-[40px] flex-1 flex-row items-center justify-center gap-2 rounded-[6px] border border-buttons-stroke-stroke px-4 pb-[10px] pt-2"
@@ -863,8 +872,9 @@ export default function CreatePostScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior="padding"
         className="flex-1 bg-background-primary"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 122 : 0}
       >
         {/* Content */}
         <ScrollView
@@ -1284,7 +1294,7 @@ export default function CreatePostScreen() {
         onClose={() => setSettingsSheet(settingsSheet === "main" ? null : "main")}
         showHandle={settingsSheet !== "new-tag"}
         fullHeight={settingsSheet === "new-tag"}
-        topOffset={settingsSheet === "new-tag" ? 12 : 0}
+        topOffset={settingsSheet === "new-tag" ? insets.top + 12 : 0}
         useBottomInsetPadding={false}
         avoidKeyboard={settingsSheet === "new-tag"}
         containerStyle={{
@@ -1315,7 +1325,7 @@ export default function CreatePostScreen() {
           onSaveNewTag={handleSaveNewTag}
           onOpenNewTag={openNewTagSheet}
           onDeletePost={handleDeleteComposerPost}
-          bottomInset={bottom}
+          bottomInset={insets.bottom}
         />
       </BottomSheetWrapper>
 
@@ -1365,7 +1375,7 @@ export default function CreatePostScreen() {
         onAddChannel={() => {
           router.push("/add-channel");
         }}
-        bottomInset={bottom}
+        bottomInset={0}
       />
 
       <EmojiPicker
@@ -1399,5 +1409,6 @@ export default function CreatePostScreen() {
         }}
       />
     </SafeAreaView>
+    </View>
   );
 }

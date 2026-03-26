@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -31,23 +31,25 @@ export default function ForgotPasswordScreen() {
       edges={["top", "bottom"]}
     >
       <StatusBar style="light" />
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior="padding"
+      <ScrollView
+        className="flex-1 bg-background-primary px-5 pb-[20px] pt-12"
+        contentContainerClassName="flex-grow"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets
       >
-        <View className="flex-1 bg-background-primary px-5 pb-[42px] pt-12">
-            <View className="mb-6 h-[27.359px] w-[84px]">
+            <View className="mb-6 h-[27px] w-[84px]">
               <View className="absolute inset-0 right-[70.6%]">
                 <Image
                   source={require("@/assets/icons/login/postiz-mark.svg")}
-                  className="w-[24.7px] h-[27.359px]"
+                  className="w-[25px] h-[27px]"
                   contentFit="contain"
                 />
               </View>
               <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
                 <Image
                   source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                  className="w-[52.65px] h-[23.976px]"
+                  className="w-[53px] h-[24px]"
                   contentFit="contain"
                 />
               </View>
@@ -102,8 +104,7 @@ export default function ForgotPasswordScreen() {
                 </Pressable>
               </View>
             </View>
-        </View>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -88,8 +88,9 @@ export function MediaSettingsModal({
             onChangeText={setAltText}
             placeholder="Describe the image/video content..."
             placeholderTextColor="#A3A3A3"
-            className="h-[52px] rounded-[10px] border border-input-stroke-default bg-input-bg font-jakarta text-body-1 text-text-primary pl-4 pr-3 py-1"
+            className="h-[52px] overflow-hidden rounded-[10px] border border-input-stroke-default bg-input-bg font-jakarta text-body-1 text-text-primary pl-4 pr-3 py-1"
             selectionColor="#612BD3"
+            showSoftInputOnFocus
           />
         </View>
 

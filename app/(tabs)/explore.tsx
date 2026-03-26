@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NetworkBadge } from "@/components/ui/network-badge";
+import { NotificationBellButton } from "@/components/ui/notification-bell-button";
 import { SwipeableChannelRow } from "@/components/ui/swipeable-channel-row";
 import { useChannelsStore } from "@/store/channels-store";
 import type { Channel } from "@/types";
@@ -74,13 +75,7 @@ export default function ChannelsAddedScreen() {
               Add Channel
             </Text>
           </Pressable>
-          <Pressable onPress={() => router.push("/notifications")}>
-            <Image
-              source={require("@/assets/icons/notification-bell.svg")}
-              className="w-6 h-6"
-              contentFit="contain"
-            />
-          </Pressable>
+          <NotificationBellButton />
         </View>
       </View>
 

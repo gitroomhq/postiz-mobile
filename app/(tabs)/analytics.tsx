@@ -1,19 +1,17 @@
-import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChannelSelector } from "@/components/analytics/channel-selector";
 import { MetricCard } from "@/components/analytics/metric-card";
 import { PeriodTabs } from "@/components/analytics/period-tabs";
-import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
+import { NotificationBellButton } from "@/components/ui/notification-bell-button";
 import { CHART_ENGAGEMENT, CHART_FOLLOWERS, CHART_IMPRESSIONS } from "@/data/mock-charts";
 import { useChannelsStore } from "@/store/channels-store";
 
 export default function AnalyticsScreen() {
-  const router = useRouter();
   const channels = useChannelsStore((state) => state.channels);
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [selectedPeriod, setSelectedPeriod] = useState("Month");
@@ -27,13 +25,7 @@ export default function AnalyticsScreen() {
         <Text className="font-jakarta text-h2 font-semibold text-text-primary">
           Analytics
         </Text>
-        <Pressable onPress={() => router.push("/notifications")}>
-          <Image
-            source={require("@/assets/icons/notification-bell.svg")}
-            className="w-6 h-6"
-            contentFit="contain"
-          />
-        </Pressable>
+        <NotificationBellButton />
       </View>
 
       <ScrollView

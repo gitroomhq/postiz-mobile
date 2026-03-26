@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as NavigationBar from "expo-navigation-bar";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -33,11 +32,6 @@ export function ChannelSelector({
   const [pos, setPos] = useState({ x: 0, y: 0, w: 0 });
 
   const dropdownHeight = Math.min(channels.length, MAX_VISIBLE) * ITEM_HEIGHT + 16;
-
-  useEffect(() => {
-    if (Platform.OS !== "android") return;
-    void NavigationBar.setBackgroundColorAsync("#1A1919");
-  }, [open]);
 
   const handleOpen = () => {
     triggerRef.current?.measureInWindow((x, y, width, height) => {

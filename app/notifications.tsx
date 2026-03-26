@@ -58,7 +58,7 @@ export default function NotificationsScreen() {
   const sections = useNotificationsStore((state) => state.sections);
 
   return (
-    <SafeAreaView className="flex-1 bg-main-sections" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-main-sections" edges={["top", "bottom"]}>
       <StatusBar style="light" />
 
       <View className="h-[60px] flex-row items-center justify-between px-4">

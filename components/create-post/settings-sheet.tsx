@@ -6,6 +6,7 @@ import {
   type LayoutChangeEvent,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -459,11 +460,12 @@ export function SettingsSheetContent({
               Name
             </Text>
             <TextInput
-              className="h-[52px] rounded-[10px] border border-input-stroke-default bg-background-primary px-4 font-jakarta text-body-1 text-text-primary"
+              className="h-[52px] overflow-hidden rounded-[10px] border border-input-stroke-default bg-background-primary px-4 font-jakarta text-body-1 text-text-primary"
               placeholder="New"
               placeholderTextColor="#8D8B8B"
               value={newTagName}
               onChangeText={onNewTagNameChange}
+              showSoftInputOnFocus
             />
           </View>
 
@@ -474,7 +476,7 @@ export function SettingsSheetContent({
 
             <View className="gap-5">
               <View
-                className="overflow-hidden rounded-[10px] border border-white/[0.08]"
+                className="h-[255px] overflow-hidden rounded-[10px] border border-white/[0.08]"
                 onLayout={onGradientLayout}
                 onStartShouldSetResponder={() => true}
                 onMoveShouldSetResponder={() => true}
@@ -485,15 +487,14 @@ export function SettingsSheetContent({
                   colors={["#FFFFFF", pureHueColor]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  className="h-[255px]"
-                >
-                  <LinearGradient
-                    colors={["transparent", "#000000"]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    className="flex-1"
-                  />
-                </LinearGradient>
+                  style={StyleSheet.absoluteFill}
+                />
+                <LinearGradient
+                  colors={["rgba(0,0,0,0)", "#000000"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
                 <View
                   className="absolute h-[34px] w-[34px] rounded-full border-4 border-white"
                   pointerEvents="none"

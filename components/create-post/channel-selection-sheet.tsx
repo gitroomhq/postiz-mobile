@@ -60,7 +60,7 @@ export function ChannelSelectionSheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
-        height: windowHeight * 0.95,
+        height: windowHeight * 0.9,
       }}
     >
       <View className="flex-1 bg-background-primary">

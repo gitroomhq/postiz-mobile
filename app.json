@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Postiz",
-    "slug": "postiz",
+    "slug": "postiz-a6im2okqiqo8goqpoict0",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,11 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.postiz.app"
+      "bundleIdentifier": "com.postiz.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.postiz.app",
-      "softwareKeyboardLayoutMode": "adjustResize",
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -51,10 +54,6 @@
       [
         "expo-navigation-bar",
         {
-          "position": "relative",
-          "visibility": "visible",
-          "backgroundColor": "#1A1919",
-          "borderColor": "#1A1919",
           "barStyle": "light-content"
         }
       ]
@@ -66,9 +65,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "544e970c-7492-4a96-93d6-55ec92bde98b"
+        "projectId": "81a11c63-1c09-43d4-b3fd-20f98b14e307"
+      },
+      "expo-navigation-bar": {
+        "barStyle": "light-content"
       }
     },
-    "owner": "diony20822s-organization"
+    "owner": "diony20822"
   }
 }

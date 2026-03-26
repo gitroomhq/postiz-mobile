@@ -44,7 +44,7 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
               contentFit="cover"
             />
             <View
-              className="absolute bottom-[-2px] right-[-2px] h-[10px] w-[10px] items-center justify-center rounded-[1.25px]"
+              className="absolute bottom-[-2px] right-[-2px] h-[10px] w-[10px] items-center justify-center rounded-[1px]"
               style={{ backgroundColor: network.bg }}
             >
               <Ionicons name={network.icon} size={7} color="#FFFFFF" />

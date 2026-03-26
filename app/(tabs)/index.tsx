@@ -14,8 +14,8 @@ import { MonthSelector } from "@/components/calendar/month-selector";
 import { PostDetailSheet } from "@/components/calendar/post-detail-sheet";
 import { TimelineView } from "@/components/calendar/timeline-view";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Image } from "@/components/ui/image";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
+import { NotificationBellButton } from "@/components/ui/notification-bell-button";
 import { showToast } from "@/components/ui/toast";
 import { TimelineDragProvider } from "@/contexts/timeline-drag-context";
 import { usePostsStore } from "@/store/posts-store";
@@ -160,13 +160,7 @@ export default function CalendarScreen() {
           isOpen={monthSelectorOpen}
           onToggle={() => setMonthSelectorOpen((o) => !o)}
         />
-        <Pressable onPress={() => router.push("/notifications")}>
-          <Image
-            source={require("@/assets/icons/notification-bell.svg")}
-            className="w-6 h-6"
-            contentFit="contain"
-          />
-        </Pressable>
+        <NotificationBellButton />
       </View>
 
       {/* Calendar dropdown — in normal flow so it pushes content down */}

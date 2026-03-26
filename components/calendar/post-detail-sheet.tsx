@@ -29,7 +29,7 @@ export function PostDetailSheet({
   const network = post ? NETWORK_CONFIG[post.network] : null;
 
   return (
-    <BottomSheetWrapper isVisible={isVisible} onClose={onClose}>
+    <BottomSheetWrapper isVisible={isVisible} onClose={onClose} hasBackdrop={false}>
       {post && network ? (
         <>
           <View className="mb-3 flex-row items-center justify-between">

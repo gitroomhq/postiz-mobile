@@ -1,9 +1,6 @@
-import { useCallback } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Dimensions, Platform, useWindowDimensions, View } from "react-native";
-import * as NavigationBar from "expo-navigation-bar";
+import { Dimensions, useWindowDimensions, View } from "react-native";
 import Modal from "react-native-modal";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type BottomSheetWrapperProps = {
   isVisible: boolean;
@@ -16,6 +13,7 @@ type BottomSheetWrapperProps = {
   useBottomInsetPadding?: boolean;
   avoidKeyboard?: boolean;
   swipeEnabled?: boolean;
+  hasBackdrop?: boolean;
 };
 
 export function BottomSheetWrapper({
@@ -29,16 +27,10 @@ export function BottomSheetWrapper({
   useBottomInsetPadding = true,
   avoidKeyboard = false,
   swipeEnabled = true,
+  hasBackdrop = true,
 }: BottomSheetWrapperProps) {
-  const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
-  const sheetHeight = Math.max(0, windowHeight - insets.top - topOffset);
-
-  const setNavBarColor = useCallback(() => {
-    if (Platform.OS === "android") {
-      void NavigationBar.setBackgroundColorAsync("#1A1919");
-    }
-  }, []);
+  const sheetHeight = Math.max(0, windowHeight - topOffset);
 
   return (
     <Modal
@@ -55,19 +47,16 @@ export function BottomSheetWrapper({
       animationOutTiming={300}
       style={{ justifyContent: "flex-end", margin: 0 }}
       avoidKeyboard={avoidKeyboard}
+      hasBackdrop
+      backdropOpacity={hasBackdrop ? 0.7 : 0.01}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
-      onModalShow={setNavBarColor}
-      onModalWillShow={setNavBarColor}
-      onModalHide={setNavBarColor}
     >
       <View
         className="bg-[#1A1919] rounded-t-3xl px-4 pt-[10px] overflow-hidden"
         style={[
           {
-            paddingBottom: useBottomInsetPadding
-              ? Math.max(insets.bottom, 34) + 10
-              : 0,
+            paddingBottom: useBottomInsetPadding ? 44 : 0,
             height: fullHeight ? sheetHeight : undefined,
           },
           containerStyle,

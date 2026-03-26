@@ -3,11 +3,12 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
 import { AuthInput } from "@/components/ui/auth-input";
+import { showToast } from "@/components/ui/toast";
 
 function PasswordVisibilityToggle({
   visible,
@@ -42,12 +43,24 @@ export default function ResetPasswordScreen() {
   const [focusedField, setFocusedField] = useState<"password" | "confirmPassword" | null>(null);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
 
+  const handleTogglePassword = () => {
+    setPasswordVisible((prev) => !prev);
+  };
+
+  const handleToggleConfirmPassword = () => {
+    setConfirmPasswordVisible((prev) => !prev);
+  };
+
   const handleResetPassword = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
     if (!password || password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
     else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    showToast("Password reset successfully", "success");
+    router.replace("/(auth)");
   };
 
   return (
@@ -56,28 +69,25 @@ export default function ResetPasswordScreen() {
       edges={["top", "bottom"]}
     >
       <StatusBar style="light" />
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior="padding"
+      <ScrollView
+        className="flex-1 bg-background-primary px-5 pt-12 pb-[20px]"
+        contentContainerClassName="flex-grow"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets
       >
-        <ScrollView
-          className="flex-1 bg-background-primary px-5 pt-12 pb-[42px]"
-          contentContainerClassName="flex-grow"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="mb-6 h-[27.359px] w-[84px]">
+          <View className="mb-6 h-[27px] w-[84px]">
             <View className="absolute inset-0 right-[70.6%]">
               <Image
                 source={require("@/assets/icons/login/postiz-mark.svg")}
-                className="w-[24.7px] h-[27.359px]"
+                className="w-[25px] h-[27px]"
                 contentFit="contain"
               />
             </View>
             <View className="absolute top-[1.61%] bottom-[10.76%] left-[37.32%] right-0">
               <Image
                 source={require("@/assets/icons/login/postiz-wordmark.svg")}
-                className="w-[52.65px] h-[23.976px]"
+                className="w-[53px] h-[24px]"
                 contentFit="contain"
               />
             </View>
@@ -109,6 +119,8 @@ export default function ResetPasswordScreen() {
                 onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
                 placeholder="Enter password"
                 secureTextEntry={!passwordVisible}
+                textContentType="none"
+                autoComplete="off"
                 autoCapitalize="none"
                 focused={focusedField === "password"}
                 onFocus={() => setFocusedField("password")}
@@ -118,7 +130,7 @@ export default function ResetPasswordScreen() {
                 rightSlot={
                   <PasswordVisibilityToggle
                     visible={passwordVisible}
-                    onPress={() => setPasswordVisible((prev) => !prev)}
+                    onPress={handleTogglePassword}
                   />
                 }
               />
@@ -129,6 +141,8 @@ export default function ResetPasswordScreen() {
                 onChangeText={(text) => { setConfirmPassword(text); if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
                 placeholder="Confirm password"
                 secureTextEntry={!confirmPasswordVisible}
+                textContentType="none"
+                autoComplete="off"
                 autoCapitalize="none"
                 focused={focusedField === "confirmPassword"}
                 onFocus={() => setFocusedField("confirmPassword")}
@@ -138,7 +152,7 @@ export default function ResetPasswordScreen() {
                 rightSlot={
                   <PasswordVisibilityToggle
                     visible={confirmPasswordVisible}
-                    onPress={() => setConfirmPasswordVisible((prev) => !prev)}
+                    onPress={handleToggleConfirmPassword}
                   />
                 }
               />
@@ -146,8 +160,7 @@ export default function ResetPasswordScreen() {
 
             <AppButton label="Reset Password" onPress={handleResetPassword} />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

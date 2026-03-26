@@ -78,7 +78,7 @@ export default function AddChannelScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-background-primary" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background-primary" edges={["top", "bottom"]}>
       <StatusBar style="light" />
 
       <View className="h-[60px] flex-row items-center justify-between px-4">
