@@ -164,9 +164,10 @@ export default function SignUpScreen() {
                   }}
                   placeholder="Enter password"
                   secureTextEntry={!passwordVisible}
-                  textContentType="none"
-                  autoComplete="off"
+                  textContentType="newPassword"
+                  autoComplete="new-password"
                   autoCapitalize="none"
+                  keyboardType="default"
                   focused={focusedField === "password"}
                   onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}

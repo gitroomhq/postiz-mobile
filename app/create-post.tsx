@@ -337,7 +337,7 @@ function CompactPostRow({
 }) {
   return (
     <Pressable onPress={onPress}>
-      <View className="flex-row items-start gap-4">
+      <View className="flex-row items-center gap-4">
         <Text className="flex-1 font-jakarta text-body-1 leading-[20px] text-text-secondary">
           {buildCompactPreviewText(text, placeholder)}
         </Text>
@@ -436,7 +436,7 @@ export default function CreatePostScreen() {
     Record<string, ComposerPost[]>
   >({});
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
-  const [editorFocused, setEditorFocused] = useState(false);
+
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [mediaSettingsTarget, setMediaSettingsTarget] = useState<{
     postId: string;
@@ -1136,8 +1136,28 @@ export default function CreatePostScreen() {
                         </>
                       ) : (
                         <>
-                          {chIndex > 0 && !editorFocused ? (
-                            <View className="mb-2 items-end">
+                          <View className="flex-row items-center gap-4">
+                            <View className="flex-1">
+                              <PostEditor
+                                key={chRefId}
+                                initialContent={chPost.content}
+                                onChange={(html) =>
+                                  updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
+                                }
+                                onFocus={() => {
+                                  setActivePostId(chRefId);
+                                  if (chIndex > 0) {
+                                    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                                  }
+                                }}
+                                autoFocus={isChActive && chIndex === 0}
+                                placeholder={chIndex > 0 ? "Add another post" : undefined}
+                                editorRef={(editor) => {
+                                  editorRefs.current[chRefId] = editor;
+                                }}
+                              />
+                            </View>
+                            {chIndex > 0 ? (
                               <Pressable
                                 className="h-5 w-5 items-center justify-center"
                                 hitSlop={8}
@@ -1145,29 +1165,8 @@ export default function CreatePostScreen() {
                               >
                                 <SvgIcon source={require("@/assets/icons/create-post/trash-figma.svg")} size={16} />
                               </Pressable>
-                            </View>
-                          ) : null}
-
-                          <PostEditor
-                            key={chRefId}
-                            initialContent={chPost.content}
-                            onChange={(html) =>
-                              updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
-                            }
-                            onFocus={() => {
-                              setActivePostId(chRefId);
-                              setEditorFocused(true);
-                              if (chIndex > 0) {
-                                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
-                              }
-                            }}
-                            onBlur={() => setEditorFocused(false)}
-                            autoFocus={isChActive && chIndex === 0}
-                            placeholder={chIndex > 0 ? "Add another post" : undefined}
-                            editorRef={(editor) => {
-                              editorRefs.current[chRefId] = editor;
-                            }}
-                          />
+                            ) : null}
+                          </View>
 
                           {chPost.imageUris.length > 0 ? (
                             <ScrollView
@@ -1290,8 +1289,34 @@ export default function CreatePostScreen() {
                     </>
                   ) : (
                     <>
-                      {index > 0 && !editorFocused ? (
-                        <View className="mb-2 items-end">
+                      <View className="flex-row items-center gap-4">
+                        <View className="flex-1">
+                          <PostEditor
+                            key={post.id}
+                            initialContent={post.content}
+                            onChange={(html) =>
+                              updatePost(post.id, (current) => ({ ...current, content: html }))
+                            }
+                            onFocus={() => {
+                              setActivePostId(post.id);
+                              if (index > 0) {
+                                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                              }
+                            }}
+                            autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
+                            placeholder={index > 0 ? "Add another post" : undefined}
+                            editorRef={(editor) => {
+                              editorRefs.current[post.id] = editor;
+                              if (pendingAutoFocusPostId === post.id) {
+                                setTimeout(() => {
+                                  editor.focus();
+                                }, 100);
+                                setPendingAutoFocusPostId(null);
+                              }
+                            }}
+                          />
+                        </View>
+                        {index > 0 ? (
                           <Pressable
                             className="h-5 w-5 items-center justify-center"
                             hitSlop={8}
@@ -1302,35 +1327,8 @@ export default function CreatePostScreen() {
                               size={16}
                             />
                           </Pressable>
-                        </View>
-                      ) : null}
-
-                      <PostEditor
-                        key={post.id}
-                        initialContent={post.content}
-                        onChange={(html) =>
-                          updatePost(post.id, (current) => ({ ...current, content: html }))
-                        }
-                        onFocus={() => {
-                          setActivePostId(post.id);
-                          setEditorFocused(true);
-                          if (index > 0) {
-                            setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
-                          }
-                        }}
-                        onBlur={() => setEditorFocused(false)}
-                        autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
-                        placeholder={index > 0 ? "Add another post" : undefined}
-                        editorRef={(editor) => {
-                          editorRefs.current[post.id] = editor;
-                          if (pendingAutoFocusPostId === post.id) {
-                            setTimeout(() => {
-                              editor.focus();
-                            }, 100);
-                            setPendingAutoFocusPostId(null);
-                          }
-                        }}
-                      />
+                        ) : null}
+                      </View>
 
                       {post.imageUris.length > 0 ? (
                         <ScrollView

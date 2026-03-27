@@ -134,9 +134,10 @@ export default function SignInScreen() {
               onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
               placeholder="Enter password"
               secureTextEntry={!passwordVisible}
-              textContentType="none"
-              autoComplete="off"
+              textContentType="password"
+              autoComplete="current-password"
               autoCapitalize="none"
+              keyboardType="default"
               focused={focusedField === "password"}
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}

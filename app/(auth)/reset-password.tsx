@@ -119,9 +119,10 @@ export default function ResetPasswordScreen() {
                 onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
                 placeholder="Enter password"
                 secureTextEntry={!passwordVisible}
-                textContentType="none"
-                autoComplete="off"
+                textContentType="newPassword"
+                autoComplete="new-password"
                 autoCapitalize="none"
+                keyboardType="default"
                 focused={focusedField === "password"}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField(null)}
@@ -141,9 +142,10 @@ export default function ResetPasswordScreen() {
                 onChangeText={(text) => { setConfirmPassword(text); if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
                 placeholder="Confirm password"
                 secureTextEntry={!confirmPasswordVisible}
-                textContentType="none"
-                autoComplete="off"
+                textContentType="newPassword"
+                autoComplete="new-password"
                 autoCapitalize="none"
+                keyboardType="default"
                 focused={focusedField === "confirmPassword"}
                 onFocus={() => setFocusedField("confirmPassword")}
                 onBlur={() => setFocusedField(null)}
