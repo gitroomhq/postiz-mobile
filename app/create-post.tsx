@@ -1334,6 +1334,8 @@ export default function CreatePostScreen() {
         topOffset={settingsSheet === "new-tag" ? insets.top + 12 : 0}
         useBottomInsetPadding={false}
         avoidKeyboard={settingsSheet === "new-tag"}
+        backdropColor="#414042"
+        backdropOpacity={0.3}
         containerStyle={{
           backgroundColor: "#1A1919",
           paddingHorizontal: 0,

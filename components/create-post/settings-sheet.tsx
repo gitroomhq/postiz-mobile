@@ -19,7 +19,6 @@ import type { Channel } from "@/types";
 import {
   DELAY_OPTIONS,
   REPEAT_OPTIONS,
-  TAG_COLOR_OPTIONS,
   type ComposerTag,
   type SettingsSheet,
 } from "./constants";
@@ -436,12 +435,13 @@ export function SettingsSheetContent({
   // new-tag sheet
   return (
     <View className="flex-1">
-      <View className="flex-row items-center justify-between px-4 py-5">
+      <View className="h-[60px] flex-row items-center justify-between px-4 py-3">
         <Text className="font-jakarta text-h2 font-semibold text-text-primary">
           New Tag
         </Text>
         <Pressable
-          className="h-8 w-8 items-center justify-center"
+          className="h-5 w-5 items-center justify-center"
+          hitSlop={10}
           onPress={() => onNavigate("tags")}
         >
           <Ionicons name="close" size={20} className="text-icon-muted" />
@@ -452,7 +452,7 @@ export function SettingsSheetContent({
         className="flex-1"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerClassName="px-4 pb-4"
+        contentContainerClassName="px-4 pb-4 pt-4"
       >
         <View className="gap-5">
           <View className="gap-2">
@@ -469,12 +469,12 @@ export function SettingsSheetContent({
             />
           </View>
 
-          <View className="gap-3">
+          <View className="gap-2">
             <Text className="font-jakarta text-body-2 font-semibold text-text-primary">
               Color
             </Text>
 
-            <View className="gap-3">
+            <View className="gap-5">
               <View
                 className="h-[255px] overflow-hidden rounded-[10px] border border-white/[0.08]"
                 onLayout={onGradientLayout}
@@ -500,32 +500,46 @@ export function SettingsSheetContent({
                   pointerEvents="none"
                   style={{
                     backgroundColor: newTagColor,
-                    left: hsv.s * gradientSize.width - 17,
-                    top: (1 - hsv.v) * gradientSize.height - 17,
+                    left: Math.max(0, Math.min(hsv.s * gradientSize.width - 17, gradientSize.width - 34)),
+                    top: Math.max(0, Math.min((1 - hsv.v) * gradientSize.height - 17, gradientSize.height - 34)),
                   }}
                 />
               </View>
 
               <View
-                style={{ height: 28, justifyContent: "center" }}
+                style={{ height: 34, justifyContent: "center" }}
                 onLayout={onHueBarLayout}
                 onStartShouldSetResponder={() => true}
                 onMoveShouldSetResponder={() => true}
                 onResponderGrant={handleHueTouch}
                 onResponderMove={handleHueTouch}
               >
-                <LinearGradient
-                  colors={["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF", "#FF0000"]}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  className="h-[14px] rounded-full"
-                />
+                <View
+                  pointerEvents="none"
+                  style={{
+                    height: 13,
+                    width: "100%",
+                    borderRadius: 9999,
+                    overflow: "hidden",
+                    borderWidth: 1,
+                    borderColor: "rgba(0,0,0,0.1)",
+                    backgroundColor: "#FF0000",
+                  }}
+                >
+                  <LinearGradient
+                    colors={["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF", "#FF0000"]}
+                    locations={[0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                </View>
                 <View
                   className="absolute h-7 w-7 rounded-full border-[6px] border-white"
                   pointerEvents="none"
                   style={{
-                    top: 0,
-                    left: (hsv.h / 360) * hueBarWidth - 14,
+                    top: 3,
+                    left: Math.max(0, Math.min((hsv.h / 360) * hueBarWidth - 14, hueBarWidth - 28)),
                     backgroundColor: pureHueColor,
                   }}
                 />
@@ -540,25 +554,15 @@ export function SettingsSheetContent({
                   {newTagColor}
                 </Text>
               </View>
-
-              <View className="flex-row items-center gap-3">
-                {TAG_COLOR_OPTIONS.map((color) => (
-                  <Pressable
-                    key={color}
-                    className={`h-9 w-9 rounded-full border-2 ${
-                      newTagColor === color ? "border-white" : "border-transparent"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onPress={() => onNewTagColorChange(color)}
-                  />
-                ))}
-              </View>
             </View>
           </View>
         </View>
       </ScrollView>
 
-      <View className="px-5 pt-3" style={{ paddingBottom: Math.max(bottomInset, 34) + 10 }}>
+      <View
+        className="justify-center px-5 pt-3"
+        style={{ paddingBottom: Math.max(bottomInset, 34) + 12 }}
+      >
         <Pressable
           className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
           onPress={onSaveNewTag}

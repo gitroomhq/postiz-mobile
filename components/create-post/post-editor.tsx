@@ -26,7 +26,7 @@ const EDITOR_CSS = `
     overflow: hidden !important;
   }
   .ProseMirror {
-    min-height: 100px !important;
+    min-height: 36px !important;
   }
   .tiptap {
     padding: 0;
@@ -65,21 +65,11 @@ const DarkThemeBridge = new BridgeExtension({
 
 const EMPTY_EDITOR_HTML = "<p></p>";
 
-// Reset internal scroll position — prevents WKWebView from scrolling content
-// above the visible area when the editor gains focus with dynamicHeight.
-const RESET_SCROLL_JS =
-  "(function(){" +
-  "var dh=document.querySelector('.dynamic-height');" +
-  "if(dh)dh.scrollTop=0;" +
-  "var root=document.querySelector('#root>div');" +
-  "if(root)root.scrollTop=0;" +
-  "document.documentElement.scrollTop=0;" +
-  "document.body.scrollTop=0;" +
-  "})();true;";
-
 const FORCE_HEIGHT_RECALC_JS =
   "(function(){var pm=document.querySelector('.ProseMirror');" +
-  "if(pm){var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0);" +
+  "if(pm){" +
+  "void pm.offsetHeight;" +
+  "var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0);" +
   "if(h>0){" +
   "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
   "requestAnimationFrame(function(){" +
@@ -127,11 +117,10 @@ function PostEditorInner({
         backgroundColor: "#1A1919",
       },
       webviewContainer: {
-        minHeight: 100,
+        minHeight: 36,
       },
     },
     onChange: () => {
-      
       editor.injectJS(FORCE_HEIGHT_RECALC_JS);
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -146,28 +135,35 @@ function PostEditorInner({
   const editorState = editor.getEditorState();
   const isEditorReady = Boolean((editorState as any).isReady);
   const isEditorFocused = Boolean((editorState as any).isFocused);
-  const hasSetup = useRef(false);
 
-  // Set placeholder and force WebView repaint once editor is ready
+  // Set placeholder and force WebView repaint once editor is ready.
+  // No hasSetup guard — the library remounts the WebView on iOS (key
+  // workaround for react-native-webview#3578), so this must re-run
+  // each time isEditorReady transitions back to true.
   useEffect(() => {
-    if (isEditorReady && !hasSetup.current) {
-      hasSetup.current = true;
-      editor.setPlaceholder(placeholder);
+    if (!isEditorReady) return;
 
-      // Focus/blur forces the WebView to repaint on initial load
-      setTimeout(() => {
+    editor.setPlaceholder(placeholder);
+
+    // Periodically force repaint + height recalc until editor renders.
+    // The WebView sometimes needs multiple attempts before ProseMirror
+    // content becomes visible (race condition with bridge init).
+    let attempt = 0;
+    const interval = setInterval(() => {
+      attempt++;
+
+      // First two attempts: focus/blur to force WebView repaint
+      if (attempt <= 2) {
         editor.focus();
         setTimeout(() => editor.blur(), 50);
-      }, 100);
+      }
 
-      // Force height recalculation after initial content renders.
-      // Two attempts: the first catches fast renders, the second is a
-      // safety net for slower devices or complex content.
-      const t1 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 200);
-      const t2 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 600);
-      const t3 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 1200);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-    }
+      editor.injectJS(FORCE_HEIGHT_RECALC_JS);
+
+      if (attempt >= 10) clearInterval(interval);
+    }, 300);
+
+    return () => clearInterval(interval);
   }, [editor, isEditorReady, placeholder]);
 
   useEffect(() => {
@@ -175,17 +171,6 @@ function PostEditorInner({
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!isEditorReady) return;
-
-    const normalizedInitialContent = normalizeEditorHtml(initialContent);
-    if (normalizedInitialContent === lastKnownHtmlRef.current) return;
-
-    editor.setContent(normalizedInitialContent);
-    lastKnownHtmlRef.current = normalizedInitialContent;
-    editor.injectJS(FORCE_HEIGHT_RECALC_JS);
-  }, [editor, initialContent, isEditorReady]);
 
   // Expose the editor bridge to parent
   const hasSetRef = useRef(false);
@@ -213,7 +198,7 @@ function PostEditorInner({
   }, []);
 
   return (
-    <View style={{ minHeight: 100 }}>
+    <View style={{ minHeight: 36 }}>
       <RichText
         editor={editor}
         androidLayerType={Platform.OS === "android" ? "software" : undefined}
@@ -222,13 +207,12 @@ function PostEditorInner({
   );
 }
 
-// Memoize to prevent re-renders from parent state changes (posts, character count).
-// The editor manages its own content internally — re-rendering it causes
-// dynamicHeight to re-measure the WebView, which triggers a layout feedback loop.
+// The editor manages its own content internally via the WebView — never
+// re-render due to initialContent changes (which come from the editor's own
+// onChange feedback loop). Only placeholder and autoFocus matter externally.
 export const PostEditor = React.memo(
   PostEditorInner,
   (prevProps, nextProps) =>
-    prevProps.initialContent === nextProps.initialContent &&
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.autoFocus === nextProps.autoFocus,
 );

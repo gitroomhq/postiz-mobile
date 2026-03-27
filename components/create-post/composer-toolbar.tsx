@@ -38,8 +38,8 @@ export function ComposerToolbar({
   addPostDisabled?: boolean;
 }) {
   return (
-    <View className="bg-background-primary" style={{ paddingBottom: Math.max(bottomInset, 8) }}>
-      <View className="flex-row items-center gap-5 px-4 py-3">
+    <View className="bg-background-primary" style={{ paddingBottom: bottomInset }}>
+      <View className="flex-row items-center gap-5 px-4 pt-2 pb-2">
         <View className="relative flex-1 overflow-hidden">
           <ScrollView
             horizontal

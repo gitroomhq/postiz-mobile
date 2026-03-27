@@ -14,6 +14,8 @@ type BottomSheetWrapperProps = {
   avoidKeyboard?: boolean;
   swipeEnabled?: boolean;
   hasBackdrop?: boolean;
+  backdropColor?: string;
+  backdropOpacity?: number;
 };
 
 export function BottomSheetWrapper({
@@ -28,6 +30,8 @@ export function BottomSheetWrapper({
   avoidKeyboard = false,
   swipeEnabled = true,
   hasBackdrop = true,
+  backdropColor,
+  backdropOpacity,
 }: BottomSheetWrapperProps) {
   const { height: windowHeight } = useWindowDimensions();
   const sheetHeight = Math.max(0, windowHeight - topOffset);
@@ -48,8 +52,8 @@ export function BottomSheetWrapper({
       style={{ justifyContent: "flex-end", margin: 0 }}
       avoidKeyboard={avoidKeyboard}
       hasBackdrop
-      backdropOpacity={0.1}
-      backdropColor={hasBackdrop ? "#000000" : "transparent"}
+      backdropOpacity={backdropOpacity ?? (hasBackdrop ? 0.7 : 1)}
+      backdropColor={backdropColor ?? (hasBackdrop ? "#0E0E0E" : "transparent")}
       backdropTransitionOutTiming={0}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
