@@ -123,18 +123,33 @@ type NetworkLimitStatus = {
   isOverLimit: boolean;
 };
 
-function buildNetworkLimitStatuses(channels: Channel[], textLength: number): NetworkLimitStatus[] {
+function buildNetworkLimitStatuses(
+  channels: Channel[],
+  defaultTextLength: number,
+  channelOverrides: Record<string, ComposerPost[]>,
+  postId: string,
+): NetworkLimitStatus[] {
   return channels.map((channel) => {
     const limit = NETWORK_CHARACTER_LIMITS[channel.network];
+
+    // Use per-channel override content length when available
+    let currentLength = defaultTextLength;
+    const overridePosts = channelOverrides[channel.id];
+    if (overridePosts) {
+      const overridePost = overridePosts.find((p) => p.id === postId);
+      if (overridePost) {
+        currentLength = stripEditorHtml(overridePost.content).length;
+      }
+    }
 
     return {
       channelId: channel.id,
       channelName: channel.name,
       networkLabel: formatNetworkLabel(channel.network),
       network: channel.network,
-      currentLength: textLength,
+      currentLength,
       limit,
-      isOverLimit: textLength > limit,
+      isOverLimit: currentLength > limit,
     };
   });
 }
@@ -412,6 +427,7 @@ export default function CreatePostScreen() {
   const [repeatPostValue, setRepeatPostValue] =
     useState<(typeof REPEAT_OPTIONS)[number]>("Every Day");
   const [tags, setTags] = useState<ComposerTag[]>(INITIAL_TAGS);
+  const [channelTagOverrides, setChannelTagOverrides] = useState<Record<string, string>>({});
   const [newTagName, setNewTagName] = useState("New");
   const [newTagColor, setNewTagColor] = useState<(typeof TAG_COLOR_OPTIONS)[number]>("#E89623");
   const [activePostId, setActivePostId] = useState(posts[0]?.id ?? "post-1");
@@ -454,9 +470,19 @@ export default function CreatePostScreen() {
     selectedChannels.find((channel) => channel.id === focusedChannelId) ??
     selectedChannels[0] ??
     null;
-  const networkSettingsTitle = focusedChannel
+  const networkSettingsTitle = focusedChannelId && focusedChannel
     ? `${formatNetworkLabel(focusedChannel.network)} Settings`
     : "Channel Settings";
+
+  // Tags with effective selection: per-channel override takes priority over default
+  const effectiveTags = useMemo(() => {
+    if (focusedChannelId && channelTagOverrides[focusedChannelId]) {
+      const overrideId = channelTagOverrides[focusedChannelId];
+      return tags.map((t) => ({ ...t, selected: t.id === overrideId }));
+    }
+    return tags;
+  }, [tags, focusedChannelId, channelTagOverrides]);
+
   // --- Handlers ---
   const updatePost = (postId: string, updater: (post: ComposerPost) => ComposerPost) => {
     setPosts((current) =>
@@ -510,7 +536,7 @@ export default function CreatePostScreen() {
 
   const handleSave = (action: string = "calendar") => {
     setPostActionMenuVisible(false);
-    const selectedTag = tags.find((tag) => tag.selected);
+    const defaultTag = tags.find((tag) => tag.selected);
 
     for (const channel of selectedChannels) {
       // Use per-channel override posts if they exist, otherwise use the default posts
@@ -519,6 +545,12 @@ export default function CreatePostScreen() {
       // Combine all posts into a single entry per channel
       const validPosts = channelPosts.filter((p) => stripEditorHtml(p.content).length > 0);
       if (validPosts.length === 0) continue;
+
+      // Per-channel tag override takes priority over the default tag
+      const overrideTagId = channelTagOverrides[channel.id];
+      const effectiveTag = overrideTagId
+        ? tags.find((t) => t.id === overrideTagId)
+        : defaultTag;
 
       const displayContent = validPosts[0].content;
       const firstImage = validPosts.find((p) => p.imageUris.length > 0)?.imageUris[0];
@@ -532,8 +564,8 @@ export default function CreatePostScreen() {
           scheduledAt: scheduledDate.toISOString(),
           network: channel.network,
           status: action === "draft" ? "draft" : action === "now" ? "published" : "scheduled",
-          tagLabel: selectedTag?.label,
-          tagColor: selectedTag?.color,
+          tagLabel: effectiveTag?.label,
+          tagColor: effectiveTag?.color,
         });
       } else {
         addPostToStore({
@@ -549,8 +581,8 @@ export default function CreatePostScreen() {
           authorName: channel.name,
           authorAvatar: channel.avatar,
           status: action === "draft" ? "draft" : action === "now" ? "published" : "scheduled",
-          tagLabel: selectedTag?.label,
-          tagColor: selectedTag?.color,
+          tagLabel: effectiveTag?.label,
+          tagColor: effectiveTag?.color,
         });
       }
     }
@@ -727,11 +759,20 @@ export default function CreatePostScreen() {
   };
 
   const toggleTag = (tagId: string) => {
-    setTags((current) =>
-      current.map((tag) =>
-        tag.id === tagId ? { ...tag, selected: true } : { ...tag, selected: false },
-      ),
-    );
+    if (focusedChannelId) {
+      // Per-channel override
+      setChannelTagOverrides((current) => ({
+        ...current,
+        [focusedChannelId]: tagId,
+      }));
+    } else {
+      // Default for all channels
+      setTags((current) =>
+        current.map((tag) =>
+          tag.id === tagId ? { ...tag, selected: true } : { ...tag, selected: false },
+        ),
+      );
+    }
   };
 
   const openNewTagSheet = () => {
@@ -746,10 +787,20 @@ export default function CreatePostScreen() {
       id: `${normalizedName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
       label: normalizedName,
       color: newTagColor,
-      selected: true,
+      selected: !focusedChannelId,
     };
 
-    setTags((current) => [...current.map((t) => ({ ...t, selected: false })), nextTag]);
+    if (focusedChannelId) {
+      // Add tag and set as per-channel override
+      setTags((current) => [...current, nextTag]);
+      setChannelTagOverrides((current) => ({
+        ...current,
+        [focusedChannelId]: nextTag.id,
+      }));
+    } else {
+      // Add tag and set as default for all channels
+      setTags((current) => [...current.map((t) => ({ ...t, selected: false })), nextTag]);
+    }
     setSettingsSheet("tags");
     showToast("Tag created", "success");
   };
@@ -807,7 +858,11 @@ export default function CreatePostScreen() {
   useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const showSub = Keyboard.addListener(showEvent, () => {
+      setKeyboardVisible(true);
+      // After keyboard animation completes, scroll to keep active editor visible
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 350);
+    });
     const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
     return () => {
       showSub.remove();
@@ -891,7 +946,7 @@ export default function CreatePostScreen() {
       <KeyboardAvoidingView
         className="flex-1 bg-background-primary"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 122 - insets.bottom : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
       >
         {/* Content */}
         <ScrollView
@@ -991,164 +1046,187 @@ export default function CreatePostScreen() {
             </View>
           ) : null}
 
-          {mode !== "edit" && focusedChannelId && channelOverrides[focusedChannelId] ? (
-            /* Unlocked per-channel editors (multi-post) */
-            <View>
-              {channelOverrides[focusedChannelId].map((chPost, chIndex) => {
-                const chPlainText = stripEditorHtml(chPost.content);
-                const chRefId = `channel-${focusedChannelId}-${chPost.id}`;
-                const isChActive = activePostId === chRefId ||
-                  (channelOverrides[focusedChannelId].length === 1 && chIndex === 0);
+          {/* Per-channel override editors — always mounted once unlocked, hidden when
+             not focused. Same technique as default editors to keep WebView content alive. */}
+          {mode !== "edit" && Object.entries(channelOverrides).map(([channelId, chPosts]) => {
+            const isThisChannelVisible = focusedChannelId === channelId;
+            const channelForLimit = selectedChannels.find((ch) => ch.id === channelId);
 
-                const deleteChPost = () => {
-                  setChannelOverrides((current) => {
-                    const arr = current[focusedChannelId];
-                    if (!arr || arr.length <= 1) return current;
-                    const nextArr = arr.filter((p) => p.id !== chPost.id);
+            return (
+              <View
+                key={`override-${channelId}`}
+                pointerEvents={isThisChannelVisible ? "auto" : "none"}
+                style={isThisChannelVisible ? undefined : {
+                  position: 'absolute',
+                  opacity: 0,
+                  zIndex: -1,
+                }}
+              >
+                {chPosts.map((chPost, chIndex) => {
+                  const chPlainText = stripEditorHtml(chPost.content);
+                  const chRefId = `channel-${channelId}-${chPost.id}`;
+                  const isChActive = activePostId === chRefId ||
+                    (chPosts.length === 1 && chIndex === 0);
 
-                    if (activePostId === chRefId) {
-                      const idx = arr.findIndex((p) => p.id === chPost.id);
-                      const fallback = nextArr[Math.max(0, idx - 1)] ?? nextArr[0];
-                      if (fallback) {
-                        setActivePostId(`channel-${focusedChannelId}-${fallback.id}`);
+                  const deleteChPost = () => {
+                    setChannelOverrides((current) => {
+                      const arr = current[channelId];
+                      if (!arr || arr.length <= 1) return current;
+                      const nextArr = arr.filter((p) => p.id !== chPost.id);
+
+                      if (activePostId === chRefId) {
+                        const idx = arr.findIndex((p) => p.id === chPost.id);
+                        const fallback = nextArr[Math.max(0, idx - 1)] ?? nextArr[0];
+                        if (fallback) {
+                          setActivePostId(`channel-${channelId}-${fallback.id}`);
+                        }
                       }
-                    }
 
-                    return { ...current, [focusedChannelId]: nextArr };
-                  });
-                };
+                      return { ...current, [channelId]: nextArr };
+                    });
+                  };
 
-                return (
-                  <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""}>
-                    {chIndex > 0 ? <PostConnector /> : null}
+                  return (
+                    <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""}>
+                      {chIndex > 0 ? <PostConnector /> : null}
 
-                    {!isChActive ? (
-                      <>
-                        <CompactPostRow
-                          text={chPlainText}
-                          placeholder={chIndex > 0 ? "Add another post" : undefined}
-                          onPress={() => setActivePostId(chRefId)}
-                          onDelete={deleteChPost}
-                        />
-
-                        {chPost.imageUris.length > 0 ? (
-                          <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerClassName="mb-4 mt-4 gap-4"
-                          >
-                            {chPost.imageUris.map((uri, mediaIndex) => (
-                              <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
-                                <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
-                                  <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
-                                </Pressable>
-                                <Pressable
-                                  className="absolute h-[24px] w-[24px] items-center justify-center"
-                                  style={{ right: -8, top: -8 }}
-                                  onPress={() =>
-                                    updateChannelOverridePost(focusedChannelId, chPost.id, (prev) => ({
-                                      ...prev,
-                                      imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
-                                    }))
-                                  }
-                                >
-                                  <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
-                                </Pressable>
-                              </View>
-                            ))}
-                          </ScrollView>
-                        ) : null}
-
-                        {focusedChannel ? (
-                          <SimpleCharacterLimit
-                            currentLength={chPlainText.length}
-                            limit={NETWORK_CHARACTER_LIMITS[focusedChannel.network]}
+                      {!isChActive ? (
+                        <>
+                          <CompactPostRow
+                            text={chPlainText}
+                            placeholder={chIndex > 0 ? "Add another post" : undefined}
+                            onPress={() => setActivePostId(chRefId)}
+                            onDelete={deleteChPost}
                           />
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        {chIndex > 0 && !editorFocused ? (
-                          <View className="mb-2 items-end">
-                            <Pressable
-                              className="h-5 w-5 items-center justify-center"
-                              hitSlop={8}
-                              onPress={deleteChPost}
+
+                          {chPost.imageUris.length > 0 ? (
+                            <ScrollView
+                              horizontal
+                              showsHorizontalScrollIndicator={false}
+                              contentContainerClassName="mb-4 mt-4 gap-4"
                             >
-                              <SvgIcon source={require("@/assets/icons/create-post/trash-figma.svg")} size={16} />
-                            </Pressable>
-                          </View>
-                        ) : null}
+                              {chPost.imageUris.map((uri, mediaIndex) => (
+                                <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
+                                  <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
+                                    <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
+                                  </Pressable>
+                                  <Pressable
+                                    className="absolute h-[24px] w-[24px] items-center justify-center"
+                                    style={{ right: -8, top: -8 }}
+                                    onPress={() =>
+                                      updateChannelOverridePost(channelId, chPost.id, (prev) => ({
+                                        ...prev,
+                                        imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
+                                      }))
+                                    }
+                                  >
+                                    <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
+                                  </Pressable>
+                                </View>
+                              ))}
+                            </ScrollView>
+                          ) : null}
 
-                        <PostEditor
-                          key={chRefId}
-                          initialContent={chPost.content}
-                          onChange={(html) =>
-                            updateChannelOverridePost(focusedChannelId, chPost.id, (prev) => ({ ...prev, content: html }))
-                          }
-                          onFocus={() => {
-                            setActivePostId(chRefId);
-                            setEditorFocused(true);
-                            if (chIndex > 0) {
-                              setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                          {channelForLimit ? (
+                            <SimpleCharacterLimit
+                              currentLength={chPlainText.length}
+                              limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
+                            />
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          {chIndex > 0 && !editorFocused ? (
+                            <View className="mb-2 items-end">
+                              <Pressable
+                                className="h-5 w-5 items-center justify-center"
+                                hitSlop={8}
+                                onPress={deleteChPost}
+                              >
+                                <SvgIcon source={require("@/assets/icons/create-post/trash-figma.svg")} size={16} />
+                              </Pressable>
+                            </View>
+                          ) : null}
+
+                          <PostEditor
+                            key={chRefId}
+                            initialContent={chPost.content}
+                            onChange={(html) =>
+                              updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
                             }
-                          }}
-                          onBlur={() => setEditorFocused(false)}
-                          autoFocus={isChActive && chIndex === 0}
-                          placeholder={chIndex > 0 ? "Add another post" : undefined}
-                          editorRef={(editor) => {
-                            editorRefs.current[chRefId] = editor;
-                          }}
-                        />
-
-                        {chPost.imageUris.length > 0 ? (
-                          <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerClassName="mb-4 mt-4 gap-4"
-                          >
-                            {chPost.imageUris.map((uri, mediaIndex) => (
-                              <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
-                                <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
-                                  <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
-                                </Pressable>
-                                <Pressable
-                                  className="absolute h-[24px] w-[24px] items-center justify-center"
-                                  style={{ right: -8, top: -8 }}
-                                  onPress={() =>
-                                    updateChannelOverridePost(focusedChannelId, chPost.id, (prev) => ({
-                                      ...prev,
-                                      imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
-                                    }))
-                                  }
-                                >
-                                  <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
-                                </Pressable>
-                              </View>
-                            ))}
-                          </ScrollView>
-                        ) : null}
-
-                        {focusedChannel ? (
-                          <SimpleCharacterLimit
-                            currentLength={chPlainText.length}
-                            limit={NETWORK_CHARACTER_LIMITS[focusedChannel.network]}
+                            onFocus={() => {
+                              setActivePostId(chRefId);
+                              setEditorFocused(true);
+                              if (chIndex > 0) {
+                                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                              }
+                            }}
+                            onBlur={() => setEditorFocused(false)}
+                            autoFocus={isChActive && chIndex === 0}
+                            placeholder={chIndex > 0 ? "Add another post" : undefined}
+                            editorRef={(editor) => {
+                              editorRefs.current[chRefId] = editor;
+                            }}
                           />
-                        ) : null}
-                      </>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          ) : null}
 
-          {/* Default post editors (globe tab) — always mounted, hidden when channel is focused */}
-          <View style={mode !== "edit" && focusedChannelId ? { display: 'none' } : undefined}>
+                          {chPost.imageUris.length > 0 ? (
+                            <ScrollView
+                              horizontal
+                              showsHorizontalScrollIndicator={false}
+                              contentContainerClassName="mb-4 mt-4 gap-4"
+                            >
+                              {chPost.imageUris.map((uri, mediaIndex) => (
+                                <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
+                                  <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
+                                    <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
+                                  </Pressable>
+                                  <Pressable
+                                    className="absolute h-[24px] w-[24px] items-center justify-center"
+                                    style={{ right: -8, top: -8 }}
+                                    onPress={() =>
+                                      updateChannelOverridePost(channelId, chPost.id, (prev) => ({
+                                        ...prev,
+                                        imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
+                                      }))
+                                    }
+                                  >
+                                    <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
+                                  </Pressable>
+                                </View>
+                              ))}
+                            </ScrollView>
+                          ) : null}
+
+                          {channelForLimit ? (
+                            <SimpleCharacterLimit
+                              currentLength={chPlainText.length}
+                              limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
+                            />
+                          ) : null}
+                        </>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+
+          {/* Default post editors (globe tab) — always mounted, hidden when channel is focused.
+             Use absolute positioning + opacity instead of display:'none' so the WebView
+             keeps its content alive on iOS (WKWebView drops state behind display:none). */}
+          <View
+            pointerEvents={mode !== "edit" && focusedChannelId ? "none" : "auto"}
+            style={mode !== "edit" && focusedChannelId ? {
+              position: 'absolute',
+              opacity: 0,
+              zIndex: -1,
+            } : undefined}
+          >
             {posts.map((post, index) => {
               const plainText = stripEditorHtml(post.content);
               const plainTextLength = plainText.length;
-              const limitStatuses = buildNetworkLimitStatuses(selectedChannels, plainTextLength);
+              const limitStatuses = buildNetworkLimitStatuses(selectedChannels, plainTextLength, channelOverrides, post.id);
               const isActivePost = activePostId === post.id || (posts.length === 1 && index === 0);
 
               return (
@@ -1355,7 +1433,7 @@ export default function CreatePostScreen() {
           focusedChannel={focusedChannel}
           repeatValue={repeatPostValue}
           onRepeatChange={(v) => setRepeatPostValue(v as (typeof REPEAT_OPTIONS)[number])}
-          tags={tags}
+          tags={effectiveTags}
           onToggleTag={toggleTag}
           newTagName={newTagName}
           onNewTagNameChange={setNewTagName}

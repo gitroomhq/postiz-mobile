@@ -69,11 +69,10 @@ const FORCE_HEIGHT_RECALC_JS =
   "(function(){var pm=document.querySelector('.ProseMirror');" +
   "if(pm){" +
   "void pm.offsetHeight;" +
-  "var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0);" +
-  "if(h>0){" +
+  "var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0,36);" +
   "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
   "requestAnimationFrame(function(){" +
-  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});}" +
+  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});" +
   "}})();true;";
 
 function normalizeEditorHtml(content: string) {
@@ -97,6 +96,7 @@ function PostEditorInner({
   placeholder?: string;
   editorRef?: (editor: EditorBridge) => void;
 }) {
+  "use no memo"; // Opt out of React Compiler — imperative WebView bridge breaks under auto-memoization
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onFocusRef = useRef(onFocus);
@@ -147,21 +147,21 @@ function PostEditorInner({
 
     // Periodically force repaint + height recalc until editor renders.
     // The WebView sometimes needs multiple attempts before ProseMirror
-    // content becomes visible (race condition with bridge init).
+    // content becomes visible (race condition with bridge init on iOS 19+).
     let attempt = 0;
     const interval = setInterval(() => {
       attempt++;
 
-      // First two attempts: focus/blur to force WebView repaint
-      if (attempt <= 2) {
+      // First three attempts: focus/blur to force WebView repaint
+      if (attempt <= 3) {
         editor.focus();
-        setTimeout(() => editor.blur(), 50);
+        setTimeout(() => editor.blur(), 80);
       }
 
       editor.injectJS(FORCE_HEIGHT_RECALC_JS);
 
-      if (attempt >= 10) clearInterval(interval);
-    }, 300);
+      if (attempt >= 15) clearInterval(interval);
+    }, 400);
 
     return () => clearInterval(interval);
   }, [editor, isEditorReady, placeholder]);

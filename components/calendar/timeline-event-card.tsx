@@ -7,7 +7,11 @@ import { NETWORK_CONFIG } from "@/constants/networks";
 import type { ScheduledPost } from "@/types";
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .trim();
 }
 
 type TimelineEventCardProps = {
