@@ -19,17 +19,14 @@ const EDITOR_CSS = `
     background-color: #1A1919;
     padding: 0;
     margin: 0;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
+  #root > div:first-child,
   .dynamic-height {
-    height: unset !important;
-    min-height: 0 !important;
+    overflow: hidden !important;
   }
-  .dynamic-height .ProseMirror {
-    height: unset !important;
-    min-height: 20px !important;
+  .ProseMirror {
+    min-height: 100px !important;
   }
   .tiptap {
     padding: 0;
@@ -68,9 +65,21 @@ const DarkThemeBridge = new BridgeExtension({
 
 const EMPTY_EDITOR_HTML = "<p></p>";
 
+// Reset internal scroll position — prevents WKWebView from scrolling content
+// above the visible area when the editor gains focus with dynamicHeight.
+const RESET_SCROLL_JS =
+  "(function(){" +
+  "var dh=document.querySelector('.dynamic-height');" +
+  "if(dh)dh.scrollTop=0;" +
+  "var root=document.querySelector('#root>div');" +
+  "if(root)root.scrollTop=0;" +
+  "document.documentElement.scrollTop=0;" +
+  "document.body.scrollTop=0;" +
+  "})();true;";
+
 const FORCE_HEIGHT_RECALC_JS =
   "(function(){var pm=document.querySelector('.ProseMirror');" +
-  "if(pm){var h=pm.getBoundingClientRect().height;" +
+  "if(pm){var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0);" +
   "if(h>0){" +
   "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
   "requestAnimationFrame(function(){" +
@@ -85,6 +94,7 @@ function PostEditorInner({
   initialContent,
   onChange,
   onFocus,
+  onBlur,
   autoFocus,
   placeholder = "What would you like to share?",
   editorRef,
@@ -92,6 +102,7 @@ function PostEditorInner({
   initialContent: string;
   onChange: (html: string) => void;
   onFocus?: () => void;
+  onBlur?: () => void;
   autoFocus?: boolean;
   placeholder?: string;
   editorRef?: (editor: EditorBridge) => void;
@@ -100,22 +111,23 @@ function PostEditorInner({
   onChangeRef.current = onChange;
   const onFocusRef = useRef(onFocus);
   onFocusRef.current = onFocus;
+  const onBlurRef = useRef(onBlur);
+  onBlurRef.current = onBlur;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownHtmlRef = useRef(normalizeEditorHtml(initialContent));
 
   const editor = useEditorBridge({
     autofocus: autoFocus ?? false,
-    avoidIosKeyboard: true,
+    avoidIosKeyboard: false,
     dynamicHeight: true,
     initialContent: normalizeEditorHtml(initialContent),
     bridgeExtensions: [...TenTapStartKit, DarkThemeBridge],
     theme: {
       webview: {
         backgroundColor: "#1A1919",
-        opacity: 0.99,
       },
       webviewContainer: {
-        minHeight: 40,
+        minHeight: 100,
       },
     },
     onChange: () => {
@@ -153,7 +165,8 @@ function PostEditorInner({
       // safety net for slower devices or complex content.
       const t1 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 200);
       const t2 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 600);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+      const t3 = setTimeout(() => editor.injectJS(FORCE_HEIGHT_RECALC_JS), 1200);
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
     }
   }, [editor, isEditorReady, placeholder]);
 
@@ -183,15 +196,24 @@ function PostEditorInner({
     }
   }, [editor, editorRef]);
 
-  // Detect focus for active post tracking
+  // Detect focus/blur for active post tracking
   useEffect(() => {
     if (isEditorFocused) {
       onFocusRef.current?.();
+    } else {
+      onBlurRef.current?.();
     }
   }, [isEditorFocused]);
 
+  // Fire onBlur when the editor unmounts (e.g. switching active post)
+  useEffect(() => {
+    return () => {
+      onBlurRef.current?.();
+    };
+  }, []);
+
   return (
-    <View style={{ minHeight: 40 }}>
+    <View style={{ minHeight: 100 }}>
       <RichText
         editor={editor}
         androidLayerType={Platform.OS === "android" ? "software" : undefined}

@@ -52,6 +52,7 @@ export default function CalendarScreen() {
   const [monthSelectorOpen, setMonthSelectorOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
   const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState<ScheduledPost | null>(null);
   const [dateTimeTarget, setDateTimeTarget] = useState<Date | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export default function CalendarScreen() {
 
   const handleSlotPress = useCallback((hour: number) => {
     setSelectedHour(hour);
+    setSelectedMinute(0);
     setAddPostVisible(true);
   }, []);
 
@@ -108,6 +110,7 @@ export default function CalendarScreen() {
 
   const handleDateTimeSave = useCallback(
     (newDate: Date) => {
+      const fromPostDetail = !!editingPostId;
       if (editingPostId) {
         storeReschedulePost(editingPostId, newDate.toISOString());
         showToast("Date & time updated", "success");
@@ -115,9 +118,18 @@ export default function CalendarScreen() {
         // Opened from Add Post sheet — update date/hour so the sheet below reflects it
         setSelectedDate(new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate()));
         setSelectedHour(newDate.getHours());
+        setSelectedMinute(newDate.getMinutes());
       }
       setDateTimeVisible(false);
       setEditingPostId(null);
+      // Reopen the parent sheet after date picker closes
+      setTimeout(() => {
+        if (fromPostDetail) {
+          setPostDetailVisible(true);
+        } else {
+          setAddPostVisible(true);
+        }
+      }, 350);
     },
     [editingPostId, storeReschedulePost],
   );
@@ -125,10 +137,14 @@ export default function CalendarScreen() {
   const handleCreatePost = useCallback(
     (dateTime: Date) => {
       setAddPostVisible(false);
-      router.push({
-        pathname: "/create-post",
-        params: { dateTime: dateTime.toISOString() },
-      } as any);
+      // Delay navigation so the AddPostSheet modal fully dismisses before
+      // the create-post screen (containedTransparentModal) presents on iOS.
+      setTimeout(() => {
+        router.push({
+          pathname: "/create-post",
+          params: { dateTime: dateTime.toISOString() },
+        } as any);
+      }, 350);
     },
     [router],
   );
@@ -217,18 +233,20 @@ export default function CalendarScreen() {
         }}
         onEdit={(post) => {
           setPostDetailVisible(false);
-          router.push({
-            pathname: "/create-post",
-            params: {
-              postId: post.id,
-              mode: "edit",
-              dateTime: post.scheduledAt,
-              content: post.content,
-              imageUri: post.imageUri ?? "",
-              network: post.network,
-              channelId: post.channelId,
-            },
-          } as any);
+          setTimeout(() => {
+            router.push({
+              pathname: "/create-post",
+              params: {
+                postId: post.id,
+                mode: "edit",
+                dateTime: post.scheduledAt,
+                content: post.content,
+                imageUri: post.imageUri ?? "",
+                network: post.network,
+                channelId: post.channelId,
+              },
+            } as any);
+          }, 350);
         }}
         onDuplicate={(post) => {
           const newId = `dup-${post.id}-${Date.now()}`;
@@ -238,24 +256,27 @@ export default function CalendarScreen() {
             title: post.title,
           });
           setPostDetailVisible(false);
-          router.push({
-            pathname: "/create-post",
-            params: {
-              postId: newId,
-              mode: "edit",
-              dateTime: post.scheduledAt,
-              content: post.content,
-              imageUri: post.imageUri ?? "",
-              network: post.network,
-              channelId: post.channelId,
-            },
-          } as any);
+          setTimeout(() => {
+            router.push({
+              pathname: "/create-post",
+              params: {
+                postId: newId,
+                mode: "edit",
+                dateTime: post.scheduledAt,
+                content: post.content,
+                imageUri: post.imageUri ?? "",
+                network: post.network,
+                channelId: post.channelId,
+              },
+            } as any);
+          }, 350);
         }}
         onDelete={(post) => setDeleteTarget(post)}
         onChangeDateTime={(post) => {
+          setPostDetailVisible(false);
           setEditingPostId(post.id);
           setDateTimeTarget(new Date(post.scheduledAt));
-          setDateTimeVisible(true);
+          setTimeout(() => setDateTimeVisible(true), 350);
         }}
       />
 
@@ -263,17 +284,19 @@ export default function CalendarScreen() {
         isVisible={addPostVisible}
         selectedDate={selectedDate}
         selectedHour={selectedHour}
+        selectedMinute={selectedMinute}
         onClose={() => setAddPostVisible(false)}
         onCreatePost={handleCreatePost}
         onChangeDateTime={() => {
+          setAddPostVisible(false);
           setDateTimeTarget(
             set(selectedDate, {
               hours: selectedHour,
-              minutes: 0,
+              minutes: selectedMinute,
               seconds: 0,
             }),
           );
-          setDateTimeVisible(true);
+          setTimeout(() => setDateTimeVisible(true), 350);
         }}
       />
 
@@ -283,9 +306,18 @@ export default function CalendarScreen() {
           initialDate={dateTimeTarget}
           onSave={handleDateTimeSave}
           onClose={() => {
+            const fromPostDetail = !!editingPostId;
             setDateTimeVisible(false);
             setEditingPostId(null);
-            setTimeout(() => setDateTimeTarget(null), 350);
+            setTimeout(() => {
+              setDateTimeTarget(null);
+              // Reopen the parent sheet
+              if (fromPostDetail) {
+                setPostDetailVisible(true);
+              } else {
+                setAddPostVisible(true);
+              }
+            }, 350);
           }}
         />
       )}

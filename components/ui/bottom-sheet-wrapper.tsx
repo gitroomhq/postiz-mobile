@@ -48,7 +48,9 @@ export function BottomSheetWrapper({
       style={{ justifyContent: "flex-end", margin: 0 }}
       avoidKeyboard={avoidKeyboard}
       hasBackdrop
-      backdropOpacity={hasBackdrop ? 0.7 : 0.01}
+      backdropOpacity={0.1}
+      backdropColor={hasBackdrop ? "#000000" : "transparent"}
+      backdropTransitionOutTiming={0}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
     >

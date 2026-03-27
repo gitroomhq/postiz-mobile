@@ -9,6 +9,7 @@ type AddPostSheetProps = {
   isVisible: boolean;
   selectedDate: Date;
   selectedHour: number;
+  selectedMinute: number;
   onClose: () => void;
   onCreatePost: (dateTime: Date) => void;
   onChangeDateTime: () => void;
@@ -18,13 +19,14 @@ export function AddPostSheet({
   isVisible,
   selectedDate,
   selectedHour,
+  selectedMinute,
   onClose,
   onCreatePost,
   onChangeDateTime,
 }: AddPostSheetProps) {
   const dateTime = set(selectedDate, {
     hours: selectedHour,
-    minutes: 0,
+    minutes: selectedMinute,
     seconds: 0,
   });
   const passed = isDatePassed(dateTime);

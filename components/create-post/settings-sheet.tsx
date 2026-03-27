@@ -474,7 +474,7 @@ export function SettingsSheetContent({
               Color
             </Text>
 
-            <View className="gap-5">
+            <View className="gap-3">
               <View
                 className="h-[255px] overflow-hidden rounded-[10px] border border-white/[0.08]"
                 onLayout={onGradientLayout}
@@ -507,6 +507,7 @@ export function SettingsSheetContent({
               </View>
 
               <View
+                style={{ height: 28, justifyContent: "center" }}
                 onLayout={onHueBarLayout}
                 onStartShouldSetResponder={() => true}
                 onMoveShouldSetResponder={() => true}
@@ -523,7 +524,7 @@ export function SettingsSheetContent({
                   className="absolute h-7 w-7 rounded-full border-[6px] border-white"
                   pointerEvents="none"
                   style={{
-                    top: -6,
+                    top: 0,
                     left: (hsv.h / 360) * hueBarWidth - 14,
                     backgroundColor: pureHueColor,
                   }}

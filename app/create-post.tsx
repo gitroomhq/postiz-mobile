@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { format, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -419,6 +420,7 @@ export default function CreatePostScreen() {
     Record<string, ComposerPost[]>
   >({});
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [editorFocused, setEditorFocused] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [mediaSettingsTarget, setMediaSettingsTarget] = useState<{
     postId: string;
@@ -426,7 +428,9 @@ export default function CreatePostScreen() {
     altText?: string;
   } | null>(null);
   const editorRefs = useRef<Record<string, EditorBridge>>({});
+  const scrollViewRef = useRef<ScrollView>(null);
   const postIdCounter = useRef(posts.length);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // --- Derived values ---
   const dateLabel = format(scheduledDate, "MMM d, h:mm a")
@@ -472,12 +476,14 @@ export default function CreatePostScreen() {
       }));
       setActivePostId(chRefId);
       setPendingAutoFocusPostId(chRefId);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 200);
       return;
     }
 
     setPosts((current) => [...current, makePost(nextPostId, "")]);
     setActivePostId(nextPostId);
     setPendingAutoFocusPostId(nextPostId);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 200);
   };
 
   const deletePost = (postId: string) => {
@@ -798,10 +804,21 @@ export default function CreatePostScreen() {
     setActivePostId(posts[0]?.id ?? "post-1");
   }, [focusedChannelId, selectedChannels, posts]);
 
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   // --- Render ---
   return (
     <View className="flex-1" style={{ paddingTop: 40 }}>
-      <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={["bottom"]}>
+      <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={[]}>
         <StatusBar style="light" />
 
         {/* Handle */}
@@ -874,10 +891,11 @@ export default function CreatePostScreen() {
       <KeyboardAvoidingView
         className="flex-1 bg-background-primary"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 122 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 122 - insets.bottom : 0}
       >
         {/* Content */}
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 bg-background-primary"
           contentContainerClassName="px-4 pt-3 pb-[92px]"
           keyboardShouldPersistTaps="handled"
@@ -907,7 +925,10 @@ export default function CreatePostScreen() {
           ) : (
             /* Create / duplicate mode — full channel bar */
             <View className="mb-4 flex-row items-center gap-1">
-              <ChannelTab active={!focusedChannelId} onPress={() => setFocusedChannelId(null)}>
+              <ChannelTab active={!focusedChannelId} onPress={() => {
+                setFocusedChannelId(null);
+                setActivePostId(posts[0]?.id ?? "post-1");
+              }}>
                 <SvgIcon
                   source={require("@/assets/icons/create-post/globe-active.svg")}
                   size={24}
@@ -968,7 +989,9 @@ export default function CreatePostScreen() {
             <View className="flex-1 justify-center py-16">
               <LockedTemplateCard onPress={() => handleUnlockChannel(focusedChannelId)} />
             </View>
-          ) : mode !== "edit" && focusedChannelId && channelOverrides[focusedChannelId] ? (
+          ) : null}
+
+          {mode !== "edit" && focusedChannelId && channelOverrides[focusedChannelId] ? (
             /* Unlocked per-channel editors (multi-post) */
             <View>
               {channelOverrides[focusedChannelId].map((chPost, chIndex) => {
@@ -1045,7 +1068,7 @@ export default function CreatePostScreen() {
                       </>
                     ) : (
                       <>
-                        {chIndex > 0 ? (
+                        {chIndex > 0 && !editorFocused ? (
                           <View className="mb-2 items-end">
                             <Pressable
                               className="h-5 w-5 items-center justify-center"
@@ -1063,7 +1086,14 @@ export default function CreatePostScreen() {
                           onChange={(html) =>
                             updateChannelOverridePost(focusedChannelId, chPost.id, (prev) => ({ ...prev, content: html }))
                           }
-                          onFocus={() => setActivePostId(chRefId)}
+                          onFocus={() => {
+                            setActivePostId(chRefId);
+                            setEditorFocused(true);
+                            if (chIndex > 0) {
+                              setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                            }
+                          }}
+                          onBlur={() => setEditorFocused(false)}
                           autoFocus={isChActive && chIndex === 0}
                           placeholder={chIndex > 0 ? "Add another post" : undefined}
                           editorRef={(editor) => {
@@ -1111,9 +1141,10 @@ export default function CreatePostScreen() {
                 );
               })}
             </View>
-          ) : (
-            /* Default post editors (globe tab) */
-            <View>
+          ) : null}
+
+          {/* Default post editors (globe tab) — always mounted, hidden when channel is focused */}
+          <View style={mode !== "edit" && focusedChannelId ? { display: 'none' } : undefined}>
             {posts.map((post, index) => {
               const plainText = stripEditorHtml(post.content);
               const plainTextLength = plainText.length;
@@ -1181,7 +1212,7 @@ export default function CreatePostScreen() {
                     </>
                   ) : (
                     <>
-                      {index > 0 ? (
+                      {index > 0 && !editorFocused ? (
                         <View className="mb-2 items-end">
                           <Pressable
                             className="h-5 w-5 items-center justify-center"
@@ -1202,7 +1233,14 @@ export default function CreatePostScreen() {
                         onChange={(html) =>
                           updatePost(post.id, (current) => ({ ...current, content: html }))
                         }
-                        onFocus={() => setActivePostId(post.id)}
+                        onFocus={() => {
+                          setActivePostId(post.id);
+                          setEditorFocused(true);
+                          if (index > 0) {
+                            setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+                          }
+                        }}
+                        onBlur={() => setEditorFocused(false)}
                         autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
                         placeholder={index > 0 ? "Add another post" : undefined}
                         editorRef={(editor) => {
@@ -1266,8 +1304,7 @@ export default function CreatePostScreen() {
                 </View>
               );
             })}
-            </View>
-          )}
+          </View>
 
         </ScrollView>
 
@@ -1276,7 +1313,7 @@ export default function CreatePostScreen() {
           onMediaToolPress={handleMediaToolPress}
           onFormatPress={handleFormatPress}
           onAddPost={addAnotherPost}
-          bottomInset={0}
+          bottomInset={keyboardVisible ? 0 : insets.bottom}
           addPostDisabled={mode !== "edit" && focusedChannelId !== null && !channelOverrides[focusedChannelId]}
         />
       </KeyboardAvoidingView>
