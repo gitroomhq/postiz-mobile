@@ -168,7 +168,13 @@ function PostEditorInner({
 
   useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+        // Flush: persist the latest known content to parent state so it
+        // isn't lost when the editor unmounts (e.g. switching active post).
+        onChangeRef.current(lastKnownHtmlRef.current);
+      }
     };
   }, []);
 

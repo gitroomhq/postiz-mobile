@@ -42,7 +42,9 @@ export function BottomSheetWrapper({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
       hideModalContentWhileAnimating
-      swipeDirection="down"
+      useNativeDriver
+      useNativeDriverForBackdrop
+      swipeDirection={swipeEnabled ? "down" : undefined}
       onSwipeComplete={onClose}
       propagateSwipe
       animationIn="slideInUp"

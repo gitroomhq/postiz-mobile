@@ -21,6 +21,8 @@ const PAST_SLOT_PATTERN_COUNT = 40;
 const PAST_SLOT_START_X = 143.379;
 const PAST_SLOT_START_Y = -162.739;
 const PAST_SLOT_STEP = 5.657;
+const SLOT_STROKE_DEFAULT = "#232222";
+const SLOT_STROKE_ACTIVE = "#612BD3";
 
 type TimelineViewProps = {
   timeSlots: TimeSlot[];
@@ -79,8 +81,14 @@ function SlotBlock({
   return (
     <Pressable onPress={onPress} className={height === "flex" ? "flex-1" : ""}>
       <View
-        className={`rounded-[8px] border bg-slot-bg-default ${isSelected ? "border-slot-stroke-active" : "border-slot-stroke-default"} ${height === "flex" ? "flex-1" : ""}`}
-        style={height !== "flex" ? { height } : undefined}
+        className={`rounded-[8px] bg-slot-bg-default ${height === "flex" ? "flex-1" : ""}`}
+        style={[
+          {
+            borderWidth: isSelected ? 1.5 : 1,
+            borderColor: isSelected ? SLOT_STROKE_ACTIVE : SLOT_STROKE_DEFAULT,
+          },
+          height !== "flex" ? { height } : undefined,
+        ]}
       />
     </Pressable>
   );
@@ -99,7 +107,7 @@ function DropTargetHighlight({ hour }: { hour: number }) {
       bottom: 0,
       borderRadius: 8,
       borderWidth: isTarget ? 2 : 0,
-      borderColor: "#612BD3",
+      borderColor: SLOT_STROKE_ACTIVE,
       backgroundColor: isTarget ? "rgba(97, 43, 211, 0.1)" : "transparent",
       opacity: isTarget ? 1 : 0,
     };
@@ -214,7 +222,8 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
             {isSlotSelected && (
               <View
                 pointerEvents="none"
-                className="absolute inset-0 rounded-[8px] border border-slot-stroke-active"
+                className="absolute inset-0 rounded-[8px]"
+                style={{ borderWidth: 1.5, borderColor: SLOT_STROKE_ACTIVE }}
               />
             )}
             {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}

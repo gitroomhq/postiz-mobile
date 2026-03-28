@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useRef } from "react";
+import { forwardRef, useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Text, TextInput, View } from "react-native";
 import type { TextInputProps } from "react-native";
@@ -6,7 +6,6 @@ import type { TextInputProps } from "react-native";
 type AuthInputProps = {
   label: string;
   hint?: string;
-  focused?: boolean;
   error?: boolean;
   rightSlot?: ReactNode;
 } & TextInputProps;
@@ -16,15 +15,17 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
     {
       label,
       hint,
-      focused = false,
       error = false,
       rightSlot,
       secureTextEntry,
+      onFocus,
+      onBlur,
       ...textInputProps
     },
     ref
   ) {
     const internalRef = useRef<TextInput>(null);
+    const [focused, setFocused] = useState(false);
 
     const setRef = useCallback(
       (node: TextInput | null) => {
@@ -34,6 +35,16 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
       },
       [ref]
     );
+
+    const handleFocus: TextInputProps["onFocus"] = (e) => {
+      setFocused(true);
+      onFocus?.(e);
+    };
+
+    const handleBlur: TextInputProps["onBlur"] = (e) => {
+      setFocused(false);
+      onBlur?.(e);
+    };
 
     const borderClassName = error
       ? "border-text-critical"
@@ -56,6 +67,8 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             secureTextEntry={secureTextEntry}
             autoCorrect={false}
             autoCapitalize="none"
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             {...textInputProps}
           />
           {rightSlot}

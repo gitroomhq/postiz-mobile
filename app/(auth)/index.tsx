@@ -14,7 +14,6 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const handleTogglePassword = () => {
@@ -121,9 +120,6 @@ export default function SignInScreen() {
               placeholder="Enter email address"
               keyboardType="email-address"
               autoCapitalize="none"
-              focused={focusedField === "email"}
-              onFocus={() => setFocusedField("email")}
-              onBlur={() => setFocusedField(null)}
               error={!!errors.email}
               hint={errors.email}
             />
@@ -138,9 +134,6 @@ export default function SignInScreen() {
               autoComplete="current-password"
               autoCapitalize="none"
               keyboardType="default"
-              focused={focusedField === "password"}
-              onFocus={() => setFocusedField("password")}
-              onBlur={() => setFocusedField(null)}
               error={!!errors.password}
               hint={errors.password}
               rightSlot={

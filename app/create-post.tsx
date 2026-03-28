@@ -1232,150 +1232,108 @@ export default function CreatePostScreen() {
                 <View key={post.id} className={index > 0 ? "mt-5" : ""}>
                   {index > 0 ? <PostConnector /> : null}
 
+                  {/* Compact preview — visible only when inactive */}
                   {!isActivePost ? (
-                    <>
-                      <CompactPostRow
-                        text={plainText}
-                        placeholder={index > 0 ? "Add another post" : undefined}
-                        onPress={() => setActivePostId(post.id)}
-                        onDelete={() => deletePost(post.id)}
-                      />
+                    <CompactPostRow
+                      text={plainText}
+                      placeholder={index > 0 ? "Add another post" : undefined}
+                      onPress={() => setActivePostId(post.id)}
+                      onDelete={() => deletePost(post.id)}
+                    />
+                  ) : null}
 
-                      {post.imageUris.length > 0 ? (
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          contentContainerClassName="mb-4 mt-4 gap-4"
-                        >
-                          {post.imageUris.map((uri, mediaIndex) => (
-                            <View key={`${post.id}-${uri}`} className="relative overflow-visible">
-                              <Pressable
-                                onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
-                              >
-                                <Image
-                                  source={{ uri }}
-                                  className="h-[60px] w-[60px] rounded-lg"
-                                  contentFit="cover"
-                                />
-                              </Pressable>
-                              <Pressable
-                                className="absolute h-[24px] w-[24px] items-center justify-center"
-                                style={{ right: -8, top: -8 }}
-                                onPress={() =>
-                                  updatePost(post.id, (current) => ({
-                                    ...current,
-                                    imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
-                                  }))
-                                }
-                              >
-                                <SvgIcon
-                                  source={require("@/assets/icons/create-post/media-remove.svg")}
-                                  size={24}
-                                />
-                              </Pressable>
-                            </View>
-                          ))}
-                        </ScrollView>
-                      ) : null}
-
-                      {mode === "edit" && selectedChannels[0] ? (
-                        <SimpleCharacterLimit
-                          currentLength={plainTextLength}
-                          limit={NETWORK_CHARACTER_LIMITS[selectedChannels[0].network]}
-                        />
-                      ) : (
-                        <CharacterLimitStatus statuses={limitStatuses} />
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <View className="flex-row items-center gap-4">
-                        <View className="flex-1">
-                          <PostEditor
-                            key={post.id}
-                            initialContent={post.content}
-                            onChange={(html) =>
-                              updatePost(post.id, (current) => ({ ...current, content: html }))
+                  {/* Editor — always mounted, hidden when inactive to keep
+                      WebView content alive and prevent losing unsaved edits. */}
+                  <View
+                    pointerEvents={isActivePost ? "auto" : "none"}
+                    style={!isActivePost ? { position: 'absolute', opacity: 0, zIndex: -1 } : undefined}
+                  >
+                    <View className="flex-row items-center gap-4">
+                      <View className="flex-1">
+                        <PostEditor
+                          key={post.id}
+                          initialContent={post.content}
+                          onChange={(html) =>
+                            updatePost(post.id, (current) => ({ ...current, content: html }))
+                          }
+                          onFocus={() => {
+                            setActivePostId(post.id);
+                            if (index > 0) {
+                              setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
                             }
-                            onFocus={() => {
-                              setActivePostId(post.id);
-                              if (index > 0) {
-                                setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
-                              }
-                            }}
-                            autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
-                            placeholder={index > 0 ? "Add another post" : undefined}
-                            editorRef={(editor) => {
-                              editorRefs.current[post.id] = editor;
-                              if (pendingAutoFocusPostId === post.id) {
-                                setTimeout(() => {
-                                  editor.focus();
-                                }, 100);
-                                setPendingAutoFocusPostId(null);
-                              }
-                            }}
+                          }}
+                          autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
+                          placeholder={index > 0 ? "Add another post" : undefined}
+                          editorRef={(editor) => {
+                            editorRefs.current[post.id] = editor;
+                            if (pendingAutoFocusPostId === post.id) {
+                              setTimeout(() => {
+                                editor.focus();
+                              }, 100);
+                              setPendingAutoFocusPostId(null);
+                            }
+                          }}
+                        />
+                      </View>
+                      {index > 0 ? (
+                        <Pressable
+                          className="h-5 w-5 items-center justify-center"
+                          hitSlop={8}
+                          onPress={() => deletePost(post.id)}
+                        >
+                          <SvgIcon
+                            source={require("@/assets/icons/create-post/trash-figma.svg")}
+                            size={16}
                           />
-                        </View>
-                        {index > 0 ? (
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  {post.imageUris.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerClassName="mb-4 mt-4 gap-4"
+                    >
+                      {post.imageUris.map((uri, mediaIndex) => (
+                        <View key={`${post.id}-${uri}`} className="relative overflow-visible">
                           <Pressable
-                            className="h-5 w-5 items-center justify-center"
-                            hitSlop={8}
-                            onPress={() => deletePost(post.id)}
+                            onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
                           >
-                            <SvgIcon
-                              source={require("@/assets/icons/create-post/trash-figma.svg")}
-                              size={16}
+                            <Image
+                              source={{ uri }}
+                              className="h-[60px] w-[60px] rounded-lg"
+                              contentFit="cover"
                             />
                           </Pressable>
-                        ) : null}
-                      </View>
+                          <Pressable
+                            className="absolute h-[24px] w-[24px] items-center justify-center"
+                            style={{ right: -8, top: -8 }}
+                            onPress={() =>
+                              updatePost(post.id, (current) => ({
+                                ...current,
+                                imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
+                              }))
+                            }
+                          >
+                            <SvgIcon
+                              source={require("@/assets/icons/create-post/media-remove.svg")}
+                              size={24}
+                            />
+                          </Pressable>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  ) : null}
 
-                      {post.imageUris.length > 0 ? (
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          contentContainerClassName="mb-4 mt-4 gap-4"
-                        >
-                          {post.imageUris.map((uri, mediaIndex) => (
-                            <View key={`${post.id}-${uri}`} className="relative overflow-visible">
-                              <Pressable
-                                onPress={() => setMediaSettingsTarget({ postId: post.id, uri })}
-                              >
-                                <Image
-                                  source={{ uri }}
-                                  className="h-[60px] w-[60px] rounded-lg"
-                                  contentFit="cover"
-                                />
-                              </Pressable>
-                              <Pressable
-                                className="absolute h-[24px] w-[24px] items-center justify-center"
-                                style={{ right: -8, top: -8 }}
-                                onPress={() =>
-                                  updatePost(post.id, (current) => ({
-                                    ...current,
-                                    imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
-                                  }))
-                                }
-                              >
-                                <SvgIcon
-                                  source={require("@/assets/icons/create-post/media-remove.svg")}
-                                  size={24}
-                                />
-                              </Pressable>
-                            </View>
-                          ))}
-                        </ScrollView>
-                      ) : null}
-
-                      {mode === "edit" && selectedChannels[0] ? (
-                        <SimpleCharacterLimit
-                          currentLength={plainTextLength}
-                          limit={NETWORK_CHARACTER_LIMITS[selectedChannels[0].network]}
-                        />
-                      ) : (
-                        <CharacterLimitStatus statuses={limitStatuses} />
-                      )}
-                    </>
+                  {mode === "edit" && selectedChannels[0] ? (
+                    <SimpleCharacterLimit
+                      currentLength={plainTextLength}
+                      limit={NETWORK_CHARACTER_LIMITS[selectedChannels[0].network]}
+                    />
+                  ) : (
+                    <CharacterLimitStatus statuses={limitStatuses} />
                   )}
                 </View>
               );
