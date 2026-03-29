@@ -11,9 +11,18 @@ import {
 const EDITOR_CSS = `
   * {
     font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
-    color: #FFFFFF !important;
+    color: #A3A3A3 !important;
     caret-color: #FFFFFF;
-    -webkit-text-fill-color: #FFFFFF;
+    -webkit-text-fill-color: #A3A3A3 !important;
+  }
+  .ProseMirror-focused,
+  .ProseMirror-focused * {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+  }
+  .ProseMirror-focused .is-editor-empty:first-child::before {
+    color: #656464 !important;
+    -webkit-text-fill-color: #656464 !important;
   }
   html, body {
     background-color: #1A1919;
@@ -74,6 +83,7 @@ const FORCE_HEIGHT_RECALC_JS =
   "requestAnimationFrame(function(){" +
   "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});" +
   "}})();true;";
+
 
 function normalizeEditorHtml(content: string) {
   return content.trim().length > 0 ? content : EMPTY_EDITOR_HTML;
@@ -145,23 +155,40 @@ function PostEditorInner({
 
     editor.setPlaceholder(placeholder);
 
+    // On iOS, force GPU compositing to help WKWebView paint its content.
+    if (Platform.OS === "ios") {
+      editor.injectJS(
+        "document.body.style.webkitTransform='translateZ(0)';" +
+        "document.body.style.webkitBackfaceVisibility='hidden';true;"
+      );
+    }
+
     // Periodically force repaint + height recalc until editor renders.
     // The WebView sometimes needs multiple attempts before ProseMirror
     // content becomes visible (race condition with bridge init on iOS 19+).
+    // Also re-apply the current focus color on each attempt as a backup.
     let attempt = 0;
     const interval = setInterval(() => {
       attempt++;
 
-      // First three attempts: focus/blur to force WebView repaint
-      if (attempt <= 3) {
+      // First five attempts: focus/blur to force WebView repaint
+      if (attempt <= 5) {
         editor.focus();
         setTimeout(() => editor.blur(), 80);
       }
 
+      // On iOS, periodically nudge the DOM to trigger repaint
+      if (Platform.OS === "ios") {
+        editor.injectJS(
+          "var b=document.body;b.style.opacity='0.99';" +
+          "requestAnimationFrame(function(){b.style.opacity='1';});true;"
+        );
+      }
+
       editor.injectJS(FORCE_HEIGHT_RECALC_JS);
 
-      if (attempt >= 15) clearInterval(interval);
-    }, 400);
+      if (attempt >= 20) clearInterval(interval);
+    }, 300);
 
     return () => clearInterval(interval);
   }, [editor, isEditorReady, placeholder]);
@@ -216,11 +243,14 @@ function PostEditorInner({
 // The editor manages its own content internally via the WebView — never
 // re-render due to initialContent changes (which come from the editor's own
 // onChange feedback loop). Only placeholder and autoFocus matter externally.
+// autoFocus is intentionally excluded — it only affects initial mount via
+// useEditorBridge and must not trigger re-renders when active state changes,
+// as re-rendering a WKWebView behind pointerEvents="none" on iOS causes it
+// to stop painting its content.
 export const PostEditor = React.memo(
   PostEditorInner,
   (prevProps, nextProps) =>
-    prevProps.placeholder === nextProps.placeholder &&
-    prevProps.autoFocus === nextProps.autoFocus,
+    prevProps.placeholder === nextProps.placeholder,
 );
 
 export type { EditorBridge };

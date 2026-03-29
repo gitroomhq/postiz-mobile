@@ -227,6 +227,11 @@ function CharacterLimitStatus({
       </Pressable>
 
       {menuOpen ? (
+        <>
+        <Pressable
+          style={{ position: 'absolute', top: -1000, bottom: -1000, left: -1000, right: -1000, zIndex: 29 }}
+          onPress={() => setMenuOpen(false)}
+        />
         <View
           className={`absolute right-0 top-7 z-30 w-[343px] rounded-[8px] border bg-main-menu-bg p-3 shadow-2xl ${
             hasErrors ? "border-text-critical" : "border-input-stroke-default"
@@ -297,6 +302,7 @@ function CharacterLimitStatus({
             );
           })}
         </View>
+        </>
       ) : null}
     </View>
   );
@@ -1095,7 +1101,10 @@ export default function CreatePostScreen() {
                           <CompactPostRow
                             text={chPlainText}
                             placeholder={chIndex > 0 ? "Add another post" : undefined}
-                            onPress={() => setActivePostId(chRefId)}
+                            onPress={() => {
+                              setActivePostId(chRefId);
+                              setTimeout(() => editorRefs.current[chRefId]?.focus(), 100);
+                            }}
                             onDelete={deleteChPost}
                           />
 
@@ -1232,24 +1241,20 @@ export default function CreatePostScreen() {
                 <View key={post.id} className={index > 0 ? "mt-5" : ""}>
                   {index > 0 ? <PostConnector /> : null}
 
-                  {/* Compact preview — visible only when inactive */}
-                  {!isActivePost ? (
-                    <CompactPostRow
-                      text={plainText}
-                      placeholder={index > 0 ? "Add another post" : undefined}
-                      onPress={() => setActivePostId(post.id)}
-                      onDelete={() => deletePost(post.id)}
-                    />
-                  ) : null}
-
-                  {/* Editor — always mounted, hidden when inactive to keep
-                      WebView content alive and prevent losing unsaved edits. */}
-                  <View
-                    pointerEvents={isActivePost ? "auto" : "none"}
-                    style={!isActivePost ? { position: 'absolute', opacity: 0, zIndex: -1 } : undefined}
-                  >
-                    <View className="flex-row items-center gap-4">
-                      <View className="flex-1">
+                  <View className="flex-row items-center gap-4">
+                    <View className="relative flex-1">
+                      {/* Tap overlay for inactive posts — blocks editor interaction
+                          and switches the active post on press */}
+                      {!isActivePost ? (
+                        <Pressable
+                          onPress={() => {
+                            setActivePostId(post.id);
+                            setTimeout(() => editorRefs.current[post.id]?.focus(), 100);
+                          }}
+                          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
+                        />
+                      ) : null}
+                      <View pointerEvents={isActivePost ? "auto" : "none"}>
                         <PostEditor
                           key={post.id}
                           initialContent={post.content}
@@ -1275,19 +1280,19 @@ export default function CreatePostScreen() {
                           }}
                         />
                       </View>
-                      {index > 0 ? (
-                        <Pressable
-                          className="h-5 w-5 items-center justify-center"
-                          hitSlop={8}
-                          onPress={() => deletePost(post.id)}
-                        >
-                          <SvgIcon
-                            source={require("@/assets/icons/create-post/trash-figma.svg")}
-                            size={16}
-                          />
-                        </Pressable>
-                      ) : null}
                     </View>
+                    {index > 0 ? (
+                      <Pressable
+                        className="h-5 w-5 items-center justify-center"
+                        hitSlop={8}
+                        onPress={() => deletePost(post.id)}
+                      >
+                        <SvgIcon
+                          source={require("@/assets/icons/create-post/trash-figma.svg")}
+                          size={16}
+                        />
+                      </Pressable>
+                    ) : null}
                   </View>
 
                   {post.imageUris.length > 0 ? (
