@@ -274,7 +274,7 @@ export function DateTimePickerSheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
-        height: windowHeight * 0.93,
+        height: windowHeight * 0.9,
       }}
     >
       <View className="mb-8 flex-row items-center justify-between px-4 pt-5">

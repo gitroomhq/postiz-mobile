@@ -1,8 +1,29 @@
 import type { NotificationItem } from "@/types";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** Format a date as "29 March, 2026" for notification items. */
+function formatNotifDate(daysOffset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}, ${d.getFullYear()}`;
+}
+
+/** Format a date as a section title ("Today", "Yesterday", or "March 26"). */
+function dayTitle(daysOffset: number): string {
+  if (daysOffset === 0) return "Today";
+  if (daysOffset === -1) return "Yesterday";
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+}
+
 export const NOTIFICATIONS_BY_DAY: { title: string; items: NotificationItem[] }[] = [
   {
-    title: "Today",
+    title: dayTitle(0),
     items: [
       {
         id: "today-1",
@@ -10,7 +31,7 @@ export const NOTIFICATIONS_BY_DAY: { title: string; items: NotificationItem[] }[
         avatar: "https://i.pravatar.cc/64?img=11",
         networkLabel: "X",
         link: "https://twitter.com/wichedguro/st...",
-        date: "21 March, 2026",
+        date: formatNotifDate(0),
         time: "10:30 am",
         unread: true,
       },
@@ -20,7 +41,7 @@ export const NOTIFICATIONS_BY_DAY: { title: string; items: NotificationItem[] }[
         avatar: "https://i.pravatar.cc/64?img=16",
         networkLabel: "Instagram",
         link: "https://instagram.com/p/abc...",
-        date: "21 March, 2026",
+        date: formatNotifDate(0),
         time: "9:15 am",
         unread: true,
       },
@@ -30,102 +51,102 @@ export const NOTIFICATIONS_BY_DAY: { title: string; items: NotificationItem[] }[
         avatar: "https://i.pravatar.cc/64?img=17",
         networkLabel: "Tiktok",
         link: "https://tiktok.com/tiktok...",
-        date: "21 March, 2026",
+        date: formatNotifDate(0),
         time: "8:00 am",
         unread: true,
       },
     ],
   },
   {
-    title: "March 20",
+    title: dayTitle(-1),
     items: [
       {
-        id: "mar20-1",
+        id: "yesterday-1",
         social: "tiktok",
         avatar: "https://i.pravatar.cc/64?img=12",
         networkLabel: "Tiktok",
         link: "https://tiktok.com/tiktok...",
-        date: "20 March, 2026",
+        date: formatNotifDate(-1),
         time: "10:30 am",
         unread: false,
       },
       {
-        id: "mar20-2",
+        id: "yesterday-2",
         social: "instagram",
         avatar: "https://i.pravatar.cc/64?img=13",
         networkLabel: "Instagram",
         link: "https://instagram.com...",
-        date: "20 March, 2026",
+        date: formatNotifDate(-1),
         time: "10:30 am",
         unread: false,
       },
       {
-        id: "mar20-3",
+        id: "yesterday-3",
         social: "x",
         avatar: "https://i.pravatar.cc/64?img=18",
         networkLabel: "X",
         link: "https://twitter.com/wichedguro/po...",
-        date: "20 March, 2026",
+        date: formatNotifDate(-1),
         time: "3:45 pm",
         unread: false,
       },
     ],
   },
   {
-    title: "March 19",
+    title: dayTitle(-2),
     items: [
       {
-        id: "mar19-1",
+        id: "2daysago-1",
         social: "pinterest",
         avatar: "https://i.pravatar.cc/64?img=14",
         networkLabel: "Pinterest",
         link: "https://pinterest.com/...",
-        date: "19 March, 2026",
+        date: formatNotifDate(-2),
         time: "10:30 am",
         unread: false,
       },
       {
-        id: "mar19-2",
+        id: "2daysago-2",
         social: "tiktok",
         avatar: "https://i.pravatar.cc/64?img=15",
         networkLabel: "Tiktok",
         link: "https://tiktok.com/tiktok...",
-        date: "19 March, 2026",
+        date: formatNotifDate(-2),
         time: "10:30 am",
         unread: false,
       },
     ],
   },
   {
-    title: "March 17",
+    title: dayTitle(-4),
     items: [
       {
-        id: "mar17-1",
+        id: "4daysago-1",
         social: "x",
         avatar: "https://i.pravatar.cc/64?img=19",
         networkLabel: "X",
         link: "https://twitter.com/wichedguro/st...",
-        date: "17 March, 2026",
+        date: formatNotifDate(-4),
         time: "2:00 pm",
         unread: false,
       },
       {
-        id: "mar17-2",
+        id: "4daysago-2",
         social: "instagram",
         avatar: "https://i.pravatar.cc/64?img=20",
         networkLabel: "Instagram",
         link: "https://instagram.com/p/xyz...",
-        date: "17 March, 2026",
+        date: formatNotifDate(-4),
         time: "11:30 am",
         unread: false,
       },
       {
-        id: "mar17-3",
+        id: "4daysago-3",
         social: "pinterest",
         avatar: "https://i.pravatar.cc/64?img=21",
         networkLabel: "Pinterest",
         link: "https://pinterest.com/pin/...",
-        date: "17 March, 2026",
+        date: formatNotifDate(-4),
         time: "9:00 am",
         unread: false,
       },

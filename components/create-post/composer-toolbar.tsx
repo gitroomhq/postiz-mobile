@@ -28,15 +28,21 @@ export function ComposerToolbar({
   onMediaToolPress,
   onFormatPress,
   onAddPost,
+  onReset,
   bottomInset,
-  addPostDisabled = false,
+  disabled = false,
+  showReset = false,
 }: {
   onMediaToolPress: (toolId: string) => void;
   onFormatPress: (toolId: string) => void;
   onAddPost: () => void;
+  onReset?: () => void;
   bottomInset: number;
-  addPostDisabled?: boolean;
+  disabled?: boolean;
+  showReset?: boolean;
 }) {
+  const dim = 0.35;
+
   return (
     <View className="bg-background-primary" style={{ paddingBottom: bottomInset }}>
       <View className="flex-row items-center gap-5 px-4 pt-2 pb-2">
@@ -46,26 +52,32 @@ export function ComposerToolbar({
             showsHorizontalScrollIndicator={false}
             contentContainerClassName="items-center gap-1 pr-[66px]"
           >
-            {MEDIA_TOOLS.map((tool) => (
-              <IconButton key={tool.id} onPress={() => onMediaToolPress(tool.id)}>
-                <SvgIcon source={tool.icon} size={20} />
-              </IconButton>
+            {MEDIA_TOOLS.map((tool, index) => (
+              index === 0 ? (
+                <IconButton key={tool.id} onPress={disabled ? undefined : () => onMediaToolPress(tool.id)}>
+                  <SvgIcon source={tool.icon} size={20} opacity={disabled ? dim : 1} />
+                </IconButton>
+              ) : (
+                <IconButton key={tool.id}>
+                  <SvgIcon source={tool.icon} size={20} opacity={dim} />
+                </IconButton>
+              )
             ))}
 
             <View className="mx-2 h-[15px] w-px bg-separator-primary" />
 
             <IconButton>
-              <SvgIcon source={require("@/assets/icons/create-post/toolbar-signature.svg")} size={20} />
+              <SvgIcon source={require("@/assets/icons/create-post/toolbar-signature.svg")} size={20} opacity={dim} />
             </IconButton>
 
             {FORMAT_TOOLS.map((tool) => (
-              <IconButton key={tool.id} onPress={() => onFormatPress(tool.id)}>
-                <SvgIcon source={tool.icon} size={16} />
+              <IconButton key={tool.id} onPress={disabled ? undefined : () => onFormatPress(tool.id)}>
+                <SvgIcon source={tool.icon} size={16} opacity={disabled ? dim : 1} />
               </IconButton>
             ))}
 
-            <IconButton onPress={() => onFormatPress("emoji")}>
-              <Ionicons name="happy-outline" size={20} className="text-icon-primary" />
+            <IconButton onPress={disabled ? undefined : () => onFormatPress("emoji")}>
+              <Ionicons name="happy-outline" size={20} className="text-icon-primary" style={{ opacity: disabled ? dim : 1 }} />
             </IconButton>
           </ScrollView>
 
@@ -78,17 +90,29 @@ export function ComposerToolbar({
           />
         </View>
 
+        {showReset ? (
+          <Pressable
+            className="h-10 w-10 items-center justify-center rounded-[8px] bg-buttons-tertiary-bg"
+            onPress={onReset}
+          >
+            <SvgIcon
+              source={require("@/assets/icons/create-post/toolbar-refresh-ccw.svg")}
+              size={20}
+            />
+          </Pressable>
+        ) : null}
+
         <Pressable
           className={`h-10 w-10 items-center justify-center rounded-[8px] ${
-            addPostDisabled ? "bg-[#3C3C3C]" : "bg-buttons-secondary-bg"
+            disabled ? "bg-[#3C3C3C]" : "bg-buttons-secondary-bg"
           }`}
           onPress={onAddPost}
-          disabled={addPostDisabled}
+          disabled={disabled}
         >
           <SvgIcon
             source={require("@/assets/icons/create-post/plus.svg")}
             size={20}
-            tintColor={addPostDisabled ? "#9E9E9E" : undefined}
+            tintColor={disabled ? "#9E9E9E" : undefined}
           />
         </Pressable>
       </View>

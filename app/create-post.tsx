@@ -162,13 +162,8 @@ function stripEditorHtml(html: string) {
     .trim();
 }
 
-function buildCompactPreviewText(text: string, placeholder = "What would you like to share?") {
-  if (text.length === 0) return placeholder;
-  return text;
-}
-
 function PostConnector() {
-  return <View className="ml-[10px] h-6 w-px bg-input-stroke-default" />;
+  return <View className="ml-[10px] h-4 w-px bg-input-stroke-default" />;
 }
 
 function CharacterLimitStatus({
@@ -327,38 +322,6 @@ function SimpleCharacterLimit({
         {currentLength}/{limit}
       </Text>
     </View>
-  );
-}
-
-function CompactPostRow({
-  text,
-  placeholder,
-  onPress,
-  onDelete,
-}: {
-  text: string;
-  placeholder?: string;
-  onPress: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress}>
-      <View className="flex-row items-center gap-4">
-        <Text className="flex-1 font-jakarta text-body-1 leading-[20px] text-text-secondary">
-          {buildCompactPreviewText(text, placeholder)}
-        </Text>
-        <Pressable
-          className="h-5 w-5 items-center justify-center"
-          hitSlop={8}
-          onPress={onDelete}
-        >
-          <SvgIcon
-            source={require("@/assets/icons/create-post/trash-figma.svg")}
-            size={16}
-          />
-        </Pressable>
-      </View>
-    </Pressable>
   );
 }
 
@@ -615,8 +578,26 @@ export default function CreatePostScreen() {
   }, []);
 
   const openMediaLibrary = () => {
+    // Pre-select images that the active post already has
+    let currentUris: string[] = [];
+    if (focusedChannelId && channelOverrides[focusedChannelId]) {
+      const prefix = `channel-${focusedChannelId}-`;
+      const postId = activePostId.startsWith(prefix)
+        ? activePostId.slice(prefix.length)
+        : channelOverrides[focusedChannelId][0]?.id;
+      const chPost = channelOverrides[focusedChannelId].find((p) => p.id === postId);
+      if (chPost) currentUris = chPost.imageUris;
+    } else {
+      const activePost = posts.find((p) => p.id === activePostId);
+      if (activePost) currentUris = activePost.imageUris;
+    }
+
+    const preSelected = mediaAssets
+      .filter((asset) => currentUris.includes(asset.uri))
+      .map((asset) => asset.id);
+
+    setSelectedMediaIds(preSelected);
     setMediaLibraryVisible(true);
-    setSelectedMediaIds([]);
     setMediaSheetState(mediaAssets.length > 0 ? "library" : "empty");
   };
 
@@ -722,6 +703,16 @@ export default function CreatePostScreen() {
       [channelId]: posts.map((p) => makePost(p.id, p.content, [...p.imageUris])),
     }));
     setActivePostId(`channel-${channelId}-${posts[0].id}`);
+  };
+
+  const handleResetChannelOverride = () => {
+    if (!focusedChannelId || posts.length === 0) return;
+    setChannelOverrides((current) => ({
+      ...current,
+      [focusedChannelId]: posts.map((p) => makePost(p.id, p.content, [...p.imageUris])),
+    }));
+    setActivePostId(`channel-${focusedChannelId}-${posts[0].id}`);
+    showToast("Reset to default content", "success");
   };
 
   const updateChannelOverridePost = (
@@ -866,8 +857,6 @@ export default function CreatePostScreen() {
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
     const showSub = Keyboard.addListener(showEvent, () => {
       setKeyboardVisible(true);
-      // After keyboard animation completes, scroll to keep active editor visible
-      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 350);
     });
     const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
     return () => {
@@ -1096,123 +1085,86 @@ export default function CreatePostScreen() {
                     <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""}>
                       {chIndex > 0 ? <PostConnector /> : null}
 
-                      {!isChActive ? (
-                        <>
-                          <CompactPostRow
-                            text={chPlainText}
-                            placeholder={chIndex > 0 ? "Add another post" : undefined}
-                            onPress={() => {
-                              setActivePostId(chRefId);
-                              setTimeout(() => editorRefs.current[chRefId]?.focus(), 100);
-                            }}
-                            onDelete={deleteChPost}
-                          />
-
-                          {chPost.imageUris.length > 0 ? (
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerClassName="mb-4 mt-4 gap-4"
-                            >
-                              {chPost.imageUris.map((uri, mediaIndex) => (
-                                <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
-                                  <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
-                                    <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
-                                  </Pressable>
-                                  <Pressable
-                                    className="absolute h-[24px] w-[24px] items-center justify-center"
-                                    style={{ right: -8, top: -8 }}
-                                    onPress={() =>
-                                      updateChannelOverridePost(channelId, chPost.id, (prev) => ({
-                                        ...prev,
-                                        imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
-                                      }))
-                                    }
-                                  >
-                                    <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
-                                  </Pressable>
-                                </View>
-                              ))}
-                            </ScrollView>
-                          ) : null}
-
-                          {channelForLimit ? (
-                            <SimpleCharacterLimit
-                              currentLength={chPlainText.length}
-                              limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
+                      <View className="flex-row items-center gap-4">
+                        <View className="relative flex-1">
+                          {!isChActive ? (
+                            <Pressable
+                              onPress={() => {
+                                setActivePostId(chRefId);
+                                setTimeout(() => editorRefs.current[chRefId]?.focus(), 100);
+                              }}
+                              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
                             />
                           ) : null}
-                        </>
-                      ) : (
-                        <>
-                          <View className="flex-row items-center gap-4">
-                            <View className="flex-1">
-                              <PostEditor
-                                key={chRefId}
-                                initialContent={chPost.content}
-                                onChange={(html) =>
-                                  updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
+                          <View pointerEvents={isChActive ? "auto" : "none"}>
+                            <PostEditor
+                              key={chRefId}
+                              initialContent={chPost.content}
+                              onChange={(html) =>
+                                updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
+                              }
+                              onFocus={() => {
+                                setActivePostId(chRefId);
+                              }}
+                              autoFocus={isChActive && (chIndex === 0 || pendingAutoFocusPostId === chRefId)}
+                              placeholder={chIndex > 0 ? "Add another post" : undefined}
+                              editorRef={(editor) => {
+                                editorRefs.current[chRefId] = editor;
+                                if (pendingAutoFocusPostId === chRefId) {
+                                  setTimeout(() => {
+                                    editor.focus();
+                                  }, 100);
+                                  setPendingAutoFocusPostId(null);
                                 }
-                                onFocus={() => {
-                                  setActivePostId(chRefId);
-                                  if (chIndex > 0) {
-                                    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
-                                  }
-                                }}
-                                autoFocus={isChActive && chIndex === 0}
-                                placeholder={chIndex > 0 ? "Add another post" : undefined}
-                                editorRef={(editor) => {
-                                  editorRefs.current[chRefId] = editor;
-                                }}
-                              />
-                            </View>
-                            {chIndex > 0 ? (
-                              <Pressable
-                                className="h-5 w-5 items-center justify-center"
-                                hitSlop={8}
-                                onPress={deleteChPost}
-                              >
-                                <SvgIcon source={require("@/assets/icons/create-post/trash-figma.svg")} size={16} />
-                              </Pressable>
-                            ) : null}
-                          </View>
-
-                          {chPost.imageUris.length > 0 ? (
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerClassName="mb-4 mt-4 gap-4"
-                            >
-                              {chPost.imageUris.map((uri, mediaIndex) => (
-                                <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
-                                  <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
-                                    <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
-                                  </Pressable>
-                                  <Pressable
-                                    className="absolute h-[24px] w-[24px] items-center justify-center"
-                                    style={{ right: -8, top: -8 }}
-                                    onPress={() =>
-                                      updateChannelOverridePost(channelId, chPost.id, (prev) => ({
-                                        ...prev,
-                                        imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
-                                      }))
-                                    }
-                                  >
-                                    <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
-                                  </Pressable>
-                                </View>
-                              ))}
-                            </ScrollView>
-                          ) : null}
-
-                          {channelForLimit ? (
-                            <SimpleCharacterLimit
-                              currentLength={chPlainText.length}
-                              limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
+                              }}
                             />
-                          ) : null}
-                        </>
-                      )}
+                          </View>
+                        </View>
+                        {chIndex > 0 ? (
+                          <Pressable
+                            className="h-5 w-5 items-center justify-center"
+                            hitSlop={8}
+                            onPress={deleteChPost}
+                          >
+                            <SvgIcon source={require("@/assets/icons/create-post/trash-figma.svg")} size={16} />
+                          </Pressable>
+                        ) : null}
+                      </View>
+
+                      {chPost.imageUris.length > 0 ? (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerClassName="mb-4 mt-4 gap-4"
+                        >
+                          {chPost.imageUris.map((uri, mediaIndex) => (
+                            <View key={`${chRefId}-${uri}`} className="relative overflow-visible">
+                              <Pressable onPress={() => setMediaSettingsTarget({ postId: chRefId, uri })}>
+                                <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
+                              </Pressable>
+                              <Pressable
+                                className="absolute h-[24px] w-[24px] items-center justify-center"
+                                style={{ right: -8, top: -8 }}
+                                onPress={() =>
+                                  updateChannelOverridePost(channelId, chPost.id, (prev) => ({
+                                    ...prev,
+                                    imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
+                                  }))
+                                }
+                              >
+                                <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
+                              </Pressable>
+                            </View>
+                          ))}
+                        </ScrollView>
+                      ) : null}
+
+                      {channelForLimit ? (
+                        <SimpleCharacterLimit
+                          currentLength={chPlainText.length}
+                          limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
+                        />
+                      ) : null}
                     </View>
                   );
                 })}
@@ -1263,9 +1215,6 @@ export default function CreatePostScreen() {
                           }
                           onFocus={() => {
                             setActivePostId(post.id);
-                            if (index > 0) {
-                              setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
-                            }
                           }}
                           autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
                           placeholder={index > 0 ? "Add another post" : undefined}
@@ -1352,8 +1301,10 @@ export default function CreatePostScreen() {
           onMediaToolPress={handleMediaToolPress}
           onFormatPress={handleFormatPress}
           onAddPost={addAnotherPost}
+          onReset={handleResetChannelOverride}
           bottomInset={keyboardVisible ? 0 : insets.bottom}
-          addPostDisabled={mode !== "edit" && focusedChannelId !== null && !channelOverrides[focusedChannelId]}
+          disabled={mode !== "edit" && focusedChannelId !== null && !channelOverrides[focusedChannelId]}
+          showReset={mode !== "edit" && focusedChannelId !== null && !!channelOverrides[focusedChannelId]}
         />
       </KeyboardAvoidingView>
 

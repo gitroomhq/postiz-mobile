@@ -116,7 +116,7 @@ export function MediaLibrarySheet({
         backgroundColor: "#1A1919",
         paddingHorizontal: 0,
         paddingTop: 0,
-        height: windowHeight * 0.93,
+        height: windowHeight * 0.9,
       }}
     >
       <View className="flex-1 bg-main-sections">
