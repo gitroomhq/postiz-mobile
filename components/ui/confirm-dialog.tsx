@@ -1,5 +1,6 @@
 import { BlurView } from "expo-blur";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Dimensions, Pressable, Text, View } from "react-native";
+import Modal from "react-native-modal";
 
 function CloseLargeIcon() {
   return (
@@ -33,10 +34,20 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Modal
-      transparent
-      visible={visible}
-      animationType="fade"
+      isVisible={visible}
+      onBackdropPress={onCancel}
+      onBackButtonPress={onCancel}
+      animationIn="fadeIn"
+      animationOut="fadeOut"
+      animationInTiming={200}
+      animationOutTiming={200}
+      useNativeDriver
+      useNativeDriverForBackdrop
+      hideModalContentWhileAnimating
+      backdropOpacity={0}
       statusBarTranslucent
+      deviceHeight={Dimensions.get("screen").height}
+      style={{ margin: 0 }}
     >
       <View className="flex-1 bg-[rgba(65,64,66,0.3)]">
         <BlurView

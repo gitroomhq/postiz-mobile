@@ -707,11 +707,17 @@ export default function CreatePostScreen() {
 
   const handleResetChannelOverride = () => {
     if (!focusedChannelId || posts.length === 0) return;
+    // Generate new post IDs so React keys change and PostEditor remounts
+    // with fresh initialContent (the editor is memoized and ignores prop updates).
+    const resetPosts = posts.map((p) => {
+      postIdCounter.current += 1;
+      return makePost(`post-${postIdCounter.current}`, p.content, [...p.imageUris]);
+    });
     setChannelOverrides((current) => ({
       ...current,
-      [focusedChannelId]: posts.map((p) => makePost(p.id, p.content, [...p.imageUris])),
+      [focusedChannelId]: resetPosts,
     }));
-    setActivePostId(`channel-${focusedChannelId}-${posts[0].id}`);
+    setActivePostId(`channel-${focusedChannelId}-${resetPosts[0].id}`);
     showToast("Reset to default content", "success");
   };
 

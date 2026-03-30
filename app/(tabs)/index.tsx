@@ -271,7 +271,10 @@ export default function CalendarScreen() {
             } as any);
           }, 350);
         }}
-        onDelete={(post) => setDeleteTarget(post)}
+        onDelete={(post) => {
+          setPostDetailVisible(false);
+          setTimeout(() => setDeleteTarget(post), 350);
+        }}
         onChangeDateTime={(post) => {
           setPostDetailVisible(false);
           setEditingPostId(post.id);
@@ -331,7 +334,10 @@ export default function CalendarScreen() {
         cancelLabel="No, Cancel"
         confirmDestructive
         onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          setDeleteTarget(null);
+          setTimeout(() => setPostDetailVisible(true), 350);
+        }}
       />
 
       <DragOverlay />
