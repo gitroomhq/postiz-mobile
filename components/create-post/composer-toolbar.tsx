@@ -50,6 +50,7 @@ export function ComposerToolbar({
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             contentContainerClassName="items-center gap-1 pr-[66px]"
           >
             {MEDIA_TOOLS.map((tool, index) => (

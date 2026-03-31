@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { format, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -132,7 +133,6 @@ function buildNetworkLimitStatuses(
   return channels.map((channel) => {
     const limit = NETWORK_CHARACTER_LIMITS[channel.network];
 
-    // Use per-channel override content length when available
     let currentLength = defaultTextLength;
     const overridePosts = channelOverrides[channel.id];
     if (overridePosts) {
@@ -165,6 +165,7 @@ function stripEditorHtml(html: string) {
 function PostConnector() {
   return <View className="ml-[10px] h-4 w-px bg-input-stroke-default" />;
 }
+
 
 function CharacterLimitStatus({
   statuses,
@@ -355,7 +356,6 @@ export default function CreatePostScreen() {
       ? params.imageUri
       : null;
 
-  // When editing, restore the multi-post structure from the stored composerPosts
   const editingPost = params.postId ? allStorePosts.find((p) => p.id === params.postId) : undefined;
   const initialPosts = (): ComposerPost[] => {
     if (editingPost?.composerPosts && editingPost.composerPosts.length > 0) {
@@ -364,7 +364,6 @@ export default function CreatePostScreen() {
     return [makePost("post-1", initialContent, initialImageUri ? [initialImageUri] : [])];
   };
 
-  // --- State ---
   const [posts, setPosts] = useState<ComposerPost[]>(initialPosts);
   const [scheduledDate, setScheduledDate] = useState(initialDate);
   const [mediaLibraryVisible, setMediaLibraryVisible] = useState(false);
@@ -416,8 +415,8 @@ export default function CreatePostScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const postIdCounter = useRef(posts.length);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [editorsLoading, setEditorsLoading] = useState(mode === "edit");
 
-  // --- Derived values ---
   const dateLabel = format(scheduledDate, "MMM d, h:mm a")
     .replace(/ AM$/, " am")
     .replace(/ PM$/, " pm");
@@ -427,7 +426,6 @@ export default function CreatePostScreen() {
     [channels, selectedChannelIds],
   );
 
-  // Each ChannelTab is w-11 (44px) + gap-1 (4px). Cap at ~3.8 channels visible.
   const MAX_CHANNEL_SCROLL_WIDTH = 180;
   const estimatedChannelsWidth = selectedChannels.length > 0
     ? selectedChannels.length * 44 + (selectedChannels.length - 1) * 4
@@ -443,7 +441,6 @@ export default function CreatePostScreen() {
     ? `${formatNetworkLabel(focusedChannel.network)} Settings`
     : "Channel Settings";
 
-  // Tags with effective selection: per-channel override takes priority over default
   const effectiveTags = useMemo(() => {
     if (focusedChannelId && channelTagOverrides[focusedChannelId]) {
       const overrideId = channelTagOverrides[focusedChannelId];
@@ -452,7 +449,7 @@ export default function CreatePostScreen() {
     return tags;
   }, [tags, focusedChannelId, channelTagOverrides]);
 
-  // --- Handlers ---
+
   const updatePost = (postId: string, updater: (post: ComposerPost) => ComposerPost) => {
     setPosts((current) =>
       current.map((post) => (post.id === postId ? updater(post) : post)),
@@ -508,14 +505,11 @@ export default function CreatePostScreen() {
     const defaultTag = tags.find((tag) => tag.selected);
 
     for (const channel of selectedChannels) {
-      // Use per-channel override posts if they exist, otherwise use the default posts
       const channelPosts = channelOverrides[channel.id] ?? posts;
 
-      // Combine all posts into a single entry per channel
       const validPosts = channelPosts.filter((p) => stripEditorHtml(p.content).length > 0);
       if (validPosts.length === 0) continue;
 
-      // Per-channel tag override takes priority over the default tag
       const overrideTagId = channelTagOverrides[channel.id];
       const effectiveTag = overrideTagId
         ? tags.find((t) => t.id === overrideTagId)
@@ -578,7 +572,6 @@ export default function CreatePostScreen() {
   }, []);
 
   const openMediaLibrary = () => {
-    // Pre-select images that the active post already has
     let currentUris: string[] = [];
     if (focusedChannelId && channelOverrides[focusedChannelId]) {
       const prefix = `channel-${focusedChannelId}-`;
@@ -621,15 +614,13 @@ export default function CreatePostScreen() {
     } else if (toolId === "underline") {
       editor.toggleUnderline();
     }
+    editor.focus();
   };
 
   const handleInsertEmoji = (emojiObject: EmojiType) => {
     const editor = editorRefs.current[activePostId];
     if (!editor) return;
-    const emoji = emojiObject.emoji;
-    editor.injectJS(
-      `var pm = document.querySelector('.ProseMirror'); if (pm) { pm.focus(); document.execCommand('insertText', false, '${emoji}'); }`
-    );
+    editor.insertText(emojiObject.emoji);
   };
 
   const handleToggleMediaSelection = (mediaId: string) => {
@@ -662,7 +653,6 @@ export default function CreatePostScreen() {
 
     if (selectedUris.length === 0) return;
 
-    // If the active post is a per-channel override, update that override
     if (focusedChannelId && channelOverrides[focusedChannelId]) {
       const prefix = `channel-${focusedChannelId}-`;
       const postId = activePostId.startsWith(prefix)
@@ -675,7 +665,6 @@ export default function CreatePostScreen() {
         }));
       }
     } else {
-      // Add media to the currently active post, not always the first one
       setPosts((current) =>
         current.map((post) =>
           post.id === activePostId ? { ...post, imageUris: selectedUris } : post,
@@ -707,8 +696,6 @@ export default function CreatePostScreen() {
 
   const handleResetChannelOverride = () => {
     if (!focusedChannelId || posts.length === 0) return;
-    // Generate new post IDs so React keys change and PostEditor remounts
-    // with fresh initialContent (the editor is memoized and ignores prop updates).
     const resetPosts = posts.map((p) => {
       postIdCounter.current += 1;
       return makePost(`post-${postIdCounter.current}`, p.content, [...p.imageUris]);
@@ -738,38 +725,25 @@ export default function CreatePostScreen() {
 
   const handleDeleteComposerPost = () => {
     setSettingsSheet(null);
-    setDeleteDialogVisible(true);
+    setTimeout(() => setDeleteDialogVisible(true), 350);
   };
 
   const confirmDeleteComposerPost = () => {
-    setPosts((current) => {
-      if (current.length <= 1) {
-        const [first] = current;
-        if (!first) return current;
-        return [{ ...first, content: "", imageUris: [] }];
-      }
-
-      const index = current.findIndex((p) => p.id === activePostId);
-      const nextPosts = current.filter((p) => p.id !== activePostId);
-      const fallback = nextPosts[Math.max(0, index - 1)] ?? nextPosts[0];
-      if (fallback) {
-        setActivePostId(fallback.id);
-      }
-      return nextPosts;
-    });
     setDeleteDialogVisible(false);
+    if (mode === "edit" && params.postId) {
+      usePostsStore.getState().deletePost(params.postId);
+    }
     showToast("Post deleted", "success");
+    setTimeout(() => router.back(), 250);
   };
 
   const toggleTag = (tagId: string) => {
     if (focusedChannelId) {
-      // Per-channel override
       setChannelTagOverrides((current) => ({
         ...current,
         [focusedChannelId]: tagId,
       }));
     } else {
-      // Default for all channels
       setTags((current) =>
         current.map((tag) =>
           tag.id === tagId ? { ...tag, selected: true } : { ...tag, selected: false },
@@ -794,21 +768,18 @@ export default function CreatePostScreen() {
     };
 
     if (focusedChannelId) {
-      // Add tag and set as per-channel override
       setTags((current) => [...current, nextTag]);
       setChannelTagOverrides((current) => ({
         ...current,
         [focusedChannelId]: nextTag.id,
       }));
     } else {
-      // Add tag and set as default for all channels
       setTags((current) => [...current.map((t) => ({ ...t, selected: false })), nextTag]);
     }
     setSettingsSheet("tags");
     showToast("Tag created", "success");
   };
 
-  // --- Effects ---
   useEffect(() => {
     if (!canSubmit && postActionMenuVisible) {
       setPostActionMenuVisible(false);
@@ -871,16 +842,19 @@ export default function CreatePostScreen() {
     };
   }, []);
 
-  // --- Render ---
+  useEffect(() => {
+    if (!editorsLoading) return;
+    const timeout = setTimeout(() => setEditorsLoading(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [editorsLoading]);
+
   return (
     <View className="flex-1" style={{ paddingTop: 40 }}>
       <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={[]}>
         <StatusBar style="light" />
 
-        {/* Handle */}
         <View className="w-[33px] h-1 rounded-sm bg-[#454444] self-center mt-[10px] mb-[8px]" />
 
-        {/* Header */}
         <View className="h-[60px] flex-row items-center gap-2 px-4">
           <BackChevronButton onPress={() => router.back()} />
 
@@ -949,16 +923,13 @@ export default function CreatePostScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
       >
-        {/* Content */}
         <ScrollView
           ref={scrollViewRef}
           className="flex-1 bg-background-primary"
           contentContainerClassName="px-4 pt-3 pb-[92px]"
           keyboardShouldPersistTaps="handled"
         >
-          {/* Channel tabs */}
           {mode === "edit" ? (
-            /* Edit mode — show only the specific channel being edited */
             <View className="mb-4 flex-row items-center gap-1">
               {selectedChannels
                 .filter((ch) => ch.id === params.channelId)
@@ -979,7 +950,6 @@ export default function CreatePostScreen() {
               </Pressable>
             </View>
           ) : (
-            /* Create / duplicate mode — full channel bar */
             <View className="mb-4 flex-row items-center gap-1">
               <ChannelTab active={!focusedChannelId} onPress={() => {
                 setFocusedChannelId(null);
@@ -1039,16 +1009,12 @@ export default function CreatePostScreen() {
             </View>
           )}
 
-          {/* Post editors */}
           {mode !== "edit" && focusedChannelId && !channelOverrides[focusedChannelId] ? (
-            /* Locked template state — channel is using the default post (create mode only) */
             <View className="flex-1 justify-center py-16">
               <LockedTemplateCard onPress={() => handleUnlockChannel(focusedChannelId)} />
             </View>
           ) : null}
 
-          {/* Per-channel override editors — always mounted once unlocked, hidden when
-             not focused. Same technique as default editors to keep WebView content alive. */}
           {mode !== "edit" && Object.entries(channelOverrides).map(([channelId, chPosts]) => {
             const isThisChannelVisible = focusedChannelId === channelId;
             const channelForLimit = selectedChannels.find((ch) => ch.id === channelId);
@@ -1059,15 +1025,13 @@ export default function CreatePostScreen() {
                 pointerEvents={isThisChannelVisible ? "auto" : "none"}
                 style={isThisChannelVisible ? undefined : {
                   position: 'absolute',
-                  opacity: 0,
+                  transform: [{ translateX: -9999 }],
                   zIndex: -1,
                 }}
               >
                 {chPosts.map((chPost, chIndex) => {
                   const chPlainText = stripEditorHtml(chPost.content);
                   const chRefId = `channel-${channelId}-${chPost.id}`;
-                  const isChActive = activePostId === chRefId ||
-                    (chPosts.length === 1 && chIndex === 0);
 
                   const deleteChPost = () => {
                     setChannelOverrides((current) => {
@@ -1091,44 +1055,33 @@ export default function CreatePostScreen() {
                     <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""}>
                       {chIndex > 0 ? <PostConnector /> : null}
 
-                      <View className="flex-row items-center gap-4">
-                        <View className="relative flex-1">
-                          {!isChActive ? (
-                            <Pressable
-                              onPress={() => {
-                                setActivePostId(chRefId);
-                                setTimeout(() => editorRefs.current[chRefId]?.focus(), 100);
-                              }}
-                              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
-                            />
-                          ) : null}
-                          <View pointerEvents={isChActive ? "auto" : "none"}>
-                            <PostEditor
-                              key={chRefId}
-                              initialContent={chPost.content}
-                              onChange={(html) =>
-                                updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
+                      <View className="flex-row items-start gap-4 py-2">
+                        <View className="flex-1">
+                          <PostEditor
+                            key={chRefId}
+                            initialContent={chPost.content}
+                            onChange={(html) =>
+                              updateChannelOverridePost(channelId, chPost.id, (prev) => ({ ...prev, content: html }))
+                            }
+                            onFocus={() => {
+                              setActivePostId(chRefId);
+                            }}
+                            autoFocus={chIndex === 0 || pendingAutoFocusPostId === chRefId}
+                            placeholder={chIndex > 0 ? "Add another post" : undefined}
+                            editorRef={(editor) => {
+                              editorRefs.current[chRefId] = editor;
+                              if (pendingAutoFocusPostId === chRefId) {
+                                setTimeout(() => {
+                                  editor.focus();
+                                }, 100);
+                                setPendingAutoFocusPostId(null);
                               }
-                              onFocus={() => {
-                                setActivePostId(chRefId);
-                              }}
-                              autoFocus={isChActive && (chIndex === 0 || pendingAutoFocusPostId === chRefId)}
-                              placeholder={chIndex > 0 ? "Add another post" : undefined}
-                              editorRef={(editor) => {
-                                editorRefs.current[chRefId] = editor;
-                                if (pendingAutoFocusPostId === chRefId) {
-                                  setTimeout(() => {
-                                    editor.focus();
-                                  }, 100);
-                                  setPendingAutoFocusPostId(null);
-                                }
-                              }}
-                            />
-                          </View>
+                            }}
+                          />
                         </View>
                         {chIndex > 0 ? (
                           <Pressable
-                            className="h-5 w-5 items-center justify-center"
+                            className="h-5 w-5 items-center justify-center mt-[2px]"
                             hitSlop={8}
                             onPress={deleteChPost}
                           >
@@ -1178,14 +1131,11 @@ export default function CreatePostScreen() {
             );
           })}
 
-          {/* Default post editors (globe tab) — always mounted, hidden when channel is focused.
-             Use absolute positioning + opacity instead of display:'none' so the WebView
-             keeps its content alive on iOS (WKWebView drops state behind display:none). */}
           <View
             pointerEvents={mode !== "edit" && focusedChannelId ? "none" : "auto"}
             style={mode !== "edit" && focusedChannelId ? {
               position: 'absolute',
-              opacity: 0,
+              transform: [{ translateX: -9999 }],
               zIndex: -1,
             } : undefined}
           >
@@ -1193,52 +1143,39 @@ export default function CreatePostScreen() {
               const plainText = stripEditorHtml(post.content);
               const plainTextLength = plainText.length;
               const limitStatuses = buildNetworkLimitStatuses(selectedChannels, plainTextLength, channelOverrides, post.id);
-              const isActivePost = activePostId === post.id || (posts.length === 1 && index === 0);
 
               return (
                 <View key={post.id} className={index > 0 ? "mt-5" : ""}>
                   {index > 0 ? <PostConnector /> : null}
 
-                  <View className="flex-row items-center gap-4">
-                    <View className="relative flex-1">
-                      {/* Tap overlay for inactive posts — blocks editor interaction
-                          and switches the active post on press */}
-                      {!isActivePost ? (
-                        <Pressable
-                          onPress={() => {
-                            setActivePostId(post.id);
-                            setTimeout(() => editorRefs.current[post.id]?.focus(), 100);
-                          }}
-                          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10 }}
-                        />
-                      ) : null}
-                      <View pointerEvents={isActivePost ? "auto" : "none"}>
-                        <PostEditor
-                          key={post.id}
-                          initialContent={post.content}
-                          onChange={(html) =>
-                            updatePost(post.id, (current) => ({ ...current, content: html }))
+                  <View className="flex-row items-start gap-4 py-2">
+                    <View className="flex-1">
+                      <PostEditor
+                        key={post.id}
+                        initialContent={post.content}
+                        onChange={(html) =>
+                          updatePost(post.id, (current) => ({ ...current, content: html }))
+                        }
+                        onFocus={() => {
+                          setActivePostId(post.id);
+                        }}
+                        onReady={index === 0 ? () => setEditorsLoading(false) : undefined}
+                        autoFocus={index === 0 || pendingAutoFocusPostId === post.id}
+                        placeholder={index > 0 ? "Add another post" : undefined}
+                        editorRef={(editor) => {
+                          editorRefs.current[post.id] = editor;
+                          if (pendingAutoFocusPostId === post.id) {
+                            setTimeout(() => {
+                              editor.focus();
+                            }, 100);
+                            setPendingAutoFocusPostId(null);
                           }
-                          onFocus={() => {
-                            setActivePostId(post.id);
-                          }}
-                          autoFocus={isActivePost && (index === 0 || pendingAutoFocusPostId === post.id)}
-                          placeholder={index > 0 ? "Add another post" : undefined}
-                          editorRef={(editor) => {
-                            editorRefs.current[post.id] = editor;
-                            if (pendingAutoFocusPostId === post.id) {
-                              setTimeout(() => {
-                                editor.focus();
-                              }, 100);
-                              setPendingAutoFocusPostId(null);
-                            }
-                          }}
-                        />
-                      </View>
+                        }}
+                      />
                     </View>
                     {index > 0 ? (
                       <Pressable
-                        className="h-5 w-5 items-center justify-center"
+                        className="h-5 w-5 items-center justify-center mt-[2px]"
                         hitSlop={8}
                         onPress={() => deletePost(post.id)}
                       >
@@ -1302,7 +1239,16 @@ export default function CreatePostScreen() {
 
         </ScrollView>
 
-        {/* Bottom toolbar */}
+        {editorsLoading ? (
+          <View
+            pointerEvents="none"
+            className="items-center justify-center bg-background-primary"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}
+          >
+            <ActivityIndicator size="small" color="#A3A3A3" />
+          </View>
+        ) : null}
+
         <ComposerToolbar
           onMediaToolPress={handleMediaToolPress}
           onFormatPress={handleFormatPress}
@@ -1314,7 +1260,6 @@ export default function CreatePostScreen() {
         />
       </KeyboardAvoidingView>
 
-      {/* Bottom sheets */}
       <DateTimePickerSheet
         isVisible={dateTimePickerVisible}
         initialDate={scheduledDate}
@@ -1329,7 +1274,7 @@ export default function CreatePostScreen() {
         fullHeight={settingsSheet === "new-tag"}
         topOffset={settingsSheet === "new-tag" ? insets.top + 12 : 0}
         useBottomInsetPadding={false}
-        avoidKeyboard={settingsSheet === "new-tag"}
+        avoidKeyboard={false}
         backdropColor="#414042"
         backdropOpacity={0.3}
         containerStyle={{
@@ -1398,7 +1343,10 @@ export default function CreatePostScreen() {
         cancelLabel="No, Cancel"
         confirmDestructive
         onConfirm={confirmDeleteComposerPost}
-        onCancel={() => setDeleteDialogVisible(false)}
+        onCancel={() => {
+          setDeleteDialogVisible(false);
+          setTimeout(() => setSettingsSheet("main"), 350);
+        }}
       />
 
       <ChannelSelectionSheet

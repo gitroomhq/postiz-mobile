@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -42,13 +42,27 @@ export default function ResetPasswordScreen() {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [focusedField, setFocusedField] = useState<"password" | "confirmPassword" | null>(null);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const passwordInputRef = useRef<TextInput>(null);
+  const confirmPasswordInputRef = useRef<TextInput>(null);
 
   const handleTogglePassword = () => {
+    const wasFocused = passwordInputRef.current?.isFocused() ?? false;
     setPasswordVisible((prev) => !prev);
+    if (wasFocused) {
+      requestAnimationFrame(() => {
+        passwordInputRef.current?.focus();
+      });
+    }
   };
 
   const handleToggleConfirmPassword = () => {
+    const wasFocused = confirmPasswordInputRef.current?.isFocused() ?? false;
     setConfirmPasswordVisible((prev) => !prev);
+    if (wasFocused) {
+      requestAnimationFrame(() => {
+        confirmPasswordInputRef.current?.focus();
+      });
+    }
   };
 
   const handleResetPassword = () => {
@@ -114,16 +128,18 @@ export default function ResetPasswordScreen() {
 
             <View className="gap-5">
               <AuthInput
+                ref={passwordInputRef}
                 label="Password"
                 value={password}
                 onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
                 placeholder="Enter password"
                 secureTextEntry={!passwordVisible}
-                textContentType="newPassword"
-                autoComplete="new-password"
+                textContentType="none"
+                autoComplete="off"
                 autoCapitalize="none"
-                keyboardType="default"
-                focused={focusedField === "password"}
+                spellCheck={false}
+                smartInsertDelete={false}
+                keyboardType={Platform.OS === "ios" ? "ascii-capable" : "default"}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField(null)}
                 error={!!errors.password}
@@ -137,16 +153,18 @@ export default function ResetPasswordScreen() {
               />
 
               <AuthInput
+                ref={confirmPasswordInputRef}
                 label="Confirm Password"
                 value={confirmPassword}
                 onChangeText={(text) => { setConfirmPassword(text); if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
                 placeholder="Confirm password"
                 secureTextEntry={!confirmPasswordVisible}
-                textContentType="newPassword"
-                autoComplete="new-password"
+                textContentType="none"
+                autoComplete="off"
                 autoCapitalize="none"
-                keyboardType="default"
-                focused={focusedField === "confirmPassword"}
+                spellCheck={false}
+                smartInsertDelete={false}
+                keyboardType={Platform.OS === "ios" ? "ascii-capable" : "default"}
                 onFocus={() => setFocusedField("confirmPassword")}
                 onBlur={() => setFocusedField(null)}
                 error={!!errors.confirmPassword}

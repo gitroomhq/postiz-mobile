@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { TextInputProps } from "react-native";
 
 type AuthInputProps = {
@@ -46,33 +46,59 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
       onBlur?.(e);
     };
 
+    const handlePressField = () => {
+      internalRef.current?.focus();
+    };
+    const shouldUseIosSecureWorkaround =
+      Platform.OS === "ios" && !!secureTextEntry;
+    const value =
+      typeof textInputProps.value === "string" ? textInputProps.value : "";
+
     const borderClassName = error
-      ? "border-text-critical"
+      ? styles.borderError
       : focused
-      ? "border-input-stroke-active"
-      : "border-input-stroke-default";
+      ? styles.borderFocused
+      : styles.borderDefault;
+    const inputStyle = secureTextEntry
+      ? styles.inputSecure
+      : styles.input;
 
     return (
-      <View className="gap-2">
+      <View style={styles.wrapper}>
         <Text className="font-jakarta text-[14px] font-semibold leading-[14px] text-text-primary">
           {label}
         </Text>
-        <View
-          className={`h-[52px] flex-row items-center gap-2 overflow-hidden rounded-[10px] border bg-input-bg py-1 pl-4 pr-3 ${borderClassName}`}
+        <Pressable
+          onPress={handlePressField}
+          style={[styles.field, borderClassName]}
         >
-          <TextInput
-            ref={setRef}
-            className="flex-1 self-stretch font-jakarta text-[14px] text-text-primary"
-            placeholderTextColor="#A3A3A3"
-            secureTextEntry={secureTextEntry}
-            autoCorrect={false}
-            autoCapitalize="none"
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            {...textInputProps}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              ref={setRef}
+              style={[
+                inputStyle,
+                shouldUseIosSecureWorkaround ? styles.inputHiddenText : null,
+              ]}
+              placeholderTextColor="#A3A3A3"
+              secureTextEntry={shouldUseIosSecureWorkaround ? false : secureTextEntry}
+              autoCorrect={false}
+              autoCapitalize="none"
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              rejectResponderTermination={false}
+              selectionColor="#7C3AED"
+              {...textInputProps}
+            />
+            {shouldUseIosSecureWorkaround ? (
+              <View pointerEvents="none" style={styles.maskOverlay}>
+                <Text numberOfLines={1} style={styles.maskText}>
+                  {"•".repeat(value.length)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
           {rightSlot}
-        </View>
+        </Pressable>
         {hint ? (
           <Text className="font-jakarta text-xs font-medium leading-3 text-text-critical">
             {hint}
@@ -82,3 +108,64 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
     );
   }
 );
+
+const styles = StyleSheet.create({
+  wrapper: {
+    gap: 8,
+  },
+  field: {
+    height: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    overflow: "hidden",
+    borderRadius: 10,
+    borderWidth: 1,
+    backgroundColor: "#1E1D1D",
+    paddingVertical: 4,
+    paddingLeft: 16,
+    paddingRight: 12,
+  },
+  input: {
+    flex: 1,
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: "PlusJakartaSans",
+  },
+  inputSecure: {
+    flex: 1,
+    color: "#FFFFFF",
+    fontSize: 14,
+  },
+  inputContainer: {
+    position: "relative",
+    flex: 1,
+    alignSelf: "stretch",
+    justifyContent: "center",
+  },
+  inputHiddenText: {
+    color: "transparent",
+  },
+  maskOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
+  maskText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    includeFontPadding: false,
+  },
+  borderDefault: {
+    borderColor: "#3A3838",
+  },
+  borderFocused: {
+    borderColor: "#7C3AED",
+  },
+  borderError: {
+    borderColor: "#F87171",
+  },
+});

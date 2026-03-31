@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/ui/app-button";
@@ -14,16 +14,27 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
+  const passwordInputRef = useRef<TextInput>(null);
 
   const handleTogglePassword = () => {
+    const wasFocused = passwordInputRef.current?.isFocused() ?? false;
     setPasswordVisible((prev) => !prev);
+    if (wasFocused) {
+      requestAnimationFrame(() => {
+        passwordInputRef.current?.focus();
+      });
+    }
   };
 
   const handleSignIn = () => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email || !email.includes("@")) newErrors.email = "Incorrect email";
-    if (!password || password.length < 6) newErrors.password = "Incorrect password";
+    if (!password || password.length < 6)
+      newErrors.password = "Incorrect password";
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       router.replace("/(tabs)/onboarding");
@@ -31,7 +42,10 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-primary" edges={["top", "bottom"]}>
+    <SafeAreaView
+      className="flex-1 bg-background-primary"
+      edges={["top", "bottom"]}
+    >
       <StatusBar style="light" />
       <ScrollView
         className="flex-1 bg-background-primary px-5 pt-12 pb-[20px]"
@@ -59,7 +73,11 @@ export default function SignInScreen() {
 
         <View className="gap-8">
           <View className="relative self-start">
-            <View pointerEvents="none" className="absolute" style={{ left: -12, top: -2 }}>
+            <View
+              pointerEvents="none"
+              className="absolute"
+              style={{ left: -12, top: -2 }}
+            >
               <Image
                 source={require("@/assets/icons/login/title-scribble.svg")}
                 className="w-[126px] h-[38px]"
@@ -73,7 +91,9 @@ export default function SignInScreen() {
 
           <View className="gap-5">
             <View className="gap-3">
-              <Text className="font-jakarta text-sm text-text-secondary">Continue with</Text>
+              <Text className="font-jakarta text-sm text-text-secondary">
+                Continue with
+              </Text>
               <View className="flex-row gap-2">
                 <Pressable className="h-[52px] flex-1 items-center justify-center rounded-[10px] bg-white">
                   <Image
@@ -105,7 +125,9 @@ export default function SignInScreen() {
                 className="w-[100px] h-px"
                 contentFit="contain"
               />
-              <Text className="font-jakarta text-sm text-text-secondary">or</Text>
+              <Text className="font-jakarta text-sm text-text-secondary">
+                or
+              </Text>
               <Image
                 source={require("@/assets/icons/login/divider.svg")}
                 className="w-[100px] h-px"
@@ -116,7 +138,11 @@ export default function SignInScreen() {
             <AuthInput
               label="Email"
               value={email}
-              onChangeText={(text) => { setEmail(text); if (errors.email) setErrors((prev) => ({ ...prev, email: undefined })); }}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (errors.email)
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               placeholder="Enter email address"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -125,21 +151,36 @@ export default function SignInScreen() {
             />
 
             <AuthInput
+              ref={passwordInputRef}
               label="Password"
               value={password}
-              onChangeText={(text) => { setPassword(text); if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
               placeholder="Enter password"
               secureTextEntry={!passwordVisible}
-              textContentType="password"
-              autoComplete="current-password"
               autoCapitalize="none"
-              keyboardType="default"
+              autoCorrect={false}
+              keyboardType={Platform.OS === "ios" ? "ascii-capable" : "default"}
+              textContentType="none"
+              autoComplete="off"
+              spellCheck={false}
+              smartInsertDelete={false}
               error={!!errors.password}
               hint={errors.password}
               rightSlot={
-                <Pressable onPress={handleTogglePassword}>
+                <Pressable onPress={handleTogglePassword} hitSlop={10}>
                   {passwordVisible ? (
-                    <Ionicons name="eye-outline" size={20} className="text-icon-secondary" />
+                    <Ionicons
+                      name="eye-outline"
+                      size={20}
+                      className="text-icon-secondary"
+                    />
                   ) : (
                     <Image
                       source={require("@/assets/icons/login/eye-slash.svg")}

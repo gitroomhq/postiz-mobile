@@ -2,11 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
+  Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,14 +22,22 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [company, setCompany] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     company?: string;
   }>({});
+  const passwordInputRef = useRef<TextInput>(null);
 
   const handleTogglePassword = () => {
+    const wasFocused = passwordInputRef.current?.isFocused() ?? false;
     setPasswordVisible((prev) => !prev);
+    if (wasFocused) {
+      requestAnimationFrame(() => {
+        passwordInputRef.current?.focus();
+      });
+    }
   };
 
   const handleCreateAccount = () => {
@@ -149,6 +159,7 @@ export default function SignUpScreen() {
                 />
 
                 <AuthInput
+                  ref={passwordInputRef}
                   label="Password"
                   value={password}
                   onChangeText={(text) => {
@@ -156,17 +167,22 @@ export default function SignUpScreen() {
                     if (errors.password)
                       setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
                   placeholder="Enter password"
                   secureTextEntry={!passwordVisible}
-                  textContentType="newPassword"
-                  autoComplete="new-password"
+                  textContentType="none"
+                  autoComplete="off"
                   autoCapitalize="none"
-                  keyboardType="default"
+                  spellCheck={false}
+                  smartInsertDelete={false}
+                  keyboardType={Platform.OS === "ios" ? "ascii-capable" : "default"}
                   error={!!errors.password}
                   hint={errors.password}
                   rightSlot={
                     <Pressable
                       onPress={handleTogglePassword}
+                      hitSlop={10}
                     >
                       {passwordVisible ? (
                         <Ionicons

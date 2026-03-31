@@ -1,92 +1,105 @@
-import React, { useEffect, useRef } from "react";
-import { Platform, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BridgeExtension,
-  RichText,
-  TenTapStartKit,
-  useEditorBridge,
-  type EditorBridge,
-} from "@10play/tentap-editor";
+  Animated,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from "react-native";
 
-const EDITOR_CSS = `
-  * {
-    font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
-    color: #A3A3A3 !important;
-    caret-color: #FFFFFF;
-    -webkit-text-fill-color: #A3A3A3 !important;
-  }
-  .ProseMirror-focused,
-  .ProseMirror-focused * {
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-  }
-  .ProseMirror-focused .is-editor-empty:first-child::before {
-    color: #656464 !important;
-    -webkit-text-fill-color: #656464 !important;
-  }
-  html, body {
-    background-color: #1A1919;
-    padding: 0;
-    margin: 0;
-    overflow: hidden !important;
-  }
-  #root > div:first-child,
-  .dynamic-height {
-    overflow: hidden !important;
-  }
-  .ProseMirror {
-    min-height: 36px !important;
-  }
-  .tiptap {
-    padding: 0;
-    outline: none;
-  }
-  .tiptap p {
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 400;
-    margin: 0;
-  }
-  .tiptap h1, .tiptap h2, .tiptap h3 {
-    font-size: 18px;
-    line-height: 26px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-  }
-  .is-editor-empty:first-child::before {
-    color: #656464 !important;
-    -webkit-text-fill-color: #656464 !important;
-  }
-  .ProseMirror-menubar,
-  .floating-menu,
-  [data-tippy-root],
-  .tippy-box {
-    display: none !important;
-  }
-`;
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-// Bridge extension that injects dark theme CSS at page load time
-// (via WebView's injectedJavaScript prop, before any content renders)
-const DarkThemeBridge = new BridgeExtension({
-  forceName: "dark-theme",
-  extendCSS: EDITOR_CSS,
-});
+export type EditorBridge = {
+  toggleBold: () => void;
+  toggleUnderline: () => void;
+  focus: () => void;
+  blur: () => void;
+  injectJS: (js: string) => void;
+  insertText: (text: string) => void;
+  getHTML: () => Promise<string>;
+  setPlaceholder: (text: string) => void;
+  getEditorState: () => { isReady: boolean; isFocused: boolean };
+};
 
-const EMPTY_EDITOR_HTML = "<p></p>";
+type Fmt = { bold: boolean; underline: boolean };
+const PLAIN: Fmt = { bold: false, underline: false };
 
-const FORCE_HEIGHT_RECALC_JS =
-  "(function(){var pm=document.querySelector('.ProseMirror');" +
-  "if(pm){" +
-  "void pm.offsetHeight;" +
-  "var h=Math.max(pm.scrollHeight||0,pm.getBoundingClientRect().height||0,36);" +
-  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h+0.1}));" +
-  "requestAnimationFrame(function(){" +
-  "window.ReactNativeWebView.postMessage(JSON.stringify({type:'document-height',payload:h}));});" +
-  "}})();true;";
+function fromHtml(html: string): { text: string; formats: Fmt[] } {
+  if (!html || html === "<p></p>") return { text: "", formats: [] };
 
+  let content = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n");
+  content = content.replace(/^<p[^>]*>/i, "").replace(/<\/p>\s*$/i, "");
 
-function normalizeEditorHtml(content: string) {
-  return content.trim().length > 0 ? content : EMPTY_EDITOR_HTML;
+  const chars: string[] = [];
+  const formats: Fmt[] = [];
+  let bold = false;
+  let underline = false;
+  const tagRe = /<(\/?)(strong|b|u)(?:\s[^>]*)?>/gi;
+  let last = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = tagRe.exec(content)) !== null) {
+    if (m.index > last) {
+      const raw = content.slice(last, m.index).replace(/<[^>]*>/g, "");
+      for (const ch of raw) {
+        chars.push(ch);
+        formats.push({ bold, underline });
+      }
+    }
+    const closing = m[1] === "/";
+    const tag = m[2].toLowerCase();
+    if (tag === "strong" || tag === "b") bold = !closing;
+    else if (tag === "u") underline = !closing;
+    last = m.index + m[0].length;
+  }
+
+  if (last < content.length) {
+    const raw = content.slice(last).replace(/<[^>]*>/g, "");
+    for (const ch of raw) {
+      chars.push(ch);
+      formats.push({ bold, underline });
+    }
+  }
+
+  return { text: chars.join(""), formats };
+}
+
+function toHtml(text: string, formats: Fmt[]): string {
+  if (!text) return "<p></p>";
+
+  let html = "<p>";
+  let i = 0;
+
+  while (i < text.length) {
+    if (text[i] === "\n") {
+      html += "</p><p>";
+      i++;
+      continue;
+    }
+    const fmt = formats[i] || PLAIN;
+    let j = i + 1;
+    while (
+      j < text.length &&
+      text[j] !== "\n" &&
+      (formats[j]?.bold ?? false) === fmt.bold &&
+      (formats[j]?.underline ?? false) === fmt.underline
+    ) {
+      j++;
+    }
+
+    let chunk = text.slice(i, j);
+    if (fmt.underline) chunk = `<u>${chunk}</u>`;
+    if (fmt.bold) chunk = `<b>${chunk}</b>`;
+    html += chunk;
+    i = j;
+  }
+
+  html += "</p>";
+  return html;
 }
 
 function PostEditorInner({
@@ -94,6 +107,7 @@ function PostEditorInner({
   onChange,
   onFocus,
   onBlur,
+  onReady,
   autoFocus,
   placeholder = "What would you like to share?",
   editorRef,
@@ -102,155 +116,338 @@ function PostEditorInner({
   onChange: (html: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  onReady?: () => void;
   autoFocus?: boolean;
   placeholder?: string;
   editorRef?: (editor: EditorBridge) => void;
 }) {
-  "use no memo"; // Opt out of React Compiler — imperative WebView bridge breaks under auto-memoization
+  "use no memo";
+  const inputRef = useRef<TextInput>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onFocusRef = useRef(onFocus);
   onFocusRef.current = onFocus;
   const onBlurRef = useRef(onBlur);
   onBlurRef.current = onBlur;
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastKnownHtmlRef = useRef(normalizeEditorHtml(initialContent));
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
-  const editor = useEditorBridge({
-    autofocus: autoFocus ?? false,
-    avoidIosKeyboard: false,
-    dynamicHeight: true,
-    initialContent: normalizeEditorHtml(initialContent),
-    bridgeExtensions: [...TenTapStartKit, DarkThemeBridge],
-    theme: {
-      webview: {
-        backgroundColor: "#1A1919",
-      },
-      webviewContainer: {
-        minHeight: 36,
-      },
-    },
-    onChange: () => {
-      editor.injectJS(FORCE_HEIGHT_RECALC_JS);
-
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(async () => {
-        const html = await editor.getHTML();
-        lastKnownHtmlRef.current = normalizeEditorHtml(html);
-        onChangeRef.current(html);
-      }, 300);
-    },
+  const initial = useRef(fromHtml(initialContent)).current;
+  const [text, setText] = useState(initial.text);
+  const [fmtKey, setFmtKey] = useState(0);
+  const [selection, setSelection] = useState({
+    start: initial.text.length,
+    end: initial.text.length,
+  });
+  const textRef = useRef(initial.text);
+  const formatsRef = useRef<Fmt[]>(initial.formats);
+  const selectionRef = useRef({ start: initial.text.length, end: initial.text.length });
+  const typingBoldRef = useRef(false);
+  const typingUnderlineRef = useRef(false);
+  const isFocusedRef = useRef(false);
+  const lastRangeRef = useRef({ start: 0, end: 0, ts: 0 });
+  const colorAnim = useRef(new Animated.Value(autoFocus ? 1 : 0)).current;
+  const animatedColor = colorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#A3A3A3", "#FFFFFF"],
   });
 
-  const editorState = editor.getEditorState();
-  const isEditorReady = Boolean((editorState as any).isReady);
-  const isEditorFocused = Boolean((editorState as any).isFocused);
+  function emitChange() {
+    onChangeRef.current(toHtml(textRef.current, formatsRef.current));
+  }
 
-  // Set placeholder and force WebView repaint once editor is ready.
-  // No hasSetup guard — the library remounts the WebView on iOS (key
-  // workaround for react-native-webview#3578), so this must re-run
-  // each time isEditorReady transitions back to true.
-  useEffect(() => {
-    if (!isEditorReady) return;
-
-    editor.setPlaceholder(placeholder);
-
-    // On iOS, force GPU compositing to help WKWebView paint its content.
-    if (Platform.OS === "ios") {
-      editor.injectJS(
-        "document.body.style.webkitTransform='translateZ(0)';" +
-        "document.body.style.webkitBackfaceVisibility='hidden';true;"
-      );
+  function getEffectiveRange(): { start: number; end: number } | null {
+    const { start, end } = selectionRef.current;
+    if (start !== end) return { start, end };
+    const last = lastRangeRef.current;
+    if (
+      last.start !== last.end &&
+      Date.now() - last.ts < 500 &&
+      last.end <= textRef.current.length
+    ) {
+      lastRangeRef.current = { start: 0, end: 0, ts: 0 };
+      return { start: last.start, end: last.end };
     }
+    return null;
+  }
 
-    // Periodically force repaint + height recalc until editor renders.
-    // The WebView sometimes needs multiple attempts before ProseMirror
-    // content becomes visible (race condition with bridge init on iOS 19+).
-    // Also re-apply the current focus color on each attempt as a backup.
-    let attempt = 0;
-    const interval = setInterval(() => {
-      attempt++;
-
-      // First five attempts: focus/blur to force WebView repaint
-      if (attempt <= 5) {
-        editor.focus();
-        setTimeout(() => editor.blur(), 80);
-      }
-
-      // On iOS, periodically nudge the DOM to trigger repaint
-      if (Platform.OS === "ios") {
-        editor.injectJS(
-          "var b=document.body;b.style.opacity='0.99';" +
-          "requestAnimationFrame(function(){b.style.opacity='1';});true;"
+  const bridgeRef = useRef<EditorBridge | null>(null);
+  if (!bridgeRef.current) {
+    bridgeRef.current = {
+      toggleBold: () => {
+        const range = getEffectiveRange();
+        if (!range) {
+          typingBoldRef.current = !typingBoldRef.current;
+          return;
+        }
+        const { start, end } = range;
+        const allBold = formatsRef.current
+          .slice(start, end)
+          .every((f) => f.bold);
+        for (let i = start; i < end; i++) {
+          formatsRef.current[i] = {
+            ...formatsRef.current[i],
+            bold: !allBold,
+          };
+        }
+        setText(textRef.current);
+        setFmtKey((v) => v + 1);
+        emitChange();
+      },
+      toggleUnderline: () => {
+        const range = getEffectiveRange();
+        if (!range) {
+          typingUnderlineRef.current = !typingUnderlineRef.current;
+          return;
+        }
+        const { start, end } = range;
+        const allUnderline = formatsRef.current
+          .slice(start, end)
+          .every((f) => f.underline);
+        for (let i = start; i < end; i++) {
+          formatsRef.current[i] = {
+            ...formatsRef.current[i],
+            underline: !allUnderline,
+          };
+        }
+        setText(textRef.current);
+        setFmtKey((v) => v + 1);
+        emitChange();
+      },
+      focus: () => inputRef.current?.focus(),
+      blur: () => inputRef.current?.blur(),
+      injectJS: () => {},
+      insertText: (insertion: string) => {
+        const current = textRef.current;
+        const { start, end } = selectionRef.current;
+        const fmt: Fmt = {
+          bold: typingBoldRef.current,
+          underline: typingUnderlineRef.current,
+        };
+        const next =
+          current.slice(0, start) + insertion + current.slice(end);
+        const newFormats = [...formatsRef.current];
+        newFormats.splice(
+          start,
+          end - start,
+          ...Array(insertion.length).fill({ ...fmt }),
         );
-      }
-
-      editor.injectJS(FORCE_HEIGHT_RECALC_JS);
-
-      if (attempt >= 20) clearInterval(interval);
-    }, 300);
-
-    return () => clearInterval(interval);
-  }, [editor, isEditorReady, placeholder]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = null;
-        // Flush: persist the latest known content to parent state so it
-        // isn't lost when the editor unmounts (e.g. switching active post).
-        onChangeRef.current(lastKnownHtmlRef.current);
-      }
+        formatsRef.current = newFormats;
+        textRef.current = next;
+        setText(next);
+        const newPos = start + insertion.length;
+        selectionRef.current = { start: newPos, end: newPos };
+        setSelection({ start: newPos, end: newPos });
+        emitChange();
+        setTimeout(() => inputRef.current?.focus(), 50);
+      },
+      getHTML: () =>
+        Promise.resolve(toHtml(textRef.current, formatsRef.current)),
+      setPlaceholder: () => {},
+      getEditorState: () => ({
+        isReady: true,
+        isFocused: isFocusedRef.current,
+      }),
     };
-  }, []);
+  }
 
-  // Expose the editor bridge to parent
   const hasSetRef = useRef(false);
   useEffect(() => {
     if (editorRef && !hasSetRef.current) {
       hasSetRef.current = true;
-      editorRef(editor);
+      editorRef(bridgeRef.current!);
     }
-  }, [editor, editorRef]);
+  }, [editorRef]);
 
-  // Detect focus/blur for active post tracking
   useEffect(() => {
-    if (isEditorFocused) {
-      onFocusRef.current?.();
-    } else {
-      onBlurRef.current?.();
-    }
-  }, [isEditorFocused]);
+    onReadyRef.current?.();
+  }, []);
 
-  // Fire onBlur when the editor unmounts (e.g. switching active post)
   useEffect(() => {
     return () => {
+      onChangeRef.current(toHtml(textRef.current, formatsRef.current));
       onBlurRef.current?.();
     };
   }, []);
 
+  const handleChangeText = (newText: string) => {
+    const oldText = textRef.current;
+
+    let start = 0;
+    while (
+      start < oldText.length &&
+      start < newText.length &&
+      oldText[start] === newText[start]
+    ) {
+      start++;
+    }
+    let oldEnd = oldText.length;
+    let newEnd = newText.length;
+    while (
+      oldEnd > start &&
+      newEnd > start &&
+      oldText[oldEnd - 1] === newText[newEnd - 1]
+    ) {
+      oldEnd--;
+      newEnd--;
+    }
+
+    const deletedCount = oldEnd - start;
+    const insertedCount = newEnd - start;
+
+    let fmt: Fmt;
+    if (typingBoldRef.current || typingUnderlineRef.current) {
+      fmt = {
+        bold: typingBoldRef.current,
+        underline: typingUnderlineRef.current,
+      };
+    } else if (start > 0 && formatsRef.current[start - 1]) {
+      fmt = { ...formatsRef.current[start - 1] };
+    } else {
+      fmt = { ...PLAIN };
+    }
+
+    const newFormats = [...formatsRef.current];
+    newFormats.splice(
+      start,
+      deletedCount,
+      ...Array(insertedCount).fill({ ...fmt }),
+    );
+    formatsRef.current = newFormats;
+    textRef.current = newText;
+
+    // Keep the native input controlled so iOS selection and line breaks stay in
+    // sync with the rich-text overlay.
+    setText(newText);
+    emitChange();
+  };
+
+  const handleFocus = () => {
+    isFocusedRef.current = true;
+    colorAnim.setValue(1);
+    onFocusRef.current?.();
+  };
+
+  const handleBlur = () => {
+    isFocusedRef.current = false;
+    colorAnim.setValue(0);
+    onBlurRef.current?.();
+  };
+
+  const handleSelectionChange = (
+    e: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+  ) => {
+    selectionRef.current = e.nativeEvent.selection;
+    setSelection(e.nativeEvent.selection);
+    if (e.nativeEvent.selection.start !== e.nativeEvent.selection.end) {
+      lastRangeRef.current = {
+        start: e.nativeEvent.selection.start,
+        end: e.nativeEvent.selection.end,
+        ts: Date.now(),
+      };
+    }
+  };
+
+  const segments = useMemo(() => {
+    const t = text;
+    const f = formatsRef.current;
+    if (!t) return [];
+
+    const result: { text: string; bold: boolean; underline: boolean }[] = [];
+    let i = 0;
+    while (i < t.length) {
+      const fmt = f[i] || PLAIN;
+      let j = i + 1;
+      while (
+        j < t.length &&
+        (f[j]?.bold ?? false) === fmt.bold &&
+        (f[j]?.underline ?? false) === fmt.underline
+      ) {
+        j++;
+      }
+      result.push({
+        text: t.slice(i, j),
+        bold: fmt.bold,
+        underline: fmt.underline,
+      });
+      i = j;
+    }
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, fmtKey]);
+
+  const hasFormatting = segments.some((s) => s.bold || s.underline);
+  const showFormattedOverlay = hasFormatting && text.length > 0;
+
   return (
-    <View style={{ minHeight: 36 }}>
-      <RichText
-        editor={editor}
-        androidLayerType={Platform.OS === "android" ? "software" : undefined}
+    <View style={styles.container}>
+      {showFormattedOverlay ? (
+        <View pointerEvents="none" style={styles.overlay}>
+          <Text className="font-jakarta" style={styles.overlayText}>
+            {segments.map((seg, i) => (
+              <Animated.Text
+                key={i}
+                style={{
+                  color: animatedColor,
+                  fontWeight: seg.bold ? "700" : "400",
+                  textDecorationLine: seg.underline ? "underline" : "none",
+                }}
+              >
+                {seg.text}
+              </Animated.Text>
+            ))}
+          </Text>
+        </View>
+      ) : null}
+
+      <AnimatedTextInput
+        ref={inputRef as any}
+        multiline
+        value={text}
+        selection={selection}
+        onChangeText={handleChangeText}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onSelectionChange={handleSelectionChange}
+        autoFocus={autoFocus}
+        placeholder={placeholder}
+        placeholderTextColor="#656464"
+        selectionColor="#FFFFFF"
+        className="font-jakarta"
+        textAlignVertical="top"
+        style={{
+          minHeight: 36,
+          fontSize: 14,
+          lineHeight: 20,
+          color: showFormattedOverlay ? "transparent" : animatedColor,
+          padding: 0,
+        }}
+        scrollEnabled={false}
       />
     </View>
   );
 }
 
-// The editor manages its own content internally via the WebView — never
-// re-render due to initialContent changes (which come from the editor's own
-// onChange feedback loop). Only placeholder and autoFocus matter externally.
-// autoFocus is intentionally excluded — it only affects initial mount via
-// useEditorBridge and must not trigger re-renders when active state changes,
-// as re-rendering a WKWebView behind pointerEvents="none" on iOS causes it
-// to stop painting its content.
 export const PostEditor = React.memo(
   PostEditorInner,
-  (prevProps, nextProps) =>
-    prevProps.placeholder === nextProps.placeholder,
+  (prevProps, nextProps) => prevProps.placeholder === nextProps.placeholder,
 );
 
-export type { EditorBridge };
+export function forceEditorRepaint(_editor: EditorBridge) {
+  // No-op with native TextInput
+}
+
+const styles = StyleSheet.create({
+  container: {
+    minHeight: 36,
+    position: "relative",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  overlayText: {
+    fontSize: 14,
+    lineHeight: 20,
+    padding: 0,
+  },
+});

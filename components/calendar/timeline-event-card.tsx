@@ -6,12 +6,70 @@ import { Image } from "@/components/ui/image";
 import { NETWORK_CONFIG } from "@/constants/networks";
 import type { ScheduledPost } from "@/types";
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
-    .trim();
+function parseStyledSegments(html: string): { text: string; bold: boolean; underline: boolean }[] {
+  if (!html) return [];
+
+  let content = html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>\s*<p[^>]*>/gi, " ")
+    .replace(/^<p[^>]*>/i, "")
+    .replace(/<\/p>\s*$/i, "");
+
+  const segments: { text: string; bold: boolean; underline: boolean }[] = [];
+  let bold = false;
+  let underline = false;
+  const tagRe = /<(\/?)(strong|b|u)(?:\s[^>]*)?>/gi;
+  let last = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = tagRe.exec(content)) !== null) {
+    if (m.index > last) {
+      const raw = content.slice(last, m.index).replace(/<[^>]*>/g, "");
+      if (raw) segments.push({ text: raw, bold, underline });
+    }
+    const closing = m[1] === "/";
+    const tag = m[2].toLowerCase();
+    if (tag === "strong" || tag === "b") bold = !closing;
+    else if (tag === "u") underline = !closing;
+    last = m.index + m[0].length;
+  }
+
+  if (last < content.length) {
+    const raw = content.slice(last).replace(/<[^>]*>/g, "");
+    if (raw) segments.push({ text: raw, bold, underline });
+  }
+
+  return segments;
+}
+
+function StyledPreview({ html, style }: { html: string; style?: string }) {
+  const segments = parseStyledSegments(html);
+  const hasFormatting = segments.some((s) => s.bold || s.underline);
+
+  if (!hasFormatting) {
+    const plain = segments.map((s) => s.text).join("").trim();
+    return (
+      <Text className={`font-jakarta text-body-4 text-text-primary ${style ?? ""}`} numberOfLines={1}>
+        {plain}
+      </Text>
+    );
+  }
+
+  return (
+    <Text className={`font-jakarta text-body-4 text-text-primary ${style ?? ""}`} numberOfLines={1}>
+      {segments.map((seg, i) => (
+        <Text
+          key={i}
+          style={{
+            fontWeight: seg.bold ? "700" : undefined,
+            textDecorationLine: seg.underline ? "underline" : undefined,
+          }}
+        >
+          {seg.text}
+        </Text>
+      ))}
+    </Text>
+  );
 }
 
 type TimelineEventCardProps = {
@@ -22,7 +80,7 @@ type TimelineEventCardProps = {
 
 export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelected, onPress }: TimelineEventCardProps) {
   const network = NETWORK_CONFIG[post.network];
-  const previewText = stripHtml(post.content || post.title);
+  const contentHtml = post.content || post.title;
 
   return (
     <Pressable onPress={onPress} className="relative">
@@ -61,14 +119,10 @@ export const TimelineEventCard = memo(function TimelineEventCard({ post, isSelec
                 <Text className="font-jakarta text-body-4 font-bold text-text-primary" numberOfLines={1}>
                   Draft:
                 </Text>
-                <Text className="font-jakarta text-body-4 font-medium text-text-primary" numberOfLines={1}>
-                  {previewText}
-                </Text>
+                <StyledPreview html={contentHtml} style="font-medium" />
               </>
             ) : (
-              <Text className="font-jakarta text-body-4 font-medium text-text-primary" numberOfLines={1}>
-                {previewText}
-              </Text>
+              <StyledPreview html={contentHtml} style="font-medium" />
             )}
           </View>
         </View>
