@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import { Image } from "@/components/ui/image";
 import { NETWORK_CONFIG } from "@/constants/networks";
@@ -61,6 +61,11 @@ function StyledPreview({ html, style }: { html: string; style?: string }) {
         <Text
           key={i}
           style={{
+            fontFamily: Platform.OS === "ios"
+              ? seg.bold
+                ? "System"
+                : "PlusJakartaSans"
+              : "PlusJakartaSans",
             fontWeight: seg.bold ? "700" : undefined,
             textDecorationLine: seg.underline ? "underline" : undefined,
           }}

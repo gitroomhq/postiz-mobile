@@ -44,7 +44,8 @@ export function ComposerToolbar({
   const dim = 0.35;
 
   return (
-    <View className="bg-background-primary" style={{ paddingBottom: bottomInset }}>
+    // {/* TODO: temporary extra bottom padding */}
+    <View className="bg-background-primary" style={{ paddingBottom: bottomInset + 40 }}>
       <View className="flex-row items-center gap-5 px-4 pt-2 pb-2">
         <View className="relative flex-1 overflow-hidden">
           <ScrollView

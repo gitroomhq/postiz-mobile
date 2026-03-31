@@ -42,6 +42,7 @@
     "react-native-gesture-handler": "~2.30.0",
     "react-native-gifted-charts": "^1.4.76",
     "react-native-modal": "^13.0.1",
+    "react-native-pell-rich-editor": "^1.10.0",
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.23.0",

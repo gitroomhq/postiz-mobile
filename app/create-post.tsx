@@ -895,25 +895,32 @@ export default function CreatePostScreen() {
           </Pressable>
 
           {postActionMenuVisible ? (
-            <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
-              {POST_ACTIONS.map((action) => (
-                <Pressable
-                  key={action.id}
-                  className={`mb-3 h-11 items-center justify-center rounded-[8px] ${
-                    action.tone === "primary"
-                      ? "bg-buttons-primary-bg"
-                      : action.tone === "secondary"
-                        ? "bg-buttons-secondary-bg"
-                        : "bg-buttons-tertiary-bg"
-                  } ${action.id === "draft" ? "mb-0" : ""}`}
-                  onPress={() => handleSave(action.id)}
-                >
-                  <Text className="font-jakarta text-button-2 font-semibold text-white">
-                    {action.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <>
+              <Pressable
+                className="fixed inset-0"
+                style={{ position: "absolute", top: -1000, bottom: -1000, left: -1000, right: -1000, zIndex: 10 }}
+                onPress={() => setPostActionMenuVisible(false)}
+              />
+              <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
+                {POST_ACTIONS.map((action) => (
+                  <Pressable
+                    key={action.id}
+                    className={`mb-3 h-11 items-center justify-center rounded-[8px] ${
+                      action.tone === "primary"
+                        ? "bg-buttons-primary-bg"
+                        : action.tone === "secondary"
+                          ? "bg-buttons-secondary-bg"
+                          : "bg-buttons-tertiary-bg"
+                    } ${action.id === "draft" ? "mb-0" : ""}`}
+                    onPress={() => handleSave(action.id)}
+                  >
+                    <Text className="font-jakarta text-button-2 font-semibold text-white">
+                      {action.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
           ) : null}
         </View>
       </View>
