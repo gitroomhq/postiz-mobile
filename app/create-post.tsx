@@ -990,8 +990,8 @@ export default function CreatePostScreen() {
               </ChannelTab>
 
               <View
-                className="relative shrink"
-                style={{ maxWidth: MAX_CHANNEL_SCROLL_WIDTH }}
+                className="shrink"
+                style={{ maxWidth: MAX_CHANNEL_SCROLL_WIDTH, overflow: "visible" }}
               >
                 <ScrollView
                   horizontal
@@ -1010,13 +1010,17 @@ export default function CreatePostScreen() {
                 </ScrollView>
 
                 {channelsOverflow ? (
-                  <LinearGradient
-                    colors={["rgba(26,25,25,0)", "#1A1919"]}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
+                  <View
                     pointerEvents="none"
-                    style={{ position: "absolute", right: 0, top: 0, height: 44, width: 48 }}
-                  />
+                    style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 48 }}
+                  >
+                    <LinearGradient
+                      colors={["rgba(26,25,25,0)", "#1A1919"]}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={{ flex: 1 }}
+                    />
+                  </View>
                 ) : null}
               </View>
 
@@ -1319,7 +1323,8 @@ export default function CreatePostScreen() {
           onToggleReposters={() => setNetworkRepostersEnabled((current) => !current)}
           delay={networkDelay}
           onDelayChange={setNetworkDelay}
-          focusedChannel={focusedChannel}
+          focusedChannel={focusedChannelId ? focusedChannel : null}
+          selectedChannels={selectedChannels}
           repeatValue={repeatPostValue}
           onRepeatChange={(v) => setRepeatPostValue(v as (typeof REPEAT_OPTIONS)[number])}
           tags={effectiveTags}

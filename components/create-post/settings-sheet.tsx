@@ -148,6 +148,8 @@ export type SettingsSheetContentProps = {
   delay: string;
   onDelayChange: (value: string) => void;
   focusedChannel: Channel | null;
+  /** All selected channels — shown in "Account that will engage" when default tab is active */
+  selectedChannels: Channel[];
 
   repeatValue: string;
   onRepeatChange: (value: string) => void;
@@ -176,6 +178,7 @@ export function SettingsSheetContent({
   delay,
   onDelayChange,
   focusedChannel,
+  selectedChannels,
   repeatValue,
   onRepeatChange,
   tags,
@@ -347,18 +350,21 @@ export function SettingsSheetContent({
                     <Text className="font-jakarta text-[14px] font-semibold text-text-primary">
                       Account that will engage
                     </Text>
-                    {focusedChannel ? (
-                      <View
-                        className="items-center justify-center rounded-full border-[1.5px] border-main-accent-purple p-[3px] self-start"
-                      >
-                        <ChannelAvatar
-                          avatar={focusedChannel.avatar}
-                          network={focusedChannel.network}
-                          size={36}
-                          allowBadgeOverflow
-                        />
-                      </View>
-                    ) : null}
+                    <View className="flex-row flex-wrap gap-2">
+                      {(focusedChannel ? [focusedChannel] : selectedChannels).map((channel) => (
+                        <View
+                          key={channel.id}
+                          className="items-center justify-center rounded-full border-[1.5px] border-main-accent-purple p-[3px]"
+                        >
+                          <ChannelAvatar
+                            avatar={channel.avatar}
+                            network={channel.network}
+                            size={36}
+                            allowBadgeOverflow
+                          />
+                        </View>
+                      ))}
+                    </View>
                   </View>
                 </View>
               ) : null}
