@@ -6,17 +6,21 @@ import type { ScheduledPost } from "@/types";
 type PostsState = {
   posts: ScheduledPost[];
   error: string | null;
+  /** Set by create-post screen so the calendar navigates to this date/time on return. */
+  navigateToDate: string | null;
 
   addPost: (post: ScheduledPost) => void;
   updatePost: (id: string, updates: Partial<ScheduledPost>) => void;
   deletePost: (id: string) => void;
   reschedulePost: (id: string, newScheduledAt: string) => void;
   clearError: () => void;
+  setNavigateToDate: (iso: string | null) => void;
 };
 
 export const usePostsStore = create<PostsState>((set, get) => ({
   posts: SCHEDULED_POSTS,
   error: null,
+  navigateToDate: null,
 
   addPost: (post) => {
     if (!post.id || !post.content) {
@@ -70,4 +74,5 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+  setNavigateToDate: (iso) => set({ navigateToDate: iso }),
 }));

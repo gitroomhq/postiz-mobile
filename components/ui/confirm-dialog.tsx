@@ -54,7 +54,7 @@ export function ConfirmDialog({
           intensity={20}
           tint="dark"
           experimentalBlurMethod="dimezisBlurView"
-          className="absolute inset-0"
+          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         />
         <Pressable className="flex-1 items-center justify-center" onPress={onCancel}>
           <Pressable

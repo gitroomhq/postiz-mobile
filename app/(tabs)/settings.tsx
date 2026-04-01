@@ -1,7 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import type { StyleProp, TextStyle } from "react-native";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,51 +18,43 @@ function ApiKeyText({
   text,
   suffix,
   revealed,
-  style,
+  textClassName,
 }: {
   text: string;
   suffix?: string;
   revealed: boolean;
-  style?: StyleProp<TextStyle>;
+  textClassName?: string;
 }) {
   const fullText = suffix ? text + suffix : text;
 
   if (revealed) {
     return (
-      <View style={{ position: "relative" }}>
-        <Text style={[style, { color: "#EFEFEF" }]}>{fullText}</Text>
+      <View className="relative">
+        <Text className={`${textClassName} text-[#EFEFEF]`}>{fullText}</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ position: "relative" }}>
+    <View className="relative">
       {BLUR_OFFSETS.flatMap((dx) =>
         BLUR_OFFSETS.map((dy) => (
           <Text
             key={`${dx},${dy}`}
-            style={[
-              style,
-              {
-                position: "absolute",
-                left: dx,
-                top: dy,
-                color: "#8A8A8A",
-                opacity: 0.04,
-              },
-            ]}
+            className={`${textClassName} absolute text-[#8A8A8A] opacity-[0.04]`}
+            style={{ left: dx, top: dy }}
           >
             {text}
             {suffix ? (
-              <Text style={{ color: "transparent" }}>{suffix}</Text>
+              <Text className="text-transparent">{suffix}</Text>
             ) : null}
           </Text>
         )),
       )}
-      <Text style={[style, { color: "rgba(138,138,138,0.12)" }]}>
+      <Text className={`${textClassName} text-[rgba(138,138,138,0.12)]`}>
         {text}
         {suffix ? (
-          <Text style={{ color: "#EFEFEF", backgroundColor: "#0E0E0E" }}>
+          <Text className="text-[#EFEFEF] bg-main-bg">
             {suffix}
           </Text>
         ) : null}
@@ -89,7 +80,7 @@ function ApiKeyCard() {
           text={API_KEY.slice(0, -VISIBLE_CHARS)}
           suffix={API_KEY.slice(-VISIBLE_CHARS)}
           revealed={revealed}
-          style={{ fontFamily: "Jakarta", fontSize: 14 }}
+          textClassName="font-jakarta text-body-1"
         />
         <Pressable
           className="w-[120px] items-center justify-center rounded-[6px] bg-buttons-tertiary-bg py-2"

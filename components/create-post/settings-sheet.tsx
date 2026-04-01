@@ -6,7 +6,6 @@ import {
   type LayoutChangeEvent,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -128,10 +127,9 @@ function TagBadge({ label, color }: { label: string; color: string }) {
 function RadioButton({ selected }: { selected: boolean }) {
   return (
     <View
-      className={`h-6 w-6 items-center justify-center rounded-full border ${
+      className={`h-6 w-6 items-center justify-center rounded-full border-[1.5px] ${
         selected ? "border-[#FC69FF]" : "border-white/[0.18]"
       }`}
-      style={{ borderWidth: 1.5 }}
     >
       {selected ? <View className="h-3 w-3 rounded-full bg-[#FC69FF]" /> : null}
     </View>
@@ -323,8 +321,7 @@ export function SettingsSheetContent({
             </View>
 
             <View
-              className="pt-4"
-              style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.08)" }}
+              className="pt-4 border-t border-t-white/[0.08]"
             >
               <View className="flex-row items-start justify-between py-2">
                 <Text className="font-jakarta text-[14px] text-text-primary">
@@ -487,13 +484,13 @@ export function SettingsSheetContent({
                   colors={["#FFFFFF", pureHueColor]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={StyleSheet.absoluteFill}
+                  style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
                 />
                 <LinearGradient
                   colors={["rgba(0,0,0,0)", "#000000"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 0, y: 1 }}
-                  style={StyleSheet.absoluteFill}
+                  style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
                 />
                 <View
                   className="absolute h-[34px] w-[34px] rounded-full border-4 border-white"
@@ -507,7 +504,7 @@ export function SettingsSheetContent({
               </View>
 
               <View
-                style={{ height: 34, justifyContent: "center" }}
+                className="h-[34px] justify-center"
                 onLayout={onHueBarLayout}
                 onStartShouldSetResponder={() => true}
                 onMoveShouldSetResponder={() => true}
@@ -516,22 +513,14 @@ export function SettingsSheetContent({
               >
                 <View
                   pointerEvents="none"
-                  style={{
-                    height: 13,
-                    width: "100%",
-                    borderRadius: 9999,
-                    overflow: "hidden",
-                    borderWidth: 1,
-                    borderColor: "rgba(0,0,0,0.1)",
-                    backgroundColor: "#FF0000",
-                  }}
+                  className="h-[13px] w-full rounded-full overflow-hidden border border-black/10 bg-[#FF0000]"
                 >
                   <LinearGradient
                     colors={["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF", "#FF0000"]}
                     locations={[0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1]}
                     start={{ x: 0, y: 0.5 }}
                     end={{ x: 1, y: 0.5 }}
-                    style={StyleSheet.absoluteFill}
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
                   />
                 </View>
                 <View

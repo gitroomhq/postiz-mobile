@@ -88,7 +88,7 @@ export function ComposerToolbar({
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             pointerEvents="none"
-            className="absolute right-0 top-0 h-10 w-[66px]"
+            style={{ position: "absolute", right: 0, top: 0, height: 40, width: 66 }}
           />
         </View>
 

@@ -123,13 +123,14 @@ export default function VerifyOtpScreen() {
                       error
                         ? "border-text-critical"
                         : focusedIndex === index
-                          ? "border-main-accent-purple"
+                          ? "border-input-stroke-active"
                           : "border-input-stroke-default"
-                    } bg-input-bg px-3 py-1`}
+                    } bg-input-bg px-3 py-[4px]`}
                   >
                     <TextInput
                       ref={(ref) => { inputRefs.current[index] = ref; }}
-                      className={`h-full w-full text-center font-jakarta text-body-1 font-normal ${error ? "text-text-critical" : "text-text-primary"}`}
+                      className={`h-full w-full p-0 text-center leading-[14px] font-jakarta text-body-1 font-normal ${error ? "text-text-critical" : "text-text-primary"}`}
+                      style={{ includeFontPadding: false }}
                       value={digit}
                       onChangeText={(text) => handleChange(text, index)}
                       onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}

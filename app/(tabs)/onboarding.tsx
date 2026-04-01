@@ -53,7 +53,7 @@ export default function OnboardingScreen() {
               </View>
             </View>
 
-            <View className="absolute top-[6px] w-[180px] h-[180px] items-center justify-center" style={{ left: -65 }}>
+            <View className="absolute top-[6px] left-[-65px] w-[180px] h-[180px] items-center justify-center">
               <View className="h-[151px] w-[151px] items-center justify-center overflow-hidden rounded-[24px] bg-surface-deep rotate-[12.52deg]">
                 <Image
                   source={require("@/assets/icons/onboarding/youtube-icon.svg")}

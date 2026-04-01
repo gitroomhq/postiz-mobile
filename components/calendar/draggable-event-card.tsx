@@ -54,6 +54,7 @@ export function DraggableEventCard({ post, isSelected, onPress }: DraggableEvent
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(300)
+    .maxDistance(30)
     .onStart(() => {
       isLongPressActive.value = true;
       dragCtx.isDragging.value = true;
@@ -75,10 +76,12 @@ export function DraggableEventCard({ post, isSelected, onPress }: DraggableEvent
   const panGesture = Gesture.Pan()
     .manualActivation(true)
     .onTouchesMove((_event, stateManager) => {
+      // Only activate once the long press has fired.
+      // Do NOT call stateManager.fail() here — on iPhone the sensitive
+      // touch screen registers micro-movements before the 300ms long-press
+      // threshold, which would permanently kill the pan gesture for this touch.
       if (isLongPressActive.value) {
         stateManager.activate();
-      } else {
-        stateManager.fail();
       }
     })
     .onUpdate((event) => {

@@ -14,7 +14,6 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
@@ -75,8 +74,7 @@ export default function SignInScreen() {
           <View className="relative self-start">
             <View
               pointerEvents="none"
-              className="absolute"
-              style={{ left: -12, top: -2 }}
+              className="absolute left-[-12px] top-[-2px]"
             >
               <Image
                 source={require("@/assets/icons/login/title-scribble.svg")}
@@ -120,19 +118,11 @@ export default function SignInScreen() {
             </View>
 
             <View className="flex-row items-center justify-center gap-5">
-              <Image
-                source={require("@/assets/icons/login/divider.svg")}
-                className="w-[100px] h-px"
-                contentFit="contain"
-              />
+              <View className="h-px w-[100px] bg-separator-primary" />
               <Text className="font-jakarta text-sm text-text-secondary">
                 or
               </Text>
-              <Image
-                source={require("@/assets/icons/login/divider.svg")}
-                className="w-[100px] h-px"
-                contentFit="contain"
-              />
+              <View className="h-px w-[100px] bg-separator-primary" />
             </View>
 
             <AuthInput
@@ -160,8 +150,6 @@ export default function SignInScreen() {
                   setErrors((prev) => ({ ...prev, password: undefined }));
                 }
               }}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
               placeholder="Enter password"
               secureTextEntry={!passwordVisible}
               autoCapitalize="none"

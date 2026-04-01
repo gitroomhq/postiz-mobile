@@ -9,6 +9,7 @@ if (!('removeEventListener' in BackHandler)) {
 const IGNORED_WARNING_PATTERNS = [
   'SafeAreaView has been deprecated',
   'react-native-safe-area-context',
+  'InteractionManager has been deprecated',
 ];
 
 LogBox.ignoreLogs(IGNORED_WARNING_PATTERNS);

@@ -225,7 +225,7 @@ function CharacterLimitStatus({
       {menuOpen ? (
         <>
         <Pressable
-          style={{ position: 'absolute', top: -1000, bottom: -1000, left: -1000, right: -1000, zIndex: 29 }}
+          className="absolute -top-[1000px] -bottom-[1000px] -left-[1000px] -right-[1000px] z-[29]"
           onPress={() => setMenuOpen(false)}
         />
         <View
@@ -259,7 +259,7 @@ function CharacterLimitStatus({
                         colors={["#FA8F21", "#E14667", "#D82D7E"]}
                         start={{ x: 0, y: 1 }}
                         end={{ x: 1, y: 0 }}
-                        className="h-4 w-4 items-center justify-center rounded-[4px]"
+                        style={{ height: 16, width: 16, alignItems: "center", justifyContent: "center", borderRadius: 4 }}
                       >
                         <SvgIcon source={socialIconSource} size={10.6} />
                       </LinearGradient>
@@ -413,9 +413,27 @@ export default function CreatePostScreen() {
   } | null>(null);
   const editorRefs = useRef<Record<string, EditorBridge>>({});
   const scrollViewRef = useRef<ScrollView>(null);
+  const postViewRefs = useRef<Record<string, View | null>>({});
   const postIdCounter = useRef(posts.length);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [editorsLoading, setEditorsLoading] = useState(mode === "edit");
+
+  const scrollToFocusedPost = useCallback((refId: string) => {
+    setTimeout(() => {
+      const postView = postViewRefs.current[refId];
+      const sv = scrollViewRef.current;
+      if (!postView || !sv) return;
+      const innerNode = (sv as any).getInnerViewNode?.();
+      if (!innerNode) return;
+      postView.measureLayout(
+        innerNode,
+        (_x, y) => {
+          sv.scrollTo({ y: Math.max(0, y - 20), animated: true });
+        },
+        () => {},
+      );
+    }, 300);
+  }, []);
 
   const dateLabel = format(scheduledDate, "MMM d, h:mm a")
     .replace(/ AM$/, " am")
@@ -549,6 +567,9 @@ export default function CreatePostScreen() {
         });
       }
     }
+
+    // Tell the calendar to navigate to this post's date & time
+    usePostsStore.getState().setNavigateToDate(scheduledDate.toISOString());
 
     showToast(
       action === "draft"
@@ -849,7 +870,7 @@ export default function CreatePostScreen() {
   }, [editorsLoading]);
 
   return (
-    <View className="flex-1" style={{ paddingTop: 40 }}>
+    <View className="flex-1 pt-10">
       <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={[]}>
         <StatusBar style="light" />
 
@@ -897,8 +918,7 @@ export default function CreatePostScreen() {
           {postActionMenuVisible ? (
             <>
               <Pressable
-                className="fixed inset-0"
-                style={{ position: "absolute", top: -1000, bottom: -1000, left: -1000, right: -1000, zIndex: 10 }}
+                className="absolute -top-[1000px] -bottom-[1000px] -left-[1000px] -right-[1000px] z-10"
                 onPress={() => setPostActionMenuVisible(false)}
               />
               <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
@@ -995,7 +1015,7 @@ export default function CreatePostScreen() {
                     start={{ x: 0, y: 0.5 }}
                     end={{ x: 1, y: 0.5 }}
                     pointerEvents="none"
-                    className="absolute right-0 top-0 h-11 w-12"
+                    style={{ position: "absolute", right: 0, top: 0, height: 44, width: 48 }}
                   />
                 ) : null}
               </View>
@@ -1059,7 +1079,7 @@ export default function CreatePostScreen() {
                   };
 
                   return (
-                    <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""}>
+                    <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""} ref={(el) => { postViewRefs.current[chRefId] = el; }}>
                       {chIndex > 0 ? <PostConnector /> : null}
 
                       <View className="flex-row items-start gap-4 py-2">
@@ -1072,6 +1092,7 @@ export default function CreatePostScreen() {
                             }
                             onFocus={() => {
                               setActivePostId(chRefId);
+                              scrollToFocusedPost(chRefId);
                             }}
                             autoFocus={chIndex === 0 || pendingAutoFocusPostId === chRefId}
                             placeholder={chIndex > 0 ? "Add another post" : undefined}
@@ -1109,8 +1130,7 @@ export default function CreatePostScreen() {
                                 <Image source={{ uri }} className="h-[60px] w-[60px] rounded-lg" contentFit="cover" />
                               </Pressable>
                               <Pressable
-                                className="absolute h-[24px] w-[24px] items-center justify-center"
-                                style={{ right: -8, top: -8 }}
+                                className="absolute -right-2 -top-2 h-[24px] w-[24px] items-center justify-center"
                                 onPress={() =>
                                   updateChannelOverridePost(channelId, chPost.id, (prev) => ({
                                     ...prev,
@@ -1152,7 +1172,7 @@ export default function CreatePostScreen() {
               const limitStatuses = buildNetworkLimitStatuses(selectedChannels, plainTextLength, channelOverrides, post.id);
 
               return (
-                <View key={post.id} className={index > 0 ? "mt-5" : ""}>
+                <View key={post.id} className={index > 0 ? "mt-5" : ""} ref={(el) => { postViewRefs.current[post.id] = el; }}>
                   {index > 0 ? <PostConnector /> : null}
 
                   <View className="flex-row items-start gap-4 py-2">
@@ -1165,6 +1185,7 @@ export default function CreatePostScreen() {
                         }
                         onFocus={() => {
                           setActivePostId(post.id);
+                          scrollToFocusedPost(post.id);
                         }}
                         onReady={index === 0 ? () => setEditorsLoading(false) : undefined}
                         autoFocus={index === 0 || pendingAutoFocusPostId === post.id}
@@ -1212,8 +1233,7 @@ export default function CreatePostScreen() {
                             />
                           </Pressable>
                           <Pressable
-                            className="absolute h-[24px] w-[24px] items-center justify-center"
-                            style={{ right: -8, top: -8 }}
+                            className="absolute -right-2 -top-2 h-[24px] w-[24px] items-center justify-center"
                             onPress={() =>
                               updatePost(post.id, (current) => ({
                                 ...current,
@@ -1249,8 +1269,7 @@ export default function CreatePostScreen() {
         {editorsLoading ? (
           <View
             pointerEvents="none"
-            className="items-center justify-center bg-background-primary"
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}
+            className="absolute inset-0 z-50 items-center justify-center bg-background-primary"
           >
             <ActivityIndicator size="small" color="#A3A3A3" />
           </View>

@@ -61,7 +61,7 @@ export default function ChannelsAddedScreen() {
       <StatusBar style="light" />
 
       <View className="h-[60px] flex-row items-center justify-between px-4">
-        <Text className="font-jakarta text-[20px] font-semibold text-text-primary">
+        <Text className="font-jakarta text-h2 font-semibold text-text-primary">
           Channels
         </Text>
 

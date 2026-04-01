@@ -1,12 +1,12 @@
-import { memo, useCallback, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useImperativeHandle, useRef, useState } from "react";
 import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
-  FlatList,
   Pressable,
   Text,
   View,
 } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import Svg, { Rect } from "react-native-svg";
 
@@ -222,8 +222,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
             {isSlotSelected && (
               <View
                 pointerEvents="none"
-                className="absolute inset-0 rounded-[8px]"
-                style={{ borderWidth: 1.5, borderColor: SLOT_STROKE_ACTIVE }}
+                className="absolute inset-0 rounded-[8px] border-[1.5px] border-slot-stroke-active"
               />
             )}
             {hasDraggedPost && <DropTargetHighlight hour={slot.hour} />}
@@ -243,7 +242,11 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
   );
 });
 
-export function TimelineView({
+export type TimelineViewHandle = {
+  scrollToHour: (hour: number) => void;
+};
+
+export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(function TimelineView({
   timeSlots,
   posts,
   selectedDate,
@@ -252,10 +255,20 @@ export function TimelineView({
   selectedSlotHour,
   onSlotPress,
   onPostPress,
-}: TimelineViewProps) {
+}, ref) {
   const [expandedSlots, setExpandedSlots] = useState<Set<number>>(new Set());
   const dragCtx = useTimelineDragContext();
   const timelineContentRef = useRef<View>(null);
+  const flatListRef = useRef<FlatList>(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollToHour(hour: number) {
+      const index = timeSlots.findIndex((s) => s.hour === hour);
+      if (index >= 0 && flatListRef.current) {
+        flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.3 });
+      }
+    },
+  }), [timeSlots]);
 
   const toggleSlot = useCallback((hour: number) => {
     setExpandedSlots((prev) => {
@@ -323,6 +336,7 @@ export function TimelineView({
   return (
     <View ref={timelineContentRef} onLayout={measureTimelineOrigin} className="flex-1">
       <FlatList
+        ref={flatListRef}
         data={timeSlots}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -334,7 +348,12 @@ export function TimelineView({
         initialNumToRender={10}
         maxToRenderPerBatch={6}
         windowSize={5}
+        getItemLayout={(_data, index) => ({
+          length: HOUR_HEIGHT + 4,
+          offset: (HOUR_HEIGHT + 4) * index,
+          index,
+        })}
       />
     </View>
   );
-}
+});

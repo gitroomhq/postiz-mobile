@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,7 +12,7 @@ import { DateTimePickerSheet } from "@/components/calendar/datetime-picker-sheet
 import { DragOverlay } from "@/components/calendar/drag-overlay";
 import { MonthSelector } from "@/components/calendar/month-selector";
 import { PostDetailSheet } from "@/components/calendar/post-detail-sheet";
-import { TimelineView } from "@/components/calendar/timeline-view";
+import { TimelineView, type TimelineViewHandle } from "@/components/calendar/timeline-view";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MainTabNavbar } from "@/components/ui/main-tab-navbar";
 import { NotificationBellButton } from "@/components/ui/notification-bell-button";
@@ -56,6 +56,31 @@ export default function CalendarScreen() {
   const [deleteTarget, setDeleteTarget] = useState<ScheduledPost | null>(null);
   const [dateTimeTarget, setDateTimeTarget] = useState<Date | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
+
+  // --- Refs ---
+  const timelineRef = useRef<TimelineViewHandle>(null);
+
+  // --- Navigate to date/time after create/edit ---
+  const navigateToDate = usePostsStore((state) => state.navigateToDate);
+  const setNavigateToDate = usePostsStore((state) => state.setNavigateToDate);
+
+  useEffect(() => {
+    if (!navigateToDate) return;
+    const date = new Date(navigateToDate);
+    setNavigateToDate(null);
+
+    // Update calendar to that date
+    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    setSelectedDate(dayStart);
+    setCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    setMonthSelectorOpen(false);
+
+    // Scroll timeline to the post's hour after a short delay to let the list update
+    const hour = date.getHours();
+    setTimeout(() => {
+      timelineRef.current?.scrollToHour(hour);
+    }, 400);
+  }, [navigateToDate, setNavigateToDate]);
 
   // --- Sheet visibility ---
   const [postDetailVisible, setPostDetailVisible] = useState(false);
@@ -210,6 +235,7 @@ export default function CalendarScreen() {
 
       <View className="flex-1 px-4">
         <TimelineView
+          ref={timelineRef}
           timeSlots={timeSlots}
           posts={dayPosts}
           selectedDate={selectedDate}
@@ -279,7 +305,7 @@ export default function CalendarScreen() {
           setPostDetailVisible(false);
           setEditingPostId(post.id);
           setDateTimeTarget(new Date(post.scheduledAt));
-          setTimeout(() => setDateTimeVisible(true), 350);
+          setTimeout(() => setDateTimeVisible(true), 500);
         }}
       />
 
@@ -299,7 +325,7 @@ export default function CalendarScreen() {
               seconds: 0,
             }),
           );
-          setTimeout(() => setDateTimeVisible(true), 350);
+          setTimeout(() => setDateTimeVisible(true), 500);
         }}
       />
 

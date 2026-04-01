@@ -22,7 +22,6 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [company, setCompany] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -87,8 +86,7 @@ export default function SignUpScreen() {
               </Text>
               <View
                 pointerEvents="none"
-                className="absolute top-7 z-20"
-                style={{ left: -8.25 }}
+                className="absolute top-7 z-20 left-[-8.25px]"
               >
                 <Image
                   source={require("@/assets/icons/login/signup-doodle.svg")}
@@ -128,19 +126,11 @@ export default function SignUpScreen() {
                 </View>
 
                 <View className="flex-row items-center justify-center gap-5">
-                  <Image
-                    source={require("@/assets/icons/login/divider.svg")}
-                    className="w-[100px] h-px"
-                    contentFit="contain"
-                  />
+                  <View className="h-px w-[100px] bg-separator-primary" />
                   <Text className="font-jakarta text-sm text-text-secondary">
                     or
                   </Text>
-                  <Image
-                    source={require("@/assets/icons/login/divider.svg")}
-                    className="w-[100px] h-px"
-                    contentFit="contain"
-                  />
+                  <View className="h-px w-[100px] bg-separator-primary" />
                 </View>
 
                 <AuthInput
@@ -167,8 +157,6 @@ export default function SignUpScreen() {
                     if (errors.password)
                       setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
                   placeholder="Enter password"
                   secureTextEntry={!passwordVisible}
                   textContentType="none"
