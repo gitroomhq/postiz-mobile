@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
@@ -47,6 +48,9 @@ export default function SignUpScreen() {
       newErrors.password = "Incorrect password";
     if (!company) newErrors.company = "Company name is required";
     setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      router.push({ pathname: "/(auth)/verify-otp", params: { email, flow: "signup" } } as any);
+    }
   };
 
   return (
@@ -211,8 +215,8 @@ export default function SignUpScreen() {
             <View className="items-center pb-1">
               <Text className="w-full font-jakarta text-sm text-text-primary">
                 By registering you agree to our{" "}
-                <Text className="underline">Terms of Service</Text> and{" "}
-                <Text className="underline">Privacy Policy</Text>
+                <Text className="underline" onPress={() => WebBrowser.openBrowserAsync("https://postiz.com/terms-of-service")}>Terms of Service</Text> and{" "}
+                <Text className="underline" onPress={() => WebBrowser.openBrowserAsync("https://postiz.com/privacy-policy")}>Privacy Policy</Text>
               </Text>
             </View>
 

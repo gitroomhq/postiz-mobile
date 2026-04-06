@@ -81,9 +81,7 @@ export function SwipeableChannelRow({
   }));
 
   const handleDelete = () => {
-    translateX.value = withTiming(-SCREEN_WIDTH, { duration: 250 }, () => {
-      runOnJS(onDelete)(id);
-    });
+    onDelete(id);
   };
 
   return (

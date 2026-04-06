@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
 import {
@@ -18,6 +18,8 @@ const CODE_LENGTH = 5;
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ flow?: string }>();
+  const isSignup = params.flow === "signup";
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +58,11 @@ export default function VerifyOtpScreen() {
       setError("Incorrect code");
       return;
     }
-    router.push("/(auth)/reset-password" as any);
+    if (isSignup) {
+      router.replace("/(auth)");
+    } else {
+      router.push("/(auth)/reset-password" as any);
+    }
   };
 
   const handleResend = () => {

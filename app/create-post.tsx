@@ -18,6 +18,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import EmojiPicker, { type EmojiType } from "rn-emoji-keyboard";
 
+import { AnimatedDropdown } from "@/components/ui/animated-dropdown";
 import { DateTimePickerSheet } from "@/components/calendar/datetime-picker-sheet";
 import { ChannelSelectionSheet } from "@/components/create-post/channel-selection-sheet";
 import { ComposerToolbar } from "@/components/create-post/composer-toolbar";
@@ -222,14 +223,14 @@ function CharacterLimitStatus({
         )}
       </Pressable>
 
-      {menuOpen ? (
-        <>
-        <Pressable
-          className="absolute -top-[1000px] -bottom-[1000px] -left-[1000px] -right-[1000px] z-[29]"
-          onPress={() => setMenuOpen(false)}
-        />
+      <AnimatedDropdown
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        anchor="top-right"
+        style={{ position: "absolute", right: 0, top: 28, zIndex: 30 }}
+      >
         <View
-          className={`absolute right-0 top-7 z-30 w-[343px] rounded-[8px] border bg-main-menu-bg p-3 shadow-2xl ${
+          className={`w-[343px] rounded-[8px] border bg-main-menu-bg p-3 shadow-2xl ${
             hasErrors ? "border-text-critical" : "border-input-stroke-default"
           }`}
           style={{ elevation: 6 }}
@@ -298,8 +299,7 @@ function CharacterLimitStatus({
             );
           })}
         </View>
-        </>
-      ) : null}
+      </AnimatedDropdown>
     </View>
   );
 }
@@ -368,12 +368,13 @@ export default function CreatePostScreen() {
   const [scheduledDate, setScheduledDate] = useState(initialDate);
   const [mediaLibraryVisible, setMediaLibraryVisible] = useState(false);
   const [mediaSheetState, setMediaSheetState] = useState<MediaSheetState>("library");
+  const mediaOpenCount = useRef(0);
   const [mediaAssets, setMediaAssets] = useState<{ id: string; uri: string }[]>(
     MEDIA_LIBRARY_ASSETS.map((asset) => ({ ...asset })),
   );
   const [selectedMediaIds, setSelectedMediaIds] = useState<string[]>([]);
   const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>(() => {
-    if (mode === "edit" && params.channelId) {
+    if (params.channelId) {
       return [params.channelId];
     }
     if (mode === "create" && initialContent.length === 0 && !initialImageUri) {
@@ -392,6 +393,9 @@ export default function CreatePostScreen() {
   const [networkCarouselEnabled, setNetworkCarouselEnabled] = useState(false);
   const [networkRepostersEnabled, setNetworkRepostersEnabled] = useState(true);
   const [networkDelay, setNetworkDelay] = useState("Immediately");
+  const [engagedChannelIds, setEngagedChannelIds] = useState<string[]>(() =>
+    channels.filter((c) => selectedChannelIds.includes(c.id)).map((c) => c.id),
+  );
   const [repeatPostValue, setRepeatPostValue] =
     useState<(typeof REPEAT_OPTIONS)[number]>("Every Day");
   const [tags, setTags] = useState<ComposerTag[]>(INITIAL_TAGS);
@@ -406,6 +410,12 @@ export default function CreatePostScreen() {
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    title: string;
+    message: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+  } | null>(null);
   const [mediaSettingsTarget, setMediaSettingsTarget] = useState<{
     postId: string;
     uri: string;
@@ -413,6 +423,7 @@ export default function CreatePostScreen() {
   } | null>(null);
   const editorRefs = useRef<Record<string, EditorBridge>>({});
   const scrollViewRef = useRef<ScrollView>(null);
+  const channelScrollRef = useRef<ScrollView>(null);
   const postViewRefs = useRef<Record<string, View | null>>({});
   const postIdCounter = useRef(posts.length);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -423,15 +434,14 @@ export default function CreatePostScreen() {
       const postView = postViewRefs.current[refId];
       const sv = scrollViewRef.current;
       if (!postView || !sv) return;
-      const innerNode = (sv as any).getInnerViewNode?.();
-      if (!innerNode) return;
-      postView.measureLayout(
-        innerNode,
-        (_x, y) => {
-          sv.scrollTo({ y: Math.max(0, y - 20), animated: true });
-        },
-        () => {},
-      );
+      // Use measureInWindow on both the post and the scroll view to get their
+      // absolute Y positions, then compute the relative offset to scroll to.
+      // This avoids getInnerViewNode / measureLayout which crash on iOS new arch.
+      postView.measureInWindow((_px, postY) => {
+        (sv as any).measureInWindow?.((_sx: number, svY: number) => {
+          sv.scrollTo({ y: Math.max(0, postY - svY - 20), animated: true });
+        });
+      });
     }, 300);
   }, []);
 
@@ -450,7 +460,8 @@ export default function CreatePostScreen() {
     : 0;
   const channelsOverflow = estimatedChannelsWidth > MAX_CHANNEL_SCROLL_WIDTH;
 
-  const canSubmit = selectedChannels.length > 0 && posts.some((post) => stripEditorHtml(post.content).length > 0);
+  const isScheduledInPast = scheduledDate < new Date();
+  const canSubmit = selectedChannels.length > 0 && posts.some((post) => stripEditorHtml(post.content).length > 0) && !isScheduledInPast;
   const focusedChannel =
     selectedChannels.find((channel) => channel.id === focusedChannelId) ??
     selectedChannels[0] ??
@@ -496,7 +507,7 @@ export default function CreatePostScreen() {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 200);
   };
 
-  const deletePost = (postId: string) => {
+  const executeDeletePost = (postId: string) => {
     setPosts((current) => {
       if (current.length === 1) return current;
 
@@ -511,6 +522,15 @@ export default function CreatePostScreen() {
       }
 
       return nextPosts;
+    });
+  };
+
+  const deletePost = (postId: string) => {
+    setPendingDelete({
+      title: "Delete Post",
+      message: "Are you sure you want to delete this post from the thread?",
+      confirmLabel: "Yes, Delete",
+      onConfirm: () => executeDeletePost(postId),
     });
   };
 
@@ -589,10 +609,18 @@ export default function CreatePostScreen() {
   const handleDateTimeSave = useCallback((newDate: Date) => {
     setScheduledDate(newDate);
     setDateTimePickerVisible(false);
-    showToast("Date & time updated", "success");
+    if (newDate < new Date()) {
+      showToast("Selected date is in the past", "info");
+    } else {
+      showToast("Date & time updated", "success");
+    }
   }, []);
 
   const openMediaLibrary = () => {
+    mediaOpenCount.current += 1;
+    // Odd opens show assets, even opens show empty screen
+    const showEmpty = mediaOpenCount.current % 2 === 0;
+
     let currentUris: string[] = [];
     if (focusedChannelId && channelOverrides[focusedChannelId]) {
       const prefix = `channel-${focusedChannelId}-`;
@@ -606,13 +634,13 @@ export default function CreatePostScreen() {
       if (activePost) currentUris = activePost.imageUris;
     }
 
-    const preSelected = mediaAssets
+    const preSelected = showEmpty ? [] : mediaAssets
       .filter((asset) => currentUris.includes(asset.uri))
       .map((asset) => asset.id);
 
     setSelectedMediaIds(preSelected);
     setMediaLibraryVisible(true);
-    setMediaSheetState(mediaAssets.length > 0 ? "library" : "empty");
+    setMediaSheetState(showEmpty ? "empty" : (mediaAssets.length > 0 ? "library" : "empty"));
   };
 
   const handleMediaToolPress = (_toolId: string) => {
@@ -660,11 +688,18 @@ export default function CreatePostScreen() {
   };
 
   const handleDeleteSelectedMedia = () => {
-    setMediaAssets((current) => current.filter((asset) => !selectedMediaIds.includes(asset.id)));
-    const remaining = mediaAssets.length - selectedMediaIds.length;
-    setSelectedMediaIds([]);
-    setMediaSheetState(remaining > 0 ? "library" : "empty");
-    showToast("Selected media deleted", "success");
+    setPendingDelete({
+      title: "Delete Media",
+      message: `Are you sure you want to delete ${selectedMediaIds.length === 1 ? "this media item" : `these ${selectedMediaIds.length} media items`}?`,
+      confirmLabel: "Yes, Delete",
+      onConfirm: () => {
+        setMediaAssets((current) => current.filter((asset) => !selectedMediaIds.includes(asset.id)));
+        const remaining = mediaAssets.length - selectedMediaIds.length;
+        setSelectedMediaIds([]);
+        setMediaSheetState(remaining > 0 ? "library" : "empty");
+        showToast("Selected media deleted", "success");
+      },
+    });
   };
 
   const handleAddSelectedMedia = () => {
@@ -682,13 +717,13 @@ export default function CreatePostScreen() {
       if (postId) {
         updateChannelOverridePost(focusedChannelId, postId, (prev) => ({
           ...prev,
-          imageUris: selectedUris,
+          imageUris: [...prev.imageUris, ...selectedUris],
         }));
       }
     } else {
       setPosts((current) =>
         current.map((post) =>
-          post.id === activePostId ? { ...post, imageUris: selectedUris } : post,
+          post.id === activePostId ? { ...post, imageUris: [...post.imageUris, ...selectedUris] } : post,
         ),
       );
     }
@@ -716,17 +751,23 @@ export default function CreatePostScreen() {
   };
 
   const handleResetChannelOverride = () => {
-    if (!focusedChannelId || posts.length === 0) return;
-    const resetPosts = posts.map((p) => {
-      postIdCounter.current += 1;
-      return makePost(`post-${postIdCounter.current}`, p.content, [...p.imageUris]);
+    if (!focusedChannelId) return;
+    setPendingDelete({
+      title: "Revert to Global",
+      message: "This will discard the custom content for this channel and revert to the global post. Continue?",
+      confirmLabel: "Yes, Revert",
+      onConfirm: () => {
+        const chId = focusedChannelId;
+        setChannelOverrides((current) => {
+          const next = { ...current };
+          delete next[chId];
+          return next;
+        });
+        setFocusedChannelId(null);
+        setActivePostId(posts[0]?.id ?? "post-1");
+        showToast("Reverted to global mode", "success");
+      },
     });
-    setChannelOverrides((current) => ({
-      ...current,
-      [focusedChannelId]: resetPosts,
-    }));
-    setActivePostId(`channel-${focusedChannelId}-${resetPosts[0].id}`);
-    showToast("Reset to default content", "success");
   };
 
   const updateChannelOverridePost = (
@@ -850,6 +891,11 @@ export default function CreatePostScreen() {
     setActivePostId(posts[0]?.id ?? "post-1");
   }, [focusedChannelId, selectedChannels, posts]);
 
+  // Reset channel scroll position when channels change to avoid stale offset
+  useEffect(() => {
+    channelScrollRef.current?.scrollTo({ x: 0, animated: false });
+  }, [selectedChannels.length]);
+
   useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -915,33 +961,32 @@ export default function CreatePostScreen() {
             />
           </Pressable>
 
-          {postActionMenuVisible ? (
-            <>
-              <Pressable
-                className="absolute -top-[1000px] -bottom-[1000px] -left-[1000px] -right-[1000px] z-10"
-                onPress={() => setPostActionMenuVisible(false)}
-              />
-              <View className="absolute right-0 top-12 z-20 w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
-                {POST_ACTIONS.map((action) => (
-                  <Pressable
-                    key={action.id}
-                    className={`mb-3 h-11 items-center justify-center rounded-[8px] ${
-                      action.tone === "primary"
-                        ? "bg-buttons-primary-bg"
-                        : action.tone === "secondary"
-                          ? "bg-buttons-secondary-bg"
-                          : "bg-buttons-tertiary-bg"
-                    } ${action.id === "draft" ? "mb-0" : ""}`}
-                    onPress={() => handleSave(action.id)}
-                  >
-                    <Text className="font-jakarta text-button-2 font-semibold text-white">
-                      {action.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </>
-          ) : null}
+          <AnimatedDropdown
+            visible={postActionMenuVisible}
+            onClose={() => setPostActionMenuVisible(false)}
+            anchor="top-right"
+            style={{ position: "absolute", right: 0, top: 48 }}
+          >
+            <View className="w-[208px] rounded-[12px] bg-main-menu-bg p-3" style={{ elevation: 2 }}>
+              {POST_ACTIONS.map((action) => (
+                <Pressable
+                  key={action.id}
+                  className={`mb-3 h-11 items-center justify-center rounded-[8px] ${
+                    action.tone === "primary"
+                      ? "bg-buttons-primary-bg"
+                      : action.tone === "secondary"
+                        ? "bg-buttons-secondary-bg"
+                        : "bg-buttons-tertiary-bg"
+                  } ${action.id === "draft" ? "mb-0" : ""}`}
+                  onPress={() => handleSave(action.id)}
+                >
+                  <Text className="font-jakarta text-button-2 font-semibold text-white">
+                    {action.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </AnimatedDropdown>
         </View>
       </View>
 
@@ -994,18 +1039,23 @@ export default function CreatePostScreen() {
                 style={{ maxWidth: MAX_CHANNEL_SCROLL_WIDTH, overflow: "visible" }}
               >
                 <ScrollView
+                  ref={channelScrollRef}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerClassName="items-center gap-1"
+                  contentContainerStyle={{ alignItems: "center", gap: 4, paddingTop: 3, paddingRight: 3 }}
                 >
                   {selectedChannels.map((channel) => (
-                    <ChannelTab
-                      key={channel.id}
-                      active={channel.id === focusedChannelId}
-                      onPress={() => setFocusedChannelId(channel.id)}
-                    >
-                      <ChannelAvatar avatar={channel.avatar} network={channel.network} size={26} allowBadgeOverflow />
-                    </ChannelTab>
+                    <View key={channel.id} className="relative overflow-visible">
+                      <ChannelTab
+                        active={channel.id === focusedChannelId}
+                        onPress={() => setFocusedChannelId(channel.id)}
+                      >
+                        <ChannelAvatar avatar={channel.avatar} network={channel.network} size={26} />
+                      </ChannelTab>
+                      {channelOverrides[channel.id] && channel.id !== focusedChannelId ? (
+                        <View pointerEvents="none" className="absolute h-[10px] w-[10px] rounded-full border-[1.5px] border-buttons-tertiary-bg" style={{ backgroundColor: "#FC69FF", top: -3, right: -3 }} />
+                      ) : null}
+                    </View>
                   ))}
                 </ScrollView>
 
@@ -1065,20 +1115,27 @@ export default function CreatePostScreen() {
                   const chRefId = `channel-${channelId}-${chPost.id}`;
 
                   const deleteChPost = () => {
-                    setChannelOverrides((current) => {
-                      const arr = current[channelId];
-                      if (!arr || arr.length <= 1) return current;
-                      const nextArr = arr.filter((p) => p.id !== chPost.id);
+                    setPendingDelete({
+                      title: "Delete Post",
+                      message: "Are you sure you want to delete this post from the thread?",
+                      confirmLabel: "Yes, Delete",
+                      onConfirm: () => {
+                        setChannelOverrides((current) => {
+                          const arr = current[channelId];
+                          if (!arr || arr.length <= 1) return current;
+                          const nextArr = arr.filter((p) => p.id !== chPost.id);
 
-                      if (activePostId === chRefId) {
-                        const idx = arr.findIndex((p) => p.id === chPost.id);
-                        const fallback = nextArr[Math.max(0, idx - 1)] ?? nextArr[0];
-                        if (fallback) {
-                          setActivePostId(`channel-${channelId}-${fallback.id}`);
-                        }
-                      }
+                          if (activePostId === chRefId) {
+                            const idx = arr.findIndex((p) => p.id === chPost.id);
+                            const fallback = nextArr[Math.max(0, idx - 1)] ?? nextArr[0];
+                            if (fallback) {
+                              setActivePostId(`channel-${channelId}-${fallback.id}`);
+                            }
+                          }
 
-                      return { ...current, [channelId]: nextArr };
+                          return { ...current, [channelId]: nextArr };
+                        });
+                      },
                     });
                   };
 
@@ -1136,10 +1193,16 @@ export default function CreatePostScreen() {
                               <Pressable
                                 className="absolute -right-2 -top-2 h-[24px] w-[24px] items-center justify-center"
                                 onPress={() =>
-                                  updateChannelOverridePost(channelId, chPost.id, (prev) => ({
-                                    ...prev,
-                                    imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
-                                  }))
+                                  setPendingDelete({
+                                    title: "Remove Media",
+                                    message: "Are you sure you want to remove this media?",
+                                    confirmLabel: "Yes, Remove",
+                                    onConfirm: () =>
+                                      updateChannelOverridePost(channelId, chPost.id, (prev) => ({
+                                        ...prev,
+                                        imageUris: prev.imageUris.filter((_, i) => i !== mediaIndex),
+                                      })),
+                                  })
                                 }
                               >
                                 <SvgIcon source={require("@/assets/icons/create-post/media-remove.svg")} size={24} />
@@ -1239,10 +1302,16 @@ export default function CreatePostScreen() {
                           <Pressable
                             className="absolute -right-2 -top-2 h-[24px] w-[24px] items-center justify-center"
                             onPress={() =>
-                              updatePost(post.id, (current) => ({
-                                ...current,
-                                imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
-                              }))
+                              setPendingDelete({
+                                title: "Remove Media",
+                                message: "Are you sure you want to remove this media?",
+                                confirmLabel: "Yes, Remove",
+                                onConfirm: () =>
+                                  updatePost(post.id, (current) => ({
+                                    ...current,
+                                    imageUris: current.imageUris.filter((_, currentIndex) => currentIndex !== mediaIndex),
+                                  })),
+                              })
                             }
                           >
                             <SvgIcon
@@ -1325,6 +1394,12 @@ export default function CreatePostScreen() {
           onDelayChange={setNetworkDelay}
           focusedChannel={focusedChannelId ? focusedChannel : null}
           selectedChannels={selectedChannels}
+          engagedChannelIds={engagedChannelIds}
+          onToggleEngagedChannel={(id) =>
+            setEngagedChannelIds((current) =>
+              current.includes(id) ? current.filter((c) => c !== id) : [...current, id],
+            )
+          }
           repeatValue={repeatPostValue}
           onRepeatChange={(v) => setRepeatPostValue(v as (typeof REPEAT_OPTIONS)[number])}
           tags={effectiveTags}
@@ -1378,6 +1453,20 @@ export default function CreatePostScreen() {
           setDeleteDialogVisible(false);
           setTimeout(() => setSettingsSheet("main"), 350);
         }}
+      />
+
+      <ConfirmDialog
+        visible={pendingDelete !== null}
+        title={pendingDelete?.title ?? ""}
+        message={pendingDelete?.message ?? ""}
+        confirmLabel={pendingDelete?.confirmLabel ?? "Delete"}
+        cancelLabel="No, Cancel"
+        confirmDestructive
+        onConfirm={() => {
+          pendingDelete?.onConfirm();
+          setPendingDelete(null);
+        }}
+        onCancel={() => setPendingDelete(null)}
       />
 
       <ChannelSelectionSheet

@@ -150,6 +150,8 @@ export type SettingsSheetContentProps = {
   focusedChannel: Channel | null;
   /** All selected channels — shown in "Account that will engage" when default tab is active */
   selectedChannels: Channel[];
+  engagedChannelIds: string[];
+  onToggleEngagedChannel: (id: string) => void;
 
   repeatValue: string;
   onRepeatChange: (value: string) => void;
@@ -179,6 +181,8 @@ export function SettingsSheetContent({
   onDelayChange,
   focusedChannel,
   selectedChannels,
+  engagedChannelIds,
+  onToggleEngagedChannel,
   repeatValue,
   onRepeatChange,
   tags,
@@ -281,7 +285,7 @@ export function SettingsSheetContent({
 
         <View
           className="gap-2 px-4"
-          style={{ paddingTop: 20, paddingBottom: Math.max(bottomInset, 34) + 30 }}
+          style={{ paddingTop: 20 }}
         >
           {REPEAT_OPTIONS.map((option) => {
             const selected = option === repeatValue;
@@ -297,6 +301,20 @@ export function SettingsSheetContent({
               </Pressable>
             );
           })}
+        </View>
+
+        <View
+          className="justify-center px-4"
+          style={{ paddingBottom: Math.max(bottomInset, 34) + 10, paddingTop: 6 }}
+        >
+          <Pressable
+            className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
+            onPress={() => onNavigate("main")}
+          >
+            <Text className="font-jakarta text-button font-semibold text-white">
+              Done
+            </Text>
+          </Pressable>
         </View>
       </View>
     );
@@ -316,12 +334,12 @@ export function SettingsSheetContent({
           contentContainerClassName="px-4 pb-5 pt-4"
         >
           <View className="gap-3">
-            <View className="flex-row items-center gap-2 py-2">
+            <Pressable className="flex-row items-center gap-2 py-2" onPress={onToggleCarousel}>
               <CheckBox checked={carousel} onPress={onToggleCarousel} />
               <Text className="font-jakarta text-[14px] text-text-primary">
                 Post as image carousel
               </Text>
-            </View>
+            </Pressable>
 
             <View
               className="pt-4 border-t border-t-white/[0.08]"
@@ -351,19 +369,39 @@ export function SettingsSheetContent({
                       Account that will engage
                     </Text>
                     <View className="flex-row flex-wrap gap-2">
-                      {(focusedChannel ? [focusedChannel] : selectedChannels).map((channel) => (
+                      {focusedChannel ? (
                         <View
-                          key={channel.id}
                           className="items-center justify-center rounded-full border-[1.5px] border-main-accent-purple p-[3px]"
                         >
                           <ChannelAvatar
-                            avatar={channel.avatar}
-                            network={channel.network}
+                            avatar={focusedChannel.avatar}
+                            network={focusedChannel.network}
                             size={36}
                             allowBadgeOverflow
                           />
                         </View>
-                      ))}
+                      ) : (
+                        selectedChannels.map((channel) => {
+                          const isEngaged = engagedChannelIds.includes(channel.id);
+                          return (
+                            <Pressable
+                              key={channel.id}
+                              className={`items-center justify-center rounded-full border-[1.5px] p-[3px] ${
+                                isEngaged ? "border-main-accent-purple" : "border-icon-secondary"
+                              }`}
+                              onPress={() => onToggleEngagedChannel(channel.id)}
+                              style={!isEngaged ? { opacity: 0.4 } : undefined}
+                            >
+                              <ChannelAvatar
+                                avatar={channel.avatar}
+                                network={channel.network}
+                                size={36}
+                                allowBadgeOverflow
+                              />
+                            </Pressable>
+                          );
+                        })
+                      )}
                     </View>
                   </View>
                 </View>
@@ -376,14 +414,24 @@ export function SettingsSheetContent({
           className="justify-center px-4"
           style={{ paddingBottom: Math.max(bottomInset, 34) + 10, paddingTop: 6 }}
         >
-          <Pressable
-            className="h-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
-            onPress={() => onNavigate("main")}
-          >
-            <Text className="font-jakarta text-button font-semibold text-white">
-              Done
-            </Text>
-          </Pressable>
+          {(() => {
+            const canDone = !!focusedChannel || !reposters || engagedChannelIds.length > 0;
+            return (
+              <Pressable
+                className={`h-11 items-center justify-center rounded-[8px] ${
+                  canDone ? "bg-buttons-primary-bg" : "bg-buttons-disabled-bg"
+                }`}
+                disabled={!canDone}
+                onPress={() => onNavigate("main")}
+              >
+                <Text className={`font-jakarta text-button font-semibold ${
+                  canDone ? "text-white" : "text-buttons-disabled-text"
+                }`}>
+                  Done
+                </Text>
+              </Pressable>
+            );
+          })()}
         </View>
       </View>
     );
@@ -404,10 +452,10 @@ export function SettingsSheetContent({
           className="max-h-[300px]"
         >
           {tags.map((tag) => (
-            <View key={tag.id} className="flex-row items-center justify-between">
+            <Pressable key={tag.id} className="flex-row items-center justify-between" onPress={() => onToggleTag(tag.id)}>
               <TagBadge label={tag.label} color={tag.color} />
               <CheckBox checked={tag.selected} onPress={() => onToggleTag(tag.id)} />
-            </View>
+            </Pressable>
           ))}
         </ScrollView>
 

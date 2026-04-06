@@ -12,6 +12,7 @@ type PostsState = {
   addPost: (post: ScheduledPost) => void;
   updatePost: (id: string, updates: Partial<ScheduledPost>) => void;
   deletePost: (id: string) => void;
+  deletePostsByChannelId: (channelId: string) => void;
   reschedulePost: (id: string, newScheduledAt: string) => void;
   clearError: () => void;
   setNavigateToDate: (iso: string | null) => void;
@@ -52,6 +53,13 @@ export const usePostsStore = create<PostsState>((set, get) => ({
     }
     set((state) => ({
       posts: state.posts.filter((p) => p.id !== id),
+      error: null,
+    }));
+  },
+
+  deletePostsByChannelId: (channelId) => {
+    set((state) => ({
+      posts: state.posts.filter((p) => p.channelId !== channelId),
       error: null,
     }));
   },

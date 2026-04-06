@@ -45,6 +45,7 @@ export function ConfirmDialog({
       useNativeDriverForBackdrop
       hideModalContentWhileAnimating
       backdropOpacity={0}
+      backdropTransitionOutTiming={0}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
       style={{ margin: 0 }}
@@ -53,7 +54,7 @@ export function ConfirmDialog({
         <BlurView
           intensity={20}
           tint="dark"
-          experimentalBlurMethod="dimezisBlurView"
+          blurMethod="dimezisBlurView"
           style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         />
         <Pressable className="flex-1 items-center justify-center" onPress={onCancel}>

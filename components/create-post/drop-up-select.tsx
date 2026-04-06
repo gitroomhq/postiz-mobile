@@ -31,17 +31,16 @@ export function DropUpSelect({
 
   return (
     <View>
-      <View ref={triggerRef}>
-        <Pressable
-          className="h-[52px] flex-row items-center justify-between rounded-[10px] border border-input-stroke-default bg-background-primary px-4"
-          onPress={() => (open ? handleClose() : handleOpen())}
-        >
-          <Text className="font-jakarta text-body-1 text-text-primary">
-            {value}
-          </Text>
-          <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} className="text-icon-muted" />
-        </Pressable>
-      </View>
+      <Pressable
+        ref={triggerRef}
+        className="h-[52px] flex-row items-center justify-between rounded-[10px] border border-input-stroke-default bg-background-primary px-4"
+        onPress={() => (open ? handleClose() : handleOpen())}
+      >
+        <Text className="font-jakarta text-body-1 text-text-primary">
+          {value}
+        </Text>
+        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} className="text-icon-muted" />
+      </Pressable>
 
       <Modal
         visible={open}

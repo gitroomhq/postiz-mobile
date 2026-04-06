@@ -18,14 +18,16 @@ export function ChannelAvatar({
 }) {
   const networkConfig = NETWORK_CONFIG[network];
   const badgeSize = Math.max(12, Math.round(size * 0.42));
-  const badgeOffset = allowBadgeOverflow ? Math.round(badgeSize * -0.22) : 0;
+  const badgeOffset = allowBadgeOverflow ? Math.round(badgeSize * -0.22) : -1;
+  // When badge doesn't overflow, expand the container so the badge fits inside
+  const containerSize = allowBadgeOverflow ? size : size + Math.round(badgeSize * 0.35);
 
   return (
     <View
-      className={`relative items-center justify-center rounded-full ${
-        allowBadgeOverflow ? "overflow-visible" : "overflow-hidden"
+      className={`relative items-center justify-center ${
+        allowBadgeOverflow ? "overflow-visible" : ""
       }`}
-      style={{ width: size, height: size }}
+      style={{ width: containerSize, height: containerSize }}
     >
       <Image
         source={{ uri: avatar }}

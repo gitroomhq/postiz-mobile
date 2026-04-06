@@ -95,6 +95,7 @@ export function ChannelSelectionSheet({
                     avatar={channel.avatar}
                     network={channel.network}
                     size={40}
+                    allowBadgeOverflow
                   />
                   <Text className="font-jakarta text-body-1 font-semibold text-text-primary">
                     {channel.name}

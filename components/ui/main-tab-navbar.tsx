@@ -67,7 +67,7 @@ export function MainTabNavbar({ activeTab }: MainTabNavbarProps) {
 
         <Pressable
           className="h-11 w-11 items-center justify-center rounded-[8px] bg-buttons-primary-bg"
-          onPress={() => router.push("/add-channel")}
+          onPress={() => router.push("/create-post")}
         >
           <Image source={require("@/assets/icons/navbar/plus.svg")} className="w-5 h-5" contentFit="contain" />
         </Pressable>

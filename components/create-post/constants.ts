@@ -47,14 +47,16 @@ export const TAG_COLOR_OPTIONS = ["#5D5FFF", "#E323E0", "#3023E3", "#E89623"] as
 
 export const DELAY_OPTIONS = ["Immediately", "After 5 minutes", "After 15 minutes"] as const;
 
-export const MEDIA_LIBRARY_ASSETS = [
+const ALL_MEDIA_ASSETS = [
   { id: "media-1", uri: "https://picsum.photos/seed/postiz-media-1/720/720" },
   { id: "media-2", uri: "https://picsum.photos/seed/postiz-media-2/720/720" },
   { id: "media-3", uri: "https://picsum.photos/seed/postiz-media-3/720/720" },
   { id: "media-4", uri: "https://picsum.photos/seed/postiz-media-4/720/720" },
   { id: "media-5", uri: "https://picsum.photos/seed/postiz-media-5/720/720" },
   { id: "media-6", uri: "https://picsum.photos/seed/postiz-media-6/720/720" },
-] as const;
+];
+
+export const MEDIA_LIBRARY_ASSETS = ALL_MEDIA_ASSETS;
 
 export const INITIAL_TAGS: ComposerTag[] = [
   { id: "personal", label: "Personal", color: "#5D5FFF", selected: true },

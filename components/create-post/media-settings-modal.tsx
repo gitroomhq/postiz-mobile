@@ -44,13 +44,19 @@ export function MediaSettingsModal({
           <BlurView
             intensity={20}
             tint="dark"
-            experimentalBlurMethod="dimezisBlurView"
+            blurMethod="dimezisBlurView"
             style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
           />
         </Pressable>
       }
       animationIn="fadeIn"
       animationOut="fadeOut"
+      animationInTiming={200}
+      animationOutTiming={200}
+      useNativeDriver
+      useNativeDriverForBackdrop
+      hideModalContentWhileAnimating
+      backdropTransitionOutTiming={0}
       avoidKeyboard
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
