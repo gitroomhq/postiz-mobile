@@ -3,13 +3,12 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
-import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AddPostSheet } from "@/components/calendar/add-post-sheet";
 import { CalendarGrid } from "@/components/calendar/calendar-grid";
 import { DatePill } from "@/components/calendar/date-pill";
+import { DaySwiper } from "@/components/calendar/day-swiper";
 import { DateTimePickerSheet } from "@/components/calendar/datetime-picker-sheet";
 import { DragOverlay } from "@/components/calendar/drag-overlay";
 import { MonthSelector } from "@/components/calendar/month-selector";
@@ -106,6 +105,23 @@ export default function CalendarScreen() {
   );
   const timeSlots = useMemo(() => generateTimeSlots(0, 23), []);
 
+  // Posts for adjacent days (used by DaySwiper for prev/next page content)
+  const getOffsetDate = useCallback((offset: number) => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + offset);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [selectedDate]);
+
+  const prevDayPosts = useMemo(
+    () => getPostsForDate(posts, getOffsetDate(-1)),
+    [posts, getOffsetDate],
+  );
+  const nextDayPosts = useMemo(
+    () => getPostsForDate(posts, getOffsetDate(1)),
+    [posts, getOffsetDate],
+  );
+
   const handleDayPress = useCallback((date: Date) => {
     setSelectedDate(date);
     setCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1));
@@ -122,22 +138,7 @@ export default function CalendarScreen() {
     });
   }, []);
 
-  const flingLeft = useMemo(() =>
-    Gesture.Fling()
-      .direction(Directions.LEFT)
-      .onEnd(() => { runOnJS(changeDate)(1); }),
-    [changeDate],
-  );
-  const flingRight = useMemo(() =>
-    Gesture.Fling()
-      .direction(Directions.RIGHT)
-      .onEnd(() => { runOnJS(changeDate)(-1); }),
-    [changeDate],
-  );
-  const swipeDateGesture = useMemo(() =>
-    Gesture.Exclusive(flingLeft, flingRight),
-    [flingLeft, flingRight],
-  );
+  // Day swiping is handled by DaySwiper component
 
   const handleNextMonth = useCallback(() => {
     setCurrentMonth((prev) => addMonths(prev, 1));
@@ -238,25 +239,45 @@ export default function CalendarScreen() {
         <NotificationBellButton />
       </View>
 
-      <GestureDetector gesture={swipeDateGesture}>
-      <View className="flex-1" pointerEvents={monthSelectorOpen ? "none" : "auto"}>
-      <DatePill selectedDate={selectedDate} hasPosts={dayPosts.length > 0} />
+      <DaySwiper onChangeDate={changeDate} enabled={!monthSelectorOpen}>
+        {(offset) => {
+          const date = offset === 0 ? selectedDate : getOffsetDate(offset);
+          const datePosts = offset === 0 ? dayPosts : offset === -1 ? prevDayPosts : nextDayPosts;
+          const hasPosts = datePosts.length > 0;
 
-      <View className="flex-1 px-4">
-        <TimelineView
-          ref={timelineRef}
-          timeSlots={timeSlots}
-          posts={dayPosts}
-          selectedDate={selectedDate}
-          referenceNow={referenceNow}
-          selectedPostId={selectedPost?.id ?? null}
-          selectedSlotHour={addPostVisible ? selectedHour : null}
-          onSlotPress={handleSlotPress}
-          onPostPress={handlePostPress}
-        />
-      </View>
-      </View>
-      </GestureDetector>
+          return (
+            <View className="flex-1" pointerEvents={monthSelectorOpen ? "none" : "auto"}>
+              <DatePill selectedDate={date} hasPosts={hasPosts} />
+              <View className="flex-1 px-4">
+                {offset === 0 ? (
+                  <TimelineView
+                    ref={timelineRef}
+                    timeSlots={timeSlots}
+                    posts={dayPosts}
+                    selectedDate={selectedDate}
+                    referenceNow={referenceNow}
+                    selectedPostId={selectedPost?.id ?? null}
+                    selectedSlotHour={addPostVisible ? selectedHour : null}
+                    onSlotPress={handleSlotPress}
+                    onPostPress={handlePostPress}
+                  />
+                ) : (
+                  <TimelineView
+                    timeSlots={timeSlots}
+                    posts={datePosts}
+                    selectedDate={date}
+                    referenceNow={referenceNow}
+                    selectedPostId={null}
+                    selectedSlotHour={null}
+                    onSlotPress={handleSlotPress}
+                    onPostPress={handlePostPress}
+                  />
+                )}
+              </View>
+            </View>
+          );
+        }}
+      </DaySwiper>
 
       <MainTabNavbar activeTab="calendar" />
 
