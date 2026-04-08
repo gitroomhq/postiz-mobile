@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AddPostSheet } from "@/components/calendar/add-post-sheet";
@@ -120,13 +121,13 @@ export default function CalendarScreen() {
   const flingLeft = useMemo(() =>
     Gesture.Fling()
       .direction(Directions.LEFT)
-      .onEnd(() => { changeDate(1); }),
+      .onEnd(() => { runOnJS(changeDate)(1); }),
     [changeDate],
   );
   const flingRight = useMemo(() =>
     Gesture.Fling()
       .direction(Directions.RIGHT)
-      .onEnd(() => { changeDate(-1); }),
+      .onEnd(() => { runOnJS(changeDate)(-1); }),
     [changeDate],
   );
   const swipeDateGesture = useMemo(() =>
