@@ -1052,7 +1052,7 @@ export default function CreatePostScreen() {
                       >
                         <ChannelAvatar avatar={channel.avatar} network={channel.network} size={26} />
                       </ChannelTab>
-                      {channelOverrides[channel.id] && channel.id !== focusedChannelId ? (
+                      {channelOverrides[channel.id] ? (
                         <View pointerEvents="none" className="absolute h-[10px] w-[10px] rounded-full border-[1.5px] border-buttons-tertiary-bg" style={{ backgroundColor: "#FC69FF", top: -3, right: -3 }} />
                       ) : null}
                     </View>
