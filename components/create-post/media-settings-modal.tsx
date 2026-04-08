@@ -55,8 +55,7 @@ export function MediaSettingsModal({
       animationOutTiming={200}
       useNativeDriver
       useNativeDriverForBackdrop
-      hideModalContentWhileAnimating
-      backdropTransitionOutTiming={0}
+      backdropTransitionOutTiming={200}
       avoidKeyboard
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}

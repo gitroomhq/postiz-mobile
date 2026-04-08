@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type GestureResponderEvent,
   type LayoutChangeEvent,
@@ -198,6 +198,44 @@ export function SettingsSheetContent({
 }: SettingsSheetContentProps) {
   const [hueBarWidth, setHueBarWidth] = useState(0);
   const [gradientSize, setGradientSize] = useState({ width: 0, height: 0 });
+
+  // Dirty tracking for network settings sheet
+  const networkSnapshot = useRef<{
+    carousel: boolean;
+    reposters: boolean;
+    delay: string;
+    engaged: string[];
+  } | null>(null);
+  const [networkDirty, setNetworkDirty] = useState(false);
+
+  // Capture snapshot when entering the network sheet
+  useEffect(() => {
+    if (activeSheet === "network") {
+      networkSnapshot.current = {
+        carousel,
+        reposters,
+        delay,
+        engaged: [...engagedChannelIds],
+      };
+      setNetworkDirty(false);
+    } else {
+      networkSnapshot.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSheet]);
+
+  // Compare current values against snapshot
+  useEffect(() => {
+    if (activeSheet !== "network" || !networkSnapshot.current) return;
+    const snap = networkSnapshot.current;
+    const dirty =
+      carousel !== snap.carousel ||
+      reposters !== snap.reposters ||
+      delay !== snap.delay ||
+      engagedChannelIds.length !== snap.engaged.length ||
+      engagedChannelIds.some((id) => !snap.engaged.includes(id));
+    setNetworkDirty(dirty);
+  }, [activeSheet, carousel, reposters, delay, engagedChannelIds]);
 
   const hsv = hexToHsv(newTagColor);
   const pureHueColor = hsvToHex(hsv.h, 1, 1);
@@ -414,24 +452,19 @@ export function SettingsSheetContent({
           className="justify-center px-4"
           style={{ paddingBottom: Math.max(bottomInset, 34) + 10, paddingTop: 6 }}
         >
-          {(() => {
-            const canDone = !!focusedChannel || !reposters || engagedChannelIds.length > 0;
-            return (
-              <Pressable
-                className={`h-11 items-center justify-center rounded-[8px] ${
-                  canDone ? "bg-buttons-primary-bg" : "bg-buttons-disabled-bg"
-                }`}
-                disabled={!canDone}
-                onPress={() => onNavigate("main")}
-              >
-                <Text className={`font-jakarta text-button font-semibold ${
-                  canDone ? "text-white" : "text-buttons-disabled-text"
-                }`}>
-                  Done
-                </Text>
-              </Pressable>
-            );
-          })()}
+          <Pressable
+            className={`h-11 items-center justify-center rounded-[8px] ${
+              networkDirty ? "bg-buttons-primary-bg" : "bg-buttons-disabled-bg"
+            }`}
+            disabled={!networkDirty}
+            onPress={() => onNavigate("main")}
+          >
+            <Text className={`font-jakarta text-button font-semibold ${
+              networkDirty ? "text-white" : "text-buttons-disabled-text"
+            }`}>
+              Done
+            </Text>
+          </Pressable>
         </View>
       </View>
     );

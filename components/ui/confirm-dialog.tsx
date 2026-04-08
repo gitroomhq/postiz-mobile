@@ -43,9 +43,8 @@ export function ConfirmDialog({
       animationOutTiming={200}
       useNativeDriver
       useNativeDriverForBackdrop
-      hideModalContentWhileAnimating
       backdropOpacity={0}
-      backdropTransitionOutTiming={0}
+      backdropTransitionOutTiming={200}
       statusBarTranslucent
       deviceHeight={Dimensions.get("screen").height}
       style={{ margin: 0 }}

@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
@@ -644,6 +645,7 @@ export default function CreatePostScreen() {
   };
 
   const handleMediaToolPress = (_toolId: string) => {
+    blurActiveEditor();
     setPostActionMenuVisible(false);
     setSettingsSheet(null);
     openMediaLibrary();
@@ -736,7 +738,15 @@ export default function CreatePostScreen() {
     );
   };
 
+  const blurActiveEditor = () => {
+    const editor = editorRefs.current[activePostId];
+    if (editor) editor.blur();
+    // Also dismiss via RN API — catches native keyboard from non-WebView inputs
+    Keyboard.dismiss();
+  };
+
   const openSettingsSheet = () => {
+    blurActiveEditor();
     setPostActionMenuVisible(false);
     setSettingsSheet("main");
   };
@@ -916,7 +926,8 @@ export default function CreatePostScreen() {
   }, [editorsLoading]);
 
   return (
-    <View className="flex-1 pt-10">
+    <BottomSheetModalProvider>
+    <View className="flex-1 bg-background-primary" style={{ paddingTop: insets.top }}>
       <SafeAreaView className="flex-1 rounded-t-3xl bg-background-primary overflow-hidden" edges={[]}>
         <StatusBar style="light" />
 
@@ -927,7 +938,7 @@ export default function CreatePostScreen() {
 
         <Pressable
           className="min-h-[40px] flex-1 flex-row items-center justify-center gap-2 rounded-[6px] border border-buttons-stroke-stroke px-4 pb-[10px] pt-2"
-          onPress={() => setDateTimePickerVisible(true)}
+          onPress={() => { blurActiveEditor(); setDateTimePickerVisible(true); }}
         >
           <SvgIcon source={require("@/assets/icons/create-post/calendar.svg")} size={16} />
           <Text className="font-jakarta text-button-2 font-semibold text-text-primary">
@@ -993,7 +1004,7 @@ export default function CreatePostScreen() {
       <KeyboardAvoidingView
         className="flex-1 bg-background-primary"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -1074,7 +1085,7 @@ export default function CreatePostScreen() {
                 ) : null}
               </View>
 
-              <ChannelTab onPress={() => setChannelSheetVisible(true)}>
+              <ChannelTab onPress={() => { blurActiveEditor(); setChannelSheetVisible(true); }}>
                 <SvgIcon source={require("@/assets/icons/create-post/channel-plus.svg")} size={20} />
               </ChannelTab>
 
@@ -1140,7 +1151,15 @@ export default function CreatePostScreen() {
                   };
 
                   return (
-                    <View key={chPost.id} className={chIndex > 0 ? "mt-5" : ""} ref={(el) => { postViewRefs.current[chRefId] = el; }}>
+                    <Pressable
+                      key={chPost.id}
+                      className={chIndex > 0 ? "mt-5" : ""}
+                      ref={(el) => { postViewRefs.current[chRefId] = el; }}
+                      onPress={() => {
+                        setActivePostId(chRefId);
+                        editorRefs.current[chRefId]?.focus();
+                      }}
+                    >
                       {chIndex > 0 ? <PostConnector /> : null}
 
                       <View className="flex-row items-start gap-4 py-2">
@@ -1218,7 +1237,7 @@ export default function CreatePostScreen() {
                           limit={NETWORK_CHARACTER_LIMITS[channelForLimit.network]}
                         />
                       ) : null}
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>
@@ -1239,7 +1258,15 @@ export default function CreatePostScreen() {
               const limitStatuses = buildNetworkLimitStatuses(selectedChannels, plainTextLength, channelOverrides, post.id);
 
               return (
-                <View key={post.id} className={index > 0 ? "mt-5" : ""} ref={(el) => { postViewRefs.current[post.id] = el; }}>
+                <Pressable
+                  key={post.id}
+                  className={index > 0 ? "mt-5" : ""}
+                  ref={(el) => { postViewRefs.current[post.id] = el; }}
+                  onPress={() => {
+                    setActivePostId(post.id);
+                    editorRefs.current[post.id]?.focus();
+                  }}
+                >
                   {index > 0 ? <PostConnector /> : null}
 
                   <View className="flex-row items-start gap-4 py-2">
@@ -1332,10 +1359,30 @@ export default function CreatePostScreen() {
                   ) : (
                     <CharacterLimitStatus statuses={limitStatuses} />
                   )}
-                </View>
+                </Pressable>
               );
             })}
           </View>
+
+          {/* Tapping the empty gap below posts focuses the last editor */}
+          <Pressable
+            style={{ minHeight: 80 }}
+            onPress={() => {
+              let targetId: string | undefined;
+              if (focusedChannelId && channelOverrides[focusedChannelId]) {
+                const chPosts = channelOverrides[focusedChannelId];
+                const lastPost = chPosts[chPosts.length - 1];
+                if (lastPost) targetId = `channel-${focusedChannelId}-${lastPost.id}`;
+              } else {
+                const lastPost = posts[posts.length - 1];
+                if (lastPost) targetId = lastPost.id;
+              }
+              if (targetId) {
+                setActivePostId(targetId);
+                editorRefs.current[targetId]?.focus();
+              }
+            }}
+          />
 
         </ScrollView>
 
@@ -1368,7 +1415,7 @@ export default function CreatePostScreen() {
 
       <BottomSheetWrapper
         isVisible={settingsSheet !== null}
-        onClose={() => setSettingsSheet(settingsSheet === "main" ? null : "main")}
+        onClose={() => setSettingsSheet(null)}
         showHandle={settingsSheet !== "new-tag"}
         fullHeight={settingsSheet === "new-tag"}
         topOffset={settingsSheet === "new-tag" ? insets.top + 12 : 0}
@@ -1513,5 +1560,6 @@ export default function CreatePostScreen() {
       />
     </SafeAreaView>
     </View>
+    </BottomSheetModalProvider>
   );
 }

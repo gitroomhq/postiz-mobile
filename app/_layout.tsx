@@ -9,6 +9,7 @@ import { DarkTheme, DefaultTheme, type Theme, ThemeProvider } from '@react-navig
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { cssInterop } from 'nativewind';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -65,6 +66,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? PostizDarkTheme : DefaultTheme}>
           <ErrorBoundary>
+            <BottomSheetModalProvider>
             <ToastProvider>
               <Stack initialRouteName="(auth)">
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -76,6 +78,7 @@ export default function RootLayout() {
               </Stack>
               <StatusBar style="auto" />
             </ToastProvider>
+            </BottomSheetModalProvider>
           </ErrorBoundary>
         </ThemeProvider>
       </SafeAreaProvider>
