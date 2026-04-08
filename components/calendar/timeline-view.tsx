@@ -1,4 +1,4 @@
-import { forwardRef, memo, useCallback, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -35,7 +35,7 @@ type TimelineViewProps = {
   onPostPress: (post: ScheduledPost) => void;
 };
 
-function PastSlotPatternSvg() {
+const PastSlotPatternSvg = memo(function PastSlotPatternSvg() {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 291 120" preserveAspectRatio="none">
       {Array.from({ length: PAST_SLOT_PATTERN_COUNT }).map((_, index) => {
@@ -59,17 +59,17 @@ function PastSlotPatternSvg() {
       })}
     </Svg>
   );
-}
+});
 
-function PassedSlotPattern() {
+const PassedSlotPattern = memo(function PassedSlotPattern() {
   return (
     <View className="h-full overflow-hidden rounded-[8px] bg-slot-bg-default">
       <PastSlotPatternSvg />
     </View>
   );
-}
+});
 
-function SlotBlock({
+const SlotBlock = memo(function SlotBlock({
   height,
   isSelected,
   onPress,
@@ -92,7 +92,7 @@ function SlotBlock({
       />
     </Pressable>
   );
-}
+});
 
 function DropTargetHighlight({ hour }: { hour: number }) {
   const { isDragging, targetHour } = useTimelineDragContext();
@@ -124,7 +124,7 @@ type TimelineSlotRowProps = {
   selectedPostId: string | null;
   isSlotSelected: boolean;
   hasDraggedPost: boolean;
-  expandedSlots: Set<number>;
+  isExpanded: boolean;
   onToggleSlot: (hour: number) => void;
   onSlotPress: (hour: number) => void;
   onPostPress: (post: ScheduledPost) => void;
@@ -138,7 +138,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
   selectedPostId,
   isSlotSelected,
   hasDraggedPost,
-  expandedSlots,
+  isExpanded,
   onToggleSlot,
   onSlotPress,
   onPostPress,
@@ -154,7 +154,6 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
   const isPastSlot = isSlotPast && !hasPosts;
   const [hourLabel, meridiemLabel] = slot.label.split(" ");
 
-  const isExpanded = expandedSlots.has(slot.hour);
   const hasMore = slotPosts.length > MAX_VISIBLE_POSTS;
   const visiblePosts = hasMore && !isExpanded
     ? slotPosts.slice(0, MAX_VISIBLE_POSTS)
@@ -263,12 +262,12 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
 
   useImperativeHandle(ref, () => ({
     scrollToHour(hour: number) {
-      const index = timeSlots.findIndex((s) => s.hour === hour);
-      if (index >= 0 && flatListRef.current) {
-        flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.3 });
+      if (flatListRef.current) {
+        const estimatedOffset = hour * (HOUR_HEIGHT + 4);
+        flatListRef.current.scrollToOffset({ offset: estimatedOffset, animated: true });
       }
     },
-  }), [timeSlots]);
+  }), []);
 
   const toggleSlot = useCallback((hour: number) => {
     setExpandedSlots((prev) => {
@@ -297,11 +296,23 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
 
   const hasDraggedPost = dragCtx.draggedPost !== null;
 
+  // Pre-compute posts grouped by hour — avoids O(n) filter per slot in renderItem
+  const postsByHour = useMemo(() => {
+    const map = new Map<number, ScheduledPost[]>();
+    for (const p of posts) {
+      const hour = getPostHour(p);
+      const arr = map.get(hour);
+      if (arr) arr.push(p);
+      else map.set(hour, [p]);
+    }
+    return map;
+  }, [posts]);
+
   const keyExtractor = useCallback((item: TimeSlot) => String(item.hour), []);
 
   const renderItem = useCallback(
     ({ item: slot }: { item: TimeSlot }) => {
-      const slotPosts = posts.filter((p) => getPostHour(p) === slot.hour);
+      const slotPosts = postsByHour.get(slot.hour) ?? [];
 
       return (
         <TimelineSlotRow
@@ -312,7 +323,7 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
           selectedPostId={selectedPostId}
           isSlotSelected={selectedSlotHour === slot.hour}
           hasDraggedPost={hasDraggedPost}
-          expandedSlots={expandedSlots}
+          isExpanded={expandedSlots.has(slot.hour)}
           onToggleSlot={toggleSlot}
           onSlotPress={onSlotPress}
           onPostPress={onPostPress}
@@ -320,7 +331,7 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
       );
     },
     [
-      posts,
+      postsByHour,
       selectedDate,
       referenceNow,
       selectedPostId,
@@ -345,14 +356,10 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
         scrollEnabled={dragCtx.scrollEnabled}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        initialNumToRender={10}
-        maxToRenderPerBatch={6}
-        windowSize={5}
-        getItemLayout={(_data, index) => ({
-          length: HOUR_HEIGHT + 4,
-          offset: (HOUR_HEIGHT + 4) * index,
-          index,
-        })}
+        initialNumToRender={6}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        removeClippedSubviews
       />
     </View>
   );

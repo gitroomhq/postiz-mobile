@@ -91,6 +91,10 @@ export default function CalendarScreen() {
   const [dateTimeVisible, setDateTimeVisible] = useState(false);
 
   // --- Derived ---
+  // Stable reference — only refreshes when selectedDate changes, not every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const referenceNow = useMemo(() => new Date(), [selectedDate]);
+
   const postsMap = useMemo(() => groupPostsByDate(posts), [posts]);
   const calendarDays = useMemo(
     () => getCalendarDays(currentMonth, selectedDate, postsMap),
@@ -244,7 +248,7 @@ export default function CalendarScreen() {
           timeSlots={timeSlots}
           posts={dayPosts}
           selectedDate={selectedDate}
-          referenceNow={new Date()}
+          referenceNow={referenceNow}
           selectedPostId={selectedPost?.id ?? null}
           selectedSlotHour={addPostVisible ? selectedHour : null}
           onSlotPress={handleSlotPress}
