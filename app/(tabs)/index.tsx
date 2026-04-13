@@ -43,6 +43,9 @@ export default function CalendarScreen() {
   const storeDeletePost = usePostsStore((state) => state.deletePost);
   const storeReschedulePost = usePostsStore((state) => state.reschedulePost);
 
+  // Fixed reference date — each carousel page computes its date from this
+  const initialDate = useRef(new Date(new Date().setHours(0, 0, 0, 0))).current;
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -100,27 +103,7 @@ export default function CalendarScreen() {
     () => getCalendarDays(currentMonth, selectedDate, postsMap),
     [currentMonth, selectedDate, postsMap],
   );
-  const dayPosts = useMemo(
-    () => getPostsForDate(posts, selectedDate),
-    [posts, selectedDate],
-  );
   const timeSlots = useMemo(() => generateTimeSlots(0, 23), []);
-
-  const getOffsetDate = useCallback((offset: number) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + offset);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, [selectedDate]);
-
-  const prevDayPosts = useMemo(
-    () => getPostsForDate(posts, getOffsetDate(-1)),
-    [posts, getOffsetDate],
-  );
-  const nextDayPosts = useMemo(
-    () => getPostsForDate(posts, getOffsetDate(1)),
-    [posts, getOffsetDate],
-  );
 
   const handleDayPress = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -159,6 +142,36 @@ export default function CalendarScreen() {
     setSelectedMinute(0);
     setAddPostVisible(true);
   }, []);
+
+  // Stable render function — only changes when posts change.
+  // Each page computes its own date from initialDate + dayOffset (absolute, not relative).
+  const renderDayPage = useCallback(
+    (dayOffset: number) => {
+      const date = new Date(initialDate);
+      date.setDate(date.getDate() + dayOffset);
+      date.setHours(0, 0, 0, 0);
+      const pagePosts = getPostsForDate(posts, date);
+
+      return (
+        <View className="flex-1 bg-background-primary">
+          <DatePill selectedDate={date} hasPosts={pagePosts.length > 0} />
+          <View className="flex-1 px-4">
+            <TimelineView
+              timeSlots={timeSlots}
+              posts={pagePosts}
+              selectedDate={date}
+              referenceNow={referenceNow}
+              selectedPostId={null}
+              selectedSlotHour={null}
+              onSlotPress={handleSlotPress}
+              onPostPress={handlePostPress}
+            />
+          </View>
+        </View>
+      );
+    },
+    [posts, initialDate, timeSlots, referenceNow, handleSlotPress, handlePostPress],
+  );
 
 
   const handleDeleteConfirm = useCallback(() => {
@@ -241,31 +254,11 @@ export default function CalendarScreen() {
         <NotificationBellButton />
       </View>
 
-      <DaySwiper onChangeDate={changeDate} enabled={!monthSelectorOpen}>
-        {(offset) => {
-          const date = offset === 0 ? selectedDate : getOffsetDate(offset);
-          const datePosts = offset === 0 ? dayPosts : offset === -1 ? prevDayPosts : nextDayPosts;
-
-          return (
-            <View className="flex-1 bg-background-primary" pointerEvents={monthSelectorOpen ? "none" : "auto"}>
-              <DatePill selectedDate={date} hasPosts={datePosts.length > 0} />
-              <View className="flex-1 px-4">
-                <TimelineView
-                  ref={offset === 0 ? timelineRef : undefined}
-                  timeSlots={timeSlots}
-                  posts={datePosts}
-                  selectedDate={date}
-                  referenceNow={referenceNow}
-                  selectedPostId={offset === 0 ? selectedPost?.id ?? null : null}
-                  selectedSlotHour={offset === 0 && addPostVisible ? selectedHour : null}
-                  onSlotPress={handleSlotPress}
-                  onPostPress={handlePostPress}
-                />
-              </View>
-            </View>
-          );
-        }}
-      </DaySwiper>
+      <DaySwiper
+        onChangeDate={changeDate}
+        enabled={!monthSelectorOpen}
+        renderPage={renderDayPage}
+      />
 
       <MainTabNavbar activeTab="calendar" />
 

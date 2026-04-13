@@ -5,7 +5,8 @@ import Carousel from "react-native-reanimated-carousel";
 type DaySwiperProps = {
   onChangeDate: (direction: number) => void;
   enabled?: boolean;
-  children: (offset: -1 | 0 | 1) => ReactNode;
+  /** Receives absolute day offset from initial date (0 = today, -1 = yesterday, etc) */
+  renderPage: (dayOffset: number) => ReactNode;
 };
 
 const TOTAL_ITEMS = 10001;
@@ -15,7 +16,7 @@ const DATA = new Array(TOTAL_ITEMS).fill(0);
 export const DaySwiper = memo(function DaySwiper({
   onChangeDate,
   enabled = true,
-  children,
+  renderPage,
 }: DaySwiperProps) {
   const { width: screenWidth } = useWindowDimensions();
   const [height, setHeight] = useState(0);
@@ -38,16 +39,14 @@ export const DaySwiper = memo(function DaySwiper({
 
   const renderItem = useCallback(
     ({ index }: { index: number }) => {
-      const dayOffset = index - currentIndex.current;
-      const clamped = Math.max(-1, Math.min(1, dayOffset)) as -1 | 0 | 1;
-
+      const dayOffset = index - CENTER_INDEX;
       return (
         <View style={{ flex: 1, width: screenWidth }}>
-          {children(clamped)}
+          {renderPage(dayOffset)}
         </View>
       );
     },
-    [children, screenWidth],
+    [renderPage, screenWidth],
   );
 
   return (
@@ -62,7 +61,7 @@ export const DaySwiper = memo(function DaySwiper({
           onSnapToItem={handleSnapToItem}
           enabled={enabled}
           loop={false}
-          windowSize={3}
+          windowSize={5}
           overscrollEnabled
         />
       )}
