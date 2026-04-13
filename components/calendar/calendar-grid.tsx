@@ -39,7 +39,7 @@ export function CalendarGrid({ days, onDayPress }: CalendarGridProps) {
                 ? "text-main-bg"
                 : !day.isCurrentMonth
                   ? "text-text-tertiary"
-                  : day.isToday || day.hasEvents
+                  : day.isToday
                     ? "text-main-accent-pink"
                     : "text-text-secondary";
 
@@ -53,7 +53,7 @@ export function CalendarGrid({ days, onDayPress }: CalendarGridProps) {
                 >
                   <Text
                     className={`font-jakarta text-body-1 ${
-                      day.isSelected || day.isToday || day.hasEvents
+                      day.isSelected || day.isToday
                         ? "font-semibold"
                         : "font-normal"
                     } ${textColor}`}

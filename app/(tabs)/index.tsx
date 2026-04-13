@@ -154,7 +154,7 @@ export default function CalendarScreen() {
 
       return (
         <View className="flex-1 bg-background-primary">
-          <DatePill selectedDate={date} hasPosts={pagePosts.length > 0} />
+          <DatePill selectedDate={date} />
           <View className="flex-1 px-4">
             <TimelineView
               timeSlots={timeSlots}
