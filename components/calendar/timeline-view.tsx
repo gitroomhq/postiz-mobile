@@ -243,6 +243,7 @@ const TimelineSlotRow = memo(function TimelineSlotRow({
 
 export type TimelineViewHandle = {
   scrollToHour: (hour: number) => void;
+  scrollToTop: () => void;
 };
 
 export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(function TimelineView({
@@ -266,6 +267,9 @@ export const TimelineView = forwardRef<TimelineViewHandle, TimelineViewProps>(fu
         const estimatedOffset = hour * (HOUR_HEIGHT + 4);
         flatListRef.current.scrollToOffset({ offset: estimatedOffset, animated: true });
       }
+    },
+    scrollToTop() {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
     },
   }), []);
 

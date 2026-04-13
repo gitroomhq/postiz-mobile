@@ -42,6 +42,7 @@ export default function CalendarScreen() {
   const storeAddPost = usePostsStore((state) => state.addPost);
   const storeDeletePost = usePostsStore((state) => state.deletePost);
   const storeReschedulePost = usePostsStore((state) => state.reschedulePost);
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -105,7 +106,6 @@ export default function CalendarScreen() {
   );
   const timeSlots = useMemo(() => generateTimeSlots(0, 23), []);
 
-  // Posts for adjacent days (used by DaySwiper for prev/next page content)
   const getOffsetDate = useCallback((offset: number) => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + offset);
@@ -136,6 +136,7 @@ export default function CalendarScreen() {
       setCurrentMonth(new Date(next.getFullYear(), next.getMonth(), 1));
       return next;
     });
+    timelineRef.current?.scrollToTop();
   }, []);
 
   // Day swiping is handled by DaySwiper component
@@ -158,6 +159,7 @@ export default function CalendarScreen() {
     setSelectedMinute(0);
     setAddPostVisible(true);
   }, []);
+
 
   const handleDeleteConfirm = useCallback(() => {
     if (deleteTarget) {
@@ -243,36 +245,22 @@ export default function CalendarScreen() {
         {(offset) => {
           const date = offset === 0 ? selectedDate : getOffsetDate(offset);
           const datePosts = offset === 0 ? dayPosts : offset === -1 ? prevDayPosts : nextDayPosts;
-          const hasPosts = datePosts.length > 0;
 
           return (
-            <View className="flex-1" pointerEvents={monthSelectorOpen ? "none" : "auto"}>
-              <DatePill selectedDate={date} hasPosts={hasPosts} />
+            <View className="flex-1 bg-background-primary" pointerEvents={monthSelectorOpen ? "none" : "auto"}>
+              <DatePill selectedDate={date} hasPosts={datePosts.length > 0} />
               <View className="flex-1 px-4">
-                {offset === 0 ? (
-                  <TimelineView
-                    ref={timelineRef}
-                    timeSlots={timeSlots}
-                    posts={dayPosts}
-                    selectedDate={selectedDate}
-                    referenceNow={referenceNow}
-                    selectedPostId={selectedPost?.id ?? null}
-                    selectedSlotHour={addPostVisible ? selectedHour : null}
-                    onSlotPress={handleSlotPress}
-                    onPostPress={handlePostPress}
-                  />
-                ) : (
-                  <TimelineView
-                    timeSlots={timeSlots}
-                    posts={datePosts}
-                    selectedDate={date}
-                    referenceNow={referenceNow}
-                    selectedPostId={null}
-                    selectedSlotHour={null}
-                    onSlotPress={handleSlotPress}
-                    onPostPress={handlePostPress}
-                  />
-                )}
+                <TimelineView
+                  ref={offset === 0 ? timelineRef : undefined}
+                  timeSlots={timeSlots}
+                  posts={datePosts}
+                  selectedDate={date}
+                  referenceNow={referenceNow}
+                  selectedPostId={offset === 0 ? selectedPost?.id ?? null : null}
+                  selectedSlotHour={offset === 0 && addPostVisible ? selectedHour : null}
+                  onSlotPress={handleSlotPress}
+                  onPostPress={handlePostPress}
+                />
               </View>
             </View>
           );
