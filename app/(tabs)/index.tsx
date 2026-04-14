@@ -152,6 +152,12 @@ export default function CalendarScreen() {
       date.setHours(0, 0, 0, 0);
       const pagePosts = getPostsForDate(posts, date);
 
+      // Check if this page is the currently selected date
+      const isCurrentPage =
+        date.getDate() === selectedDate.getDate() &&
+        date.getMonth() === selectedDate.getMonth() &&
+        date.getFullYear() === selectedDate.getFullYear();
+
       return (
         <View className="flex-1 bg-background-primary">
           <DatePill selectedDate={date} />
@@ -161,8 +167,8 @@ export default function CalendarScreen() {
               posts={pagePosts}
               selectedDate={date}
               referenceNow={referenceNow}
-              selectedPostId={null}
-              selectedSlotHour={null}
+              selectedPostId={isCurrentPage ? selectedPost?.id ?? null : null}
+              selectedSlotHour={isCurrentPage && addPostVisible ? selectedHour : null}
               onSlotPress={handleSlotPress}
               onPostPress={handlePostPress}
             />
@@ -170,7 +176,7 @@ export default function CalendarScreen() {
         </View>
       );
     },
-    [posts, initialDate, timeSlots, referenceNow, handleSlotPress, handlePostPress],
+    [posts, initialDate, timeSlots, referenceNow, handleSlotPress, handlePostPress, selectedDate, selectedPost, addPostVisible, selectedHour],
   );
 
 

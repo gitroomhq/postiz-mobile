@@ -68,7 +68,7 @@ export default function RootLayout() {
           <ErrorBoundary>
             <BottomSheetModalProvider>
             <ToastProvider>
-              <Stack initialRouteName="(auth)">
+              <Stack initialRouteName="(auth)" screenOptions={{ contentStyle: { backgroundColor: '#0E0E0E' } }}>
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="notifications" options={{ headerShown: false, animation: 'slide_from_right' }} />
