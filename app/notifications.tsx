@@ -1,7 +1,22 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useCallback, useEffect } from "react";
+import {
+  BackHandler,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 import { Image } from "@/components/ui/image";
 import { NetworkBadge } from "@/components/ui/network-badge";
@@ -56,46 +71,81 @@ function NotificationCard({ item }: { item: NotificationItem }) {
 export default function NotificationsScreen() {
   const router = useRouter();
   const sections = useNotificationsStore((state) => state.sections);
+  const { width: screenWidth } = useWindowDimensions();
+  const translateX = useSharedValue(0);
+
+  const doBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  // Animate out to the right, then actually pop the screen
+  const animatedClose = useCallback(() => {
+    translateX.value = withTiming(
+      screenWidth,
+      { duration: 280, easing: Easing.out(Easing.cubic) },
+      () => {
+        runOnJS(doBack)();
+      },
+    );
+  }, [translateX, screenWidth, doBack]);
+
+  // Intercept Android hardware back button to use our animated close
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      animatedClose();
+      return true;
+    });
+    return () => sub.remove();
+  }, [animatedClose]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   return (
-    <SafeAreaView className="flex-1 bg-main-sections" edges={["top", "bottom"]}>
-      <StatusBar style="light" />
+    <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+      <SafeAreaView className="flex-1 bg-main-sections" edges={["top", "bottom"]}>
+        <StatusBar style="light" />
 
-      <View className="h-[60px] flex-row items-center justify-between px-4">
-        <Pressable className="h-6 w-6 items-center justify-center" onPress={() => router.back()}>
-          <Image
-            source={require("@/assets/icons/create-post/back.svg")}
-            className="h-[13.5px] w-[7.5px]"
-            contentFit="contain"
-          />
-        </Pressable>
+        <View className="h-[60px] flex-row items-center justify-between px-4">
+          <Pressable
+            className="h-6 w-6 items-center justify-center"
+            onPress={animatedClose}
+          >
+            <Image
+              source={require("@/assets/icons/create-post/back.svg")}
+              className="h-[13.5px] w-[7.5px]"
+              contentFit="contain"
+            />
+          </Pressable>
 
-        <Text className="font-jakarta text-[20px] font-semibold leading-7 text-text-primary">
-          Notifications
-        </Text>
+          <Text className="font-jakarta text-[20px] font-semibold leading-7 text-text-primary">
+            Notifications
+          </Text>
 
-        <View className="h-6 w-6" />
-      </View>
+          <View className="h-6 w-6" />
+        </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-4 pb-6 pt-4"
-        showsVerticalScrollIndicator={false}
-      >
-        {sections.map((section, index) => (
-          <View key={section.title} className={index > 0 ? "mt-5" : undefined}>
-            <Text className="font-jakarta text-[14px] font-semibold leading-5 text-text-primary">
-              {section.title}
-            </Text>
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="px-4 pb-6 pt-4"
+          showsVerticalScrollIndicator={false}
+        >
+          {sections.map((section, index) => (
+            <View key={section.title} className={index > 0 ? "mt-5" : undefined}>
+              <Text className="font-jakarta text-[14px] font-semibold leading-5 text-text-primary">
+                {section.title}
+              </Text>
 
-            <View className="mt-2 gap-2">
-              {section.items.map((item) => (
-                <NotificationCard key={item.id} item={item} />
-              ))}
+              <View className="mt-2 gap-2">
+                {section.items.map((item) => (
+                  <NotificationCard key={item.id} item={item} />
+                ))}
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </Animated.View>
   );
 }

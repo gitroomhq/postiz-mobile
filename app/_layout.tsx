@@ -87,24 +87,27 @@ export default function RootLayout() {
                     name="notifications"
                     options={{
                       headerShown: false,
-                      presentation: "containedTransparentModal",
+                      presentation: "transparentModal",
                       animation: "slide_from_right",
+                      contentStyle: { backgroundColor: "transparent" },
                     }}
                   />
                   <Stack.Screen
                     name="add-channel"
                     options={{
                       headerShown: false,
-                      presentation: "containedTransparentModal",
+                      presentation: "transparentModal",
                       animation: "slide_from_right",
+                      contentStyle: { backgroundColor: "transparent" },
                     }}
                   />
                   <Stack.Screen
                     name="create-post"
                     options={{
                       headerShown: false,
-                      presentation: "containedTransparentModal",
+                      presentation: "transparentModal",
                       animation: "slide_from_bottom",
+                      contentStyle: { backgroundColor: "transparent" },
                     }}
                   />
                   <Stack.Screen
