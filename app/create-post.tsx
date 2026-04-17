@@ -1139,7 +1139,7 @@ export default function CreatePostScreen() {
               ref={scrollViewRef}
               className="flex-1 bg-background-primary"
               contentContainerClassName="px-4 pt-3 pb-[92px]"
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps="always"
             >
               {mode === "edit" ? (
                 <View className="mb-4 flex-row items-center gap-1">
@@ -1679,23 +1679,25 @@ export default function CreatePostScreen() {
               </View>
             ) : null}
 
-            <ComposerToolbar
-              onMediaToolPress={handleMediaToolPress}
-              onFormatPress={handleFormatPress}
-              onAddPost={addAnotherPost}
-              onReset={handleResetChannelOverride}
-              bottomInset={keyboardVisible ? 0 : insets.bottom}
-              disabled={
-                mode !== "edit" &&
-                focusedChannelId !== null &&
-                !channelOverrides[focusedChannelId]
-              }
-              showReset={
-                mode !== "edit" &&
-                focusedChannelId !== null &&
-                !!channelOverrides[focusedChannelId]
-              }
-            />
+            {keyboardVisible ? (
+              <ComposerToolbar
+                onMediaToolPress={handleMediaToolPress}
+                onFormatPress={handleFormatPress}
+                onAddPost={addAnotherPost}
+                onReset={handleResetChannelOverride}
+                bottomInset={0}
+                disabled={
+                  mode !== "edit" &&
+                  focusedChannelId !== null &&
+                  !channelOverrides[focusedChannelId]
+                }
+                showReset={
+                  mode !== "edit" &&
+                  focusedChannelId !== null &&
+                  !!channelOverrides[focusedChannelId]
+                }
+              />
+            ) : null}
           </KeyboardAvoidingView>
 
           <DateTimePickerSheet
