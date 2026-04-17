@@ -1352,15 +1352,11 @@ export default function CreatePostScreen() {
                         };
 
                         return (
-                          <Pressable
+                          <View
                             key={chPost.id}
                             className={chIndex > 0 ? "mt-5" : ""}
                             ref={(el) => {
                               postViewRefs.current[chRefId] = el;
-                            }}
-                            onPress={() => {
-                              setActivePostId(chRefId);
-                              editorRefs.current[chRefId]?.focus();
                             }}
                           >
                             {chIndex > 0 ? <PostConnector /> : null}
@@ -1471,17 +1467,24 @@ export default function CreatePostScreen() {
                               </ScrollView>
                             ) : null}
 
-                            {channelForLimit ? (
-                              <SimpleCharacterLimit
-                                currentLength={chPlainText.length}
-                                limit={
-                                  NETWORK_CHARACTER_LIMITS[
-                                    channelForLimit.network
-                                  ]
-                                }
-                              />
-                            ) : null}
-                          </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                setActivePostId(chRefId);
+                                editorRefs.current[chRefId]?.focus();
+                              }}
+                            >
+                              {channelForLimit ? (
+                                <SimpleCharacterLimit
+                                  currentLength={chPlainText.length}
+                                  limit={
+                                    NETWORK_CHARACTER_LIMITS[
+                                      channelForLimit.network
+                                    ]
+                                  }
+                                />
+                              ) : null}
+                            </Pressable>
+                          </View>
                         );
                       })}
                     </View>
@@ -1513,15 +1516,11 @@ export default function CreatePostScreen() {
                   );
 
                   return (
-                    <Pressable
+                    <View
                       key={post.id}
                       className={index > 0 ? "mt-5" : ""}
                       ref={(el) => {
                         postViewRefs.current[post.id] = el;
-                      }}
-                      onPress={() => {
-                        setActivePostId(post.id);
-                        editorRefs.current[post.id]?.focus();
                       }}
                     >
                       {index > 0 ? <PostConnector /> : null}
@@ -1631,19 +1630,26 @@ export default function CreatePostScreen() {
                         </ScrollView>
                       ) : null}
 
-                      {mode === "edit" && selectedChannels[0] ? (
-                        <SimpleCharacterLimit
-                          currentLength={plainTextLength}
-                          limit={
-                            NETWORK_CHARACTER_LIMITS[
-                              selectedChannels[0].network
-                            ]
-                          }
-                        />
-                      ) : (
-                        <CharacterLimitStatus statuses={limitStatuses} />
-                      )}
-                    </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setActivePostId(post.id);
+                          editorRefs.current[post.id]?.focus();
+                        }}
+                      >
+                        {mode === "edit" && selectedChannels[0] ? (
+                          <SimpleCharacterLimit
+                            currentLength={plainTextLength}
+                            limit={
+                              NETWORK_CHARACTER_LIMITS[
+                                selectedChannels[0].network
+                              ]
+                            }
+                          />
+                        ) : (
+                          <CharacterLimitStatus statuses={limitStatuses} />
+                        )}
+                      </Pressable>
+                    </View>
                   );
                 })}
               </View>
